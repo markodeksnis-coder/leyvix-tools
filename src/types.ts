@@ -46,4 +46,33 @@ export interface Project {
   progress: number;
 }
 
-export type TabId = 'dashboard' | 'goals' | 'dream-self' | 'daily-focus';
+export interface DailyLog {
+  date: string;
+  steps?: number;
+  calories?: number;
+  protein?: number;
+  screenTime?: number;
+  phonePickups?: number;
+  callsBooked?: number;
+  showUps?: number;
+  closes?: number;
+}
+
+export interface Habit {
+  id: string;
+  name: string;
+  logs: string[];
+}
+
+export interface Targets {
+  steps: number;
+  calories: number;
+  protein: number;
+  screenTime: number;
+  phonePickups: number;
+  callsBooked: number;
+  showUps: number;
+  closes: number;
+}
+
+export type TabId = 'dashboard' | 'goals' | 'dream-self' | 'daily' | 'weekly';
