@@ -1,20 +1,19 @@
 import { useState } from 'react';
 import type { TabId, Goal, Priority, Project, DreamSelfData } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { initialDreamSelf, initialGoals, initialProjects } from './seedData';
 import Nav from './components/Nav';
 import Dashboard from './pages/Dashboard';
 import Goals from './pages/Goals';
 import DreamSelf from './pages/DreamSelf';
 import DailyFocus from './pages/DailyFocus';
 
-const DEFAULT_DREAM: DreamSelfData = { visionText: '', lifeAreas: [] };
-
 export default function App() {
   const [tab, setTab] = useState<TabId>('dashboard');
-  const [goals, setGoals] = useLocalStorage<Goal[]>('perf:goals', []);
+  const [goals, setGoals] = useLocalStorage<Goal[]>('perf:goals', initialGoals);
   const [priorities, setPriorities] = useLocalStorage<Priority[]>('perf:priorities', []);
-  const [projects, setProjects] = useLocalStorage<Project[]>('perf:projects', []);
-  const [dreamSelf, setDreamSelf] = useLocalStorage<DreamSelfData>('perf:dream', DEFAULT_DREAM);
+  const [projects, setProjects] = useLocalStorage<Project[]>('perf:projects', initialProjects);
+  const [dreamSelf, setDreamSelf] = useLocalStorage<DreamSelfData>('perf:dream', initialDreamSelf);
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white">
