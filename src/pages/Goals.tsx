@@ -10,6 +10,7 @@ interface GoalsProps {
 const CATEGORIES = ['Career', 'Health', 'Mindset', 'Finance', 'Skills', 'Relationships', 'Personal', 'Other'];
 
 function uid() { return Math.random().toString(36).slice(2); }
+function todayStr() { return new Date().toISOString().split('T')[0]; }
 
 const emptyForm = () => ({
   title: '',
@@ -51,10 +52,24 @@ export default function Goals({ goals, setGoals }: GoalsProps) {
 
   const saveGoal = () => {
     if (!form.title.trim()) return;
+    const today = todayStr();
     if (editingGoal) {
-      setGoals(goals.map(g => g.id === editingGoal.id ? { ...editingGoal, ...form } : g));
+      const history = editingGoal.progressHistory ?? [];
+      const filtered = history.filter(h => h.date !== today);
+      const newHistory = form.progress !== editingGoal.progress
+        ? [...filtered, { date: today, value: form.progress }]
+        : history;
+      setGoals(goals.map(g => g.id === editingGoal.id
+        ? { ...editingGoal, ...form, progressHistory: newHistory }
+        : g
+      ));
     } else {
-      const newGoal: Goal = { ...form, id: uid(), createdAt: new Date().toISOString() };
+      const newGoal: Goal = {
+        ...form,
+        id: uid(),
+        createdAt: new Date().toISOString(),
+        progressHistory: form.progress > 0 ? [{ date: today, value: form.progress }] : [],
+      };
       setGoals([...goals, newGoal]);
     }
     setShowForm(false);
@@ -66,6 +81,7 @@ export default function Goals({ goals, setGoals }: GoalsProps) {
   };
 
   const toggleMilestone = (goalId: string, milestoneId: string) => {
+    const today = todayStr();
     setGoals(goals.map(g => {
       if (g.id !== goalId) return g;
       const milestones = g.milestones.map(m =>
@@ -73,7 +89,9 @@ export default function Goals({ goals, setGoals }: GoalsProps) {
       );
       const completedCount = milestones.filter(m => m.completed).length;
       const progress = milestones.length > 0 ? Math.round((completedCount / milestones.length) * 100) : g.progress;
-      return { ...g, milestones, progress };
+      const history = g.progressHistory ?? [];
+      const filtered = history.filter(h => h.date !== today);
+      return { ...g, milestones, progress, progressHistory: [...filtered, { date: today, value: progress }] };
     }));
   };
 
@@ -95,7 +113,13 @@ export default function Goals({ goals, setGoals }: GoalsProps) {
   };
 
   const updateProgress = (goalId: string, progress: number) => {
-    setGoals(goals.map(g => g.id === goalId ? { ...g, progress } : g));
+    const today = todayStr();
+    setGoals(goals.map(g => {
+      if (g.id !== goalId) return g;
+      const history = g.progressHistory ?? [];
+      const filtered = history.filter(h => h.date !== today);
+      return { ...g, progress, progressHistory: [...filtered, { date: today, value: progress }] };
+    }));
   };
 
   const addFormMilestone = () => {

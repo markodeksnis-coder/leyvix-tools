@@ -36,6 +36,20 @@ function getStreak(logs: string[]): number {
   return streak;
 }
 
+function getLongestStreak(logs: string[]): number {
+  if (!logs.length) return 0;
+  const sorted = [...new Set(logs)].sort();
+  let longest = 1, current = 1;
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = new Date(sorted[i - 1] + 'T12:00:00');
+    const curr = new Date(sorted[i] + 'T12:00:00');
+    const diff = Math.round((curr.getTime() - prev.getTime()) / 86400000);
+    if (diff === 1) { current++; if (current > longest) longest = current; }
+    else current = 1;
+  }
+  return longest;
+}
+
 function getLast7(): string[] {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
@@ -134,6 +148,7 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
         <div className="mt-3 divide-y divide-[#161616]">
           {habits.map(habit => {
             const streak = getStreak(habit.logs);
+            const longest = getLongestStreak(habit.logs);
             const doneToday = habit.logs.includes(today);
             return (
               <div key={habit.id} className="flex items-center gap-3 py-2.5">
@@ -155,9 +170,14 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
                     }`} />
                   ))}
                 </div>
-                {streak >= 2 && (
-                  <span className="text-[11px] text-[#FBBF24] font-semibold w-8 text-right">{streak}d</span>
-                )}
+                <div className="text-right flex-shrink-0 min-w-[52px]">
+                  {streak >= 1 && (
+                    <div className="text-[11px] text-[#FBBF24] font-semibold">{streak}d 🔥</div>
+                  )}
+                  {longest > streak && longest >= 2 && (
+                    <div className="text-[10px] text-[#3F3F46]">best {longest}d</div>
+                  )}
+                </div>
               </div>
             );
           })}
