@@ -57,6 +57,9 @@ export interface DailyLog {
   callsBooked?: number;
   showUps?: number;
   closes?: number;
+  sleep?: number;
+  energyLevel?: number;
+  focusLevel?: number;
 }
 
 export interface Habit {
@@ -76,4 +79,4 @@ export interface Targets {
   closes: number;
 }
 
-export type TabId = 'dashboard' | 'goals' | 'dream-self' | 'daily' | 'weekly';
+export type TabId = 'dashboard' | 'goals' | 'dream-self' | 'daily' | 'weekly' | 'insights';
