@@ -14,6 +14,7 @@ export interface Goal {
   milestones: Milestone[];
   createdAt: string;
   targetDate?: string;
+  progressHistory?: { date: string; value: number }[];
 }
 
 export interface LifeArea {

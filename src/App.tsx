@@ -55,7 +55,8 @@ export default function App() {
             targets={targets} />
         )}
         {tab === 'weekly' && (
-          <Weekly dailyLogs={dailyLogs} targets={targets} setTargets={setTargets} />
+          <Weekly dailyLogs={dailyLogs} targets={targets} setTargets={setTargets}
+            habits={habits} priorities={priorities} goals={goals} />
         )}
       </main>
     </div>
