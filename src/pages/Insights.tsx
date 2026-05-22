@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
-import type { DailyLog, Habit, Targets } from '../types';
-import SparkLine from '../components/SparkLine';
+import type { DailyLog, Habit, Targets, Goal } from '../types';
+
+type Period = 7 | 14 | 30;
 
 interface InsightsProps {
   dailyLogs: DailyLog[];
   setDailyLogs: (logs: DailyLog[]) => void;
   habits: Habit[];
   targets: Targets;
+  goals: Goal[];
 }
 
 interface Insight {
@@ -18,12 +20,32 @@ interface Insight {
   priority: number;
 }
 
+interface TomorrowAction {
+  icon: string;
+  category: string;
+  action: string;
+  why: string;
+}
+
+interface RecurringPattern {
+  icon: string;
+  title: string;
+  body: string;
+  severity: 'good' | 'bad' | 'neutral';
+}
+
+const DOW_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 function getLast(n: number): string[] {
   return Array.from({ length: n }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (n - 1 - i));
     return d.toISOString().split('T')[0];
   });
+}
+
+function dow(dateStr: string): number {
+  return new Date(dateStr + 'T12:00:00').getDay();
 }
 
 function getCurrentStreak(logs: string[]): number {
@@ -37,10 +59,8 @@ function getCurrentStreak(logs: string[]): number {
   let streak = 0;
   const cur = new Date(sorted[0]);
   for (const date of sorted) {
-    if (date === cur.toISOString().split('T')[0]) {
-      streak++;
-      cur.setDate(cur.getDate() - 1);
-    } else break;
+    if (date === cur.toISOString().split('T')[0]) { streak++; cur.setDate(cur.getDate() - 1); }
+    else break;
   }
   return streak;
 }
@@ -49,171 +69,341 @@ function avg(vals: number[]): number {
   return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
 }
 
-function generateInsights(dailyLogs: DailyLog[], habits: Habit[], targets: Targets): Insight[] {
+function buildTomorrowPlan(dailyLogs: DailyLog[], habits: Habit[], targets: Targets, goals: Goal[]): TomorrowAction[] {
+  const actions: TomorrowAction[] = [];
+  const today = new Date().toISOString().split('T')[0];
+  const todayLog = dailyLogs.find(l => l.date === today);
+  const last7 = getLast(7);
+  const logsLast7 = dailyLogs.filter(l => last7.includes(l.date));
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowDow = tomorrow.getDay();
+  const tomorrowLabel = DOW_LABELS[tomorrowDow];
+
+  const sleepLogs = logsLast7.filter(l => l.sleep !== undefined);
+  const avgSleep = sleepLogs.length >= 2 ? avg(sleepLogs.map(l => l.sleep!)) : todayLog?.sleep;
+  if (avgSleep !== undefined && avgSleep < 6.5) {
+    actions.push({
+      icon: '🛌', category: 'Recovery',
+      action: 'Get to bed by 10 PM tonight',
+      why: `${avgSleep.toFixed(1)}h avg this week is building sleep debt. Tonight's sleep directly powers tomorrow.`,
+    });
+  }
+
+  const proteinLogs = logsLast7.filter(l => l.protein !== undefined);
+  if (proteinLogs.length >= 2) {
+    const avgProtein = avg(proteinLogs.map(l => l.protein!));
+    if (avgProtein < targets.protein * 0.85) {
+      actions.push({
+        icon: '🥩', category: 'Nutrition',
+        action: `Hit ${targets.protein}g protein tomorrow`,
+        why: `Averaging ${Math.round(avgProtein)}g this week — ${Math.round(targets.protein - avgProtein)}g under target. Add eggs + Greek yogurt at breakfast.`,
+      });
+    }
+  } else if (todayLog?.protein !== undefined && todayLog.protein < targets.protein * 0.8) {
+    actions.push({
+      icon: '🥩', category: 'Nutrition',
+      action: `Boost protein tomorrow to ${targets.protein}g`,
+      why: `Only ${todayLog.protein}g today. Add a shake or extra chicken to close the gap.`,
+    });
+  }
+
+  if (todayLog?.screenTime !== undefined && todayLog.screenTime > targets.screenTime * 1.3) {
+    actions.push({
+      icon: '📱', category: 'Focus',
+      action: `Cap screen time at ${targets.screenTime}h tomorrow`,
+      why: `${todayLog.screenTime}h today — ${(todayLog.screenTime - targets.screenTime).toFixed(1)}h over target. Set app limits tonight.`,
+    });
+  }
+
+  const callLogs = logsLast7.filter(l => l.callsBooked !== undefined);
+  if (callLogs.length >= 2) {
+    const totalCalls = callLogs.reduce((a, l) => a + (l.callsBooked ?? 0), 0);
+    const weeklyTarget = targets.callsBooked * 5;
+    if (totalCalls < weeklyTarget * 0.6) {
+      actions.push({
+        icon: '📞', category: 'Sales',
+        action: `Book ${Math.max(1, targets.callsBooked * 2)} calls tomorrow`,
+        why: `${totalCalls}/${weeklyTarget} calls this week. Volume is the variable — go harder tomorrow.`,
+      });
+    }
+  }
+
+  const weakHabits = habits.filter(h => {
+    const relevant = getLast(28).filter(d => dow(d) === tomorrowDow);
+    const missed = relevant.filter(d => !h.logs.includes(d));
+    return relevant.length >= 2 && missed.length / relevant.length >= 0.6;
+  });
+  if (weakHabits.length === 1) {
+    actions.push({
+      icon: '⚡', category: 'Habits',
+      action: `Lock in "${weakHabits[0].name}" on ${tomorrowLabel}`,
+      why: `You miss this habit on ${tomorrowLabel}s consistently. Schedule it before 9am.`,
+    });
+  } else if (weakHabits.length >= 2) {
+    actions.push({
+      icon: '⚡', category: 'Habits',
+      action: `${tomorrowLabel}s are your weak spot — plan habits tonight`,
+      why: `You miss ${weakHabits.length} habits on ${tomorrowLabel}s. Lay everything out before sleep.`,
+    });
+  }
+
+  const stalledGoal = goals.find(g => {
+    if (g.progress >= 100) return false;
+    const recent = (g.progressHistory ?? []).filter(h => getLast(7).includes(h.date));
+    return recent.length === 0;
+  });
+  if (stalledGoal) {
+    actions.push({
+      icon: '🎯', category: 'Goals',
+      action: `Move "${stalledGoal.title}" forward tomorrow`,
+      why: 'No progress logged in 7+ days. Even 1% counts — consistency over intensity.',
+    });
+  }
+
+  if (todayLog?.energyLevel !== undefined && todayLog.energyLevel <= 4) {
+    actions.push({
+      icon: '🔋', category: 'Energy',
+      action: 'Recovery mode tonight → strong tomorrow',
+      why: 'No screens after 9pm, light dinner, 10-min stretch. Tomorrow starts tonight.',
+    });
+  }
+
+  return actions.slice(0, 5);
+}
+
+function detectPatterns(dailyLogs: DailyLog[], habits: Habit[], targets: Targets, period: Period): RecurringPattern[] {
+  const patterns: RecurringPattern[] = [];
+  const dates = getLast(period);
+  const logs = dailyLogs.filter(l => dates.includes(l.date));
+
+  const dowEnergy: number[][] = Array.from({ length: 7 }, () => []);
+  logs.forEach(l => { if (l.energyLevel !== undefined) dowEnergy[dow(l.date)].push(l.energyLevel); });
+  const dowAvg = dowEnergy.map(v => v.length >= 2 ? avg(v) : null);
+  const valid = dowAvg.map((v, i) => ({ v, i })).filter((x): x is { v: number; i: number } => x.v !== null);
+  if (valid.length >= 4) {
+    const best = valid.reduce((a, b) => (a.v > b.v ? a : b));
+    const worst = valid.reduce((a, b) => (a.v < b.v ? a : b));
+    if (best.v - worst.v >= 2) {
+      patterns.push({
+        icon: '📅', severity: 'neutral',
+        title: `Peak: ${DOW_LABELS[best.i]}s · Low: ${DOW_LABELS[worst.i]}s`,
+        body: `Energy averages ${best.v.toFixed(1)}/10 on ${DOW_LABELS[best.i]}s vs ${worst.v.toFixed(1)}/10 on ${DOW_LABELS[worst.i]}s. Schedule deep work on peak days, lighter tasks on low days.`,
+      });
+    }
+  }
+
+  const wdScreen = logs.filter(l => l.screenTime !== undefined && [1,2,3,4,5].includes(dow(l.date))).map(l => l.screenTime!);
+  const weScreen = logs.filter(l => l.screenTime !== undefined && [0,6].includes(dow(l.date))).map(l => l.screenTime!);
+  if (wdScreen.length >= 3 && weScreen.length >= 2 && avg(weScreen) - avg(wdScreen) >= 1.5) {
+    patterns.push({
+      icon: '📱', severity: 'bad',
+      title: 'Screen time spikes on weekends',
+      body: `Weekdays: ${avg(wdScreen).toFixed(1)}h · Weekends: ${avg(weScreen).toFixed(1)}h. Weekend screen habits set the tone for Monday's focus.`,
+    });
+  }
+
+  const habitMissGroups: { name: string; days: string[] }[] = [];
+  habits.forEach(h => {
+    const highMissDays = [0,1,2,3,4,5,6].filter(di => {
+      const total = dates.filter(d => dow(d) === di);
+      const missed = total.filter(d => !h.logs.includes(d));
+      return total.length >= 2 && missed.length / total.length >= 0.65;
+    });
+    if (highMissDays.length >= 2) {
+      habitMissGroups.push({ name: h.name, days: highMissDays.map(di => DOW_LABELS[di]) });
+    }
+  });
+  if (habitMissGroups.length === 1) {
+    patterns.push({
+      icon: '🔄', severity: 'bad',
+      title: `"${habitMissGroups[0].name}" skipped on ${habitMissGroups[0].days.join(', ')}`,
+      body: 'This is structural, not random. Change the time or trigger on those days.',
+    });
+  } else if (habitMissGroups.length >= 2) {
+    patterns.push({
+      icon: '🔄', severity: 'bad',
+      title: 'Habit gaps on specific days of the week',
+      body: habitMissGroups.slice(0, 3).map(h => `"${h.name}" → ${h.days.join('/')}`).join(' · ') + '. These are structural — address the trigger.',
+    });
+  }
+
+  const sunSleep = logs.filter(l => dow(l.date) === 0 && l.sleep !== undefined).map(l => l.sleep!);
+  const monEnergy = logs.filter(l => dow(l.date) === 1 && l.energyLevel !== undefined).map(l => l.energyLevel!);
+  if (sunSleep.length >= 2 && monEnergy.length >= 2 && avg(sunSleep) < 6.5 && avg(monEnergy) < 6) {
+    patterns.push({
+      icon: '😴', severity: 'bad',
+      title: 'Late Sunday nights are wrecking your Mondays',
+      body: `${avg(sunSleep).toFixed(1)}h Sunday sleep → ${avg(monEnergy).toFixed(1)}/10 Monday energy. Sunday bedtime is the highest-leverage sleep of the week.`,
+    });
+  }
+
+  let streak = 0, maxStreak = 0;
+  [...dates].sort().forEach(d => {
+    const l = logs.find(x => x.date === d);
+    if (l?.protein !== undefined && l.protein < targets.protein * 0.75) { streak++; maxStreak = Math.max(maxStreak, streak); }
+    else if (l?.protein !== undefined) streak = 0;
+  });
+  if (maxStreak >= 4) {
+    patterns.push({
+      icon: '🥩', severity: 'bad',
+      title: `${maxStreak}-day protein deficit`,
+      body: `${maxStreak}+ consecutive days below ${Math.round(targets.protein * 0.75)}g. This is structural — meal prep or add a daily shake.`,
+    });
+  }
+
+  const callDays = logs.filter(l => l.callsBooked !== undefined && l.showUps !== undefined && l.callsBooked > 0);
+  if (callDays.length >= 4) {
+    const rate = avg(callDays.map(l => (l.showUps! / l.callsBooked!) * 100));
+    if (rate < 50) {
+      patterns.push({ icon: '📞', severity: 'bad', title: `Show-up rate: ${Math.round(rate)}%`, body: 'Less than half your booked calls show up. Review your offer, pre-call confirmation, or lead quality.' });
+    } else if (rate >= 80) {
+      patterns.push({ icon: '🏆', severity: 'good', title: `${Math.round(rate)}% show-up rate`, body: 'Elite conversion. Your positioning and confirmation process are working. Focus on booking more.' });
+    }
+  }
+
+  const fullDays = habits.length > 0 ? dates.filter(d => habits.every(h => h.logs.includes(d))).length : 0;
+  if (habits.length > 0 && fullDays / dates.length >= 0.75 && fullDays >= 5) {
+    patterns.push({
+      icon: '🔥', severity: 'good',
+      title: `${Math.round((fullDays / dates.length) * 100)}% full habit completion`,
+      body: `You complete all habits ${Math.round((fullDays / dates.length) * 100)}% of days. This isn't discipline anymore — it's identity.`,
+    });
+  }
+
+  return patterns.slice(0, 6);
+}
+
+function computePeriodScore(dailyLogs: DailyLog[], habits: Habit[], targets: Targets, period: Period) {
+  const dates = getLast(period);
+  const logs = dailyLogs.filter(l => dates.includes(l.date));
+
+  const score = (vals: number[], target: number, lower = false): number | null => {
+    if (!vals.length) return null;
+    return Math.min(100, Math.round(lower ? (target / avg(vals)) * 100 : (avg(vals) / target) * 100));
+  };
+
+  const sleepScore = score(logs.filter(l => l.sleep !== undefined).map(l => l.sleep!), 7.5);
+  const energyScore = score(logs.filter(l => l.energyLevel !== undefined).map(l => l.energyLevel!), 8);
+  const proteinScore = score(logs.filter(l => l.protein !== undefined).map(l => l.protein!), targets.protein);
+  const stepsScore = score(logs.filter(l => l.steps !== undefined).map(l => l.steps!), targets.steps);
+  const nutriArr = [proteinScore, stepsScore].filter((v): v is number => v !== null);
+  const nutritionScore = nutriArr.length ? Math.round(avg(nutriArr)) : null;
+
+  const habitScore = habits.length > 0
+    ? Math.round(avg(habits.map(h => (dates.filter(d => h.logs.includes(d)).length / dates.length) * 100)))
+    : null;
+
+  const hasCallData = logs.some(l => l.callsBooked !== undefined);
+  const hasCloseData = logs.some(l => l.closes !== undefined);
+  const callsTotal = logs.reduce((a, l) => a + (l.callsBooked ?? 0), 0);
+  const closesTotal = logs.reduce((a, l) => a + (l.closes ?? 0), 0);
+  const callScore = hasCallData ? Math.min(100, Math.round((callsTotal / (targets.callsBooked * period * 5 / 7)) * 100)) : null;
+  const closeScore = hasCloseData ? Math.min(100, Math.round((closesTotal / (targets.closes * period * 5 / 7)) * 100)) : null;
+  const workArr = [callScore, closeScore].filter((v): v is number => v !== null);
+  const workScore = workArr.length ? Math.round(avg(workArr)) : null;
+
+  const all = [sleepScore, energyScore, habitScore, nutritionScore, workScore].filter((v): v is number => v !== null);
+  return {
+    overall: all.length ? Math.round(avg(all)) : null,
+    sleep: sleepScore, energy: energyScore, habits: habitScore, nutrition: nutritionScore, work: workScore,
+  };
+}
+
+function generateInsights(dailyLogs: DailyLog[], habits: Habit[], targets: Targets, period: Period): Insight[] {
   const insights: Insight[] = [];
   const today = new Date().toISOString().split('T')[0];
+  const dates = getLast(period);
   const last7 = getLast(7);
-  const last14 = getLast(14);
+  const logs = dailyLogs.filter(l => dates.includes(l.date));
   const logsLast7 = dailyLogs.filter(l => last7.includes(l.date));
-  const logsLast14 = dailyLogs.filter(l => last14.includes(l.date));
   const todayLog = dailyLogs.find(l => l.date === today);
 
-  // Sleep deficit
-  const sleepLogs7 = logsLast7.filter(l => l.sleep !== undefined);
-  if (sleepLogs7.length >= 3) {
-    const avgSleep = avg(sleepLogs7.map(l => l.sleep!));
-    if (avgSleep < 6) {
-      insights.push({
-        type: 'warning', icon: '😴', priority: 1,
-        title: 'Sleep deficit detected',
-        body: `You're averaging ${avgSleep.toFixed(1)}h this week. Under 6h is compounding fatigue and hurting focus. Try getting to bed 30–45 min earlier tonight.`,
-        metric: `${avgSleep.toFixed(1)}h avg`,
-      });
-    } else if (avgSleep >= 7.5) {
-      insights.push({
-        type: 'win', icon: '🌙', priority: 6,
-        title: 'Sleep is locked in',
-        body: `${avgSleep.toFixed(1)}h average this week. Quality sleep is your foundation — everything else performs better because of this.`,
-        metric: `${avgSleep.toFixed(1)}h avg`,
-      });
+  const sleepLogs = logs.filter(l => l.sleep !== undefined);
+  if (sleepLogs.length >= 3) {
+    const a = avg(sleepLogs.map(l => l.sleep!));
+    if (a < 6) insights.push({ type: 'warning', icon: '😴', priority: 1, title: 'Sleep deficit', body: `${a.toFixed(1)}h avg over ${period} days. Under 6h compounds fatigue — aim for 10pm bedtime.`, metric: `${a.toFixed(1)}h avg` });
+    else if (a >= 7.5) insights.push({ type: 'win', icon: '🌙', priority: 6, title: 'Sleep locked in', body: `${a.toFixed(1)}h average. Your foundation is solid — everything performs better because of this.`, metric: `${a.toFixed(1)}h avg` });
+  }
+
+  const withBoth = logs.filter(l => l.sleep !== undefined && l.energyLevel !== undefined);
+  if (withBoth.length >= 4) {
+    const hi = withBoth.filter(l => l.sleep! >= 7);
+    const lo = withBoth.filter(l => l.sleep! < 7);
+    if (hi.length >= 2 && lo.length >= 2) {
+      const eHi = avg(hi.map(l => l.energyLevel!));
+      const eLo = avg(lo.map(l => l.energyLevel!));
+      const diff = eHi - eLo;
+      if (diff >= 1.5) insights.push({ type: 'pattern', icon: '⚡', priority: 2, title: 'Sleep is your energy lever', body: `7h+ nights: ${eHi.toFixed(1)}/10 energy. Under 7h: ${eLo.toFixed(1)}/10. A ${diff.toFixed(1)}-point swing — bigger than any supplement.`, metric: `+${diff.toFixed(1)} energy` });
     }
   }
 
-  // Sleep drives energy correlation
-  const withSleepEnergy = logsLast14.filter(l => l.sleep !== undefined && l.energyLevel !== undefined);
-  if (withSleepEnergy.length >= 4) {
-    const highSleep = withSleepEnergy.filter(l => l.sleep! >= 7);
-    const lowSleep = withSleepEnergy.filter(l => l.sleep! < 7);
-    if (highSleep.length >= 2 && lowSleep.length >= 2) {
-      const eHigh = avg(highSleep.map(l => l.energyLevel!));
-      const eLow = avg(lowSleep.map(l => l.energyLevel!));
-      if (eHigh - eLow >= 1.5) {
-        insights.push({
-          type: 'pattern', icon: '⚡', priority: 2,
-          title: 'Sleep is your biggest energy lever',
-          body: `On 7h+ nights your energy averages ${eHigh.toFixed(1)}/10. On less sleep: ${eLow.toFixed(1)}/10. That's a ${(eHigh - eLow).toFixed(1)}-point swing — more than any supplement.`,
-          metric: `+${(eHigh - eLow).toFixed(1)} energy`,
-        });
-      }
+  const withFS = logs.filter(l => l.focusLevel !== undefined && l.screenTime !== undefined);
+  if (withFS.length >= 4) {
+    const hi = withFS.filter(l => l.screenTime! > targets.screenTime);
+    const ok = withFS.filter(l => l.screenTime! <= targets.screenTime);
+    if (hi.length >= 2 && ok.length >= 2) {
+      const diff = avg(ok.map(l => l.focusLevel!)) - avg(hi.map(l => l.focusLevel!));
+      if (diff >= 1) insights.push({ type: 'pattern', icon: '📱', priority: 2, title: 'Screen time cuts focus', body: `High screen days: ${avg(hi.map(l => l.focusLevel!)).toFixed(1)}/10 focus. Within target: ${avg(ok.map(l => l.focusLevel!)).toFixed(1)}/10.`, metric: `-${diff.toFixed(1)} focus on high days` });
     }
   }
 
-  // Focus vs screen time
-  const withFocusScreen = logsLast14.filter(l => l.focusLevel !== undefined && l.screenTime !== undefined);
-  if (withFocusScreen.length >= 4) {
-    const highScreen = withFocusScreen.filter(l => l.screenTime! > targets.screenTime);
-    const okScreen = withFocusScreen.filter(l => l.screenTime! <= targets.screenTime);
-    if (highScreen.length >= 2 && okScreen.length >= 2) {
-      const fHigh = avg(highScreen.map(l => l.focusLevel!));
-      const fOk = avg(okScreen.map(l => l.focusLevel!));
-      if (fOk - fHigh >= 1) {
-        insights.push({
-          type: 'pattern', icon: '📱', priority: 2,
-          title: 'Screen time is stealing your focus',
-          body: `On high screen time days your focus drops to ${fHigh.toFixed(1)}/10. Within target: ${fOk.toFixed(1)}/10. Cutting phone time by 1h could be worth more than you think.`,
-          metric: `-${(fOk - fHigh).toFixed(1)} focus on high days`,
-        });
-      }
-    }
-  }
-
-  // Habits = energy
-  const fullHabitDays = last14.filter(d => habits.length > 0 && habits.every(h => h.logs.includes(d)));
-  const partialDays = last14.filter(d => !habits.every(h => h.logs.includes(d)) && habits.some(h => h.logs.includes(d)));
-  const efFull = dailyLogs.filter(l => fullHabitDays.includes(l.date) && l.energyLevel !== undefined).map(l => l.energyLevel!);
-  const efPart = dailyLogs.filter(l => partialDays.includes(l.date) && l.energyLevel !== undefined).map(l => l.energyLevel!);
-  if (efFull.length >= 2 && efPart.length >= 2) {
-    const diff = avg(efFull) - avg(efPart);
-    if (diff >= 1) {
-      insights.push({
-        type: 'pattern', icon: '🔥', priority: 2,
-        title: 'Your habits are your energy source',
-        body: `On days you complete all habits, energy averages ${avg(efFull).toFixed(1)}/10 vs ${avg(efPart).toFixed(1)}/10 on partial days. The habits aren't just discipline — they're fuel.`,
-        metric: `+${diff.toFixed(1)} energy on full days`,
-      });
-    }
-  }
-
-  // Low focus today
-  if (todayLog?.focusLevel !== undefined && todayLog.focusLevel <= 4) {
-    insights.push({
-      type: 'tip', icon: '🧠', priority: 1,
-      title: 'Focus is low today',
-      body: 'Try: close all tabs except one, do a 2-min brain dump on paper, take a 10-min walk without your phone. Focus follows a clear environment.',
-    });
-  }
-
-  // Low energy today
+  if (todayLog?.focusLevel !== undefined && todayLog.focusLevel <= 4) insights.push({ type: 'tip', icon: '🧠', priority: 1, title: 'Focus is low today', body: 'Close all tabs, 2-min brain dump on paper, 10-min walk without phone.' });
   if (todayLog?.energyLevel !== undefined && todayLog.energyLevel <= 4) {
     const tips: string[] = [];
-    if ((todayLog.sleep ?? 8) < 7) tips.push('prioritize an early bedtime tonight');
-    if ((todayLog.protein ?? targets.protein) < targets.protein * 0.6) tips.push('eat a high-protein meal now');
-    tips.push('get outside for 10 min');
-    insights.push({
-      type: 'tip', icon: '⚡', priority: 1,
-      title: 'Energy is low — here\'s how to recover',
-      body: tips.join(' · ') + '. Small resets compound into better afternoons.',
-    });
+    if ((todayLog.sleep ?? 8) < 7) tips.push('early bedtime tonight');
+    if ((todayLog.protein ?? targets.protein) < targets.protein * 0.6) tips.push('eat high-protein now');
+    tips.push('10 min outside');
+    insights.push({ type: 'tip', icon: '⚡', priority: 1, title: 'Low energy — recovery mode', body: tips.join(' · ') + '. Small resets compound.' });
   }
 
-  // Protein below target
-  const proteinLogs = logsLast7.filter(l => l.protein !== undefined);
-  if (proteinLogs.length >= 3) {
-    const below = proteinLogs.filter(l => l.protein! < targets.protein * 0.8);
-    if (below.length >= 3) {
-      insights.push({
-        type: 'tip', icon: '🥩', priority: 3,
-        title: 'Protein below target most days',
-        body: `${below.length} of the last ${proteinLogs.length} days you've been under ${Math.round(targets.protein * 0.8)}g. Protein directly affects energy, mood, and recovery. Add Greek yogurt, cottage cheese, or a shake.`,
-        metric: `${below.length}/${proteinLogs.length} days under`,
-      });
-    }
-  }
+  const below = logsLast7.filter(l => l.protein !== undefined && l.protein < targets.protein * 0.8);
+  const proteinTotal = logsLast7.filter(l => l.protein !== undefined);
+  if (proteinTotal.length >= 3 && below.length >= 3) insights.push({ type: 'tip', icon: '🥩', priority: 3, title: 'Protein below target most days', body: `${below.length}/${proteinTotal.length} days under ${Math.round(targets.protein * 0.8)}g. Add Greek yogurt or a shake.`, metric: `${below.length}/${proteinTotal.length} days under` });
 
-  // Streak win
   const maxStreak = habits.reduce((max, h) => Math.max(max, getCurrentStreak(h.logs)), 0);
-  if (maxStreak >= 7) {
-    insights.push({
-      type: 'win', icon: '🏆', priority: 5,
-      title: `${maxStreak}-day streak — don't break it`,
-      body: `Consistency compounds. At ${maxStreak} days, you're building a real identity shift. The longer the streak, the more it becomes who you are, not just what you do.`,
-      metric: `${maxStreak} days`,
-    });
-  }
+  if (maxStreak >= 7) insights.push({ type: 'win', icon: '🏆', priority: 5, title: `${maxStreak}-day streak`, body: `At ${maxStreak} days this is becoming identity. Don't break it.`, metric: `${maxStreak} days` });
 
-  // No energy data yet
-  if (logsLast7.filter(l => l.energyLevel !== undefined).length === 0) {
-    insights.push({
-      type: 'tip', icon: '📊', priority: 4,
-      title: 'Start tracking your energy',
-      body: 'Log your sleep, energy, and focus daily. After 5 days the AI starts showing you exactly what\'s driving your best performance — and what\'s holding you back.',
-    });
-  }
+  if (!logs.some(l => l.energyLevel !== undefined)) insights.push({ type: 'tip', icon: '📊', priority: 4, title: 'Start tracking wellbeing', body: 'Log sleep, energy & focus daily. After 5 days the insights become precise and personalized.' });
 
   return insights.sort((a, b) => a.priority - b.priority);
 }
 
+function scoreColor(v: number): string {
+  if (v >= 80) return '#34D399';
+  if (v >= 60) return '#FBBF24';
+  return '#F87171';
+}
+
 const insightColors = {
-  warning: { bg: 'bg-[#F87171]/8', border: 'border-[#F87171]/20', badge: 'bg-[#F87171]/10 text-[#F87171]' },
-  tip: { bg: 'bg-[#FBBF24]/8', border: 'border-[#FBBF24]/20', badge: 'bg-[#FBBF24]/10 text-[#FBBF24]' },
-  win: { bg: 'bg-[#34D399]/8', border: 'border-[#34D399]/20', badge: 'bg-[#34D399]/10 text-[#34D399]' },
-  pattern: { bg: 'bg-[#818CF8]/8', border: 'border-[#818CF8]/20', badge: 'bg-[#818CF8]/10 text-[#818CF8]' },
+  warning: { bg: 'bg-red-500/10', border: 'border-red-500/20', badge: 'bg-red-500/10 text-red-400' },
+  tip: { bg: 'bg-yellow-500/10', border: 'border-yellow-500/20', badge: 'bg-yellow-500/10 text-yellow-400' },
+  win: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', badge: 'bg-emerald-500/10 text-emerald-400' },
+  pattern: { bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', badge: 'bg-indigo-500/10 text-indigo-400' },
 };
 
-export default function Insights({ dailyLogs, setDailyLogs, habits, targets }: InsightsProps) {
+const patternColors = {
+  good: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', dot: 'bg-emerald-400' },
+  bad: { bg: 'bg-red-500/10', border: 'border-red-500/20', dot: 'bg-red-400' },
+  neutral: { bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', dot: 'bg-indigo-400' },
+};
+
+export default function Insights({ dailyLogs, setDailyLogs, habits, targets, goals }: InsightsProps) {
+  const [period, setPeriod] = useState<Period>(7);
   const today = new Date().toISOString().split('T')[0];
   const todayLog = dailyLogs.find(l => l.date === today) ?? { date: today };
   const [draft, setDraft] = useState<DailyLog>(todayLog);
   const [showLog, setShowLog] = useState(false);
 
-  const insights = useMemo(() => generateInsights(dailyLogs, habits, targets), [dailyLogs, habits, targets]);
+  const tomorrowPlan = useMemo(() => buildTomorrowPlan(dailyLogs, habits, targets, goals), [dailyLogs, habits, targets, goals]);
+  const patterns = useMemo(() => detectPatterns(dailyLogs, habits, targets, period), [dailyLogs, habits, targets, period]);
+  const periodScore = useMemo(() => computePeriodScore(dailyLogs, habits, targets, period), [dailyLogs, habits, targets, period]);
+  const insights = useMemo(() => generateInsights(dailyLogs, habits, targets, period), [dailyLogs, habits, targets, period]);
 
-  const last14 = getLast(14);
-
-  const sleepData = last14.map(d => dailyLogs.find(l => l.date === d)?.sleep ?? null);
-  const energyData = last14.map(d => dailyLogs.find(l => l.date === d)?.energyLevel ?? null);
-  const focusData = last14.map(d => dailyLogs.find(l => l.date === d)?.focusLevel ?? null);
-
+  const periodDates = getLast(period);
+  const sleepData = periodDates.map(d => dailyLogs.find(l => l.date === d)?.sleep ?? null);
+  const energyData = periodDates.map(d => dailyLogs.find(l => l.date === d)?.energyLevel ?? null);
+  const focusData = periodDates.map(d => dailyLogs.find(l => l.date === d)?.focusLevel ?? null);
   const hasAnyData = sleepData.some(v => v !== null) || energyData.some(v => v !== null);
 
   const saveLog = () => {
@@ -223,52 +413,132 @@ export default function Insights({ dailyLogs, setDailyLogs, habits, targets }: I
 
   const wellbeingLogged = todayLog.energyLevel !== undefined || todayLog.sleep !== undefined || todayLog.focusLevel !== undefined;
 
+  const scoreItems = [
+    { label: 'Sleep', value: periodScore.sleep, icon: '😴' },
+    { label: 'Energy', value: periodScore.energy, icon: '⚡' },
+    { label: 'Habits', value: periodScore.habits, icon: '🔥' },
+    { label: 'Nutrition', value: periodScore.nutrition, icon: '🥩' },
+    { label: 'Work', value: periodScore.work, icon: '💼' },
+  ];
+
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-xl font-semibold text-white">Insights</h1>
-        <p className="text-sm text-[#52525B] mt-0.5">What your data says about you</p>
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-white">Insights</h1>
+          <p className="text-sm text-[#52525B] mt-0.5">What your data says about you</p>
+        </div>
+        <div className="flex gap-1 bg-[#111111] border border-[#1E1E1E] rounded-lg p-1">
+          {([7, 14, 30] as Period[]).map(p => (
+            <button key={p} onClick={() => setPeriod(p)}
+              className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${
+                period === p ? 'bg-[#818CF8] text-white' : 'text-[#52525B] hover:text-[#A1A1AA]'
+              }`}
+            >{p}d</button>
+          ))}
+        </div>
       </div>
 
-      {/* Today's Wellbeing */}
       <div className="bg-[#111111] border border-[#1E1E1E] rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-white">Today's Wellbeing</h2>
-          <button
-            onClick={() => { setDraft({ ...todayLog }); setShowLog(true); }}
-            className="text-xs text-[#818CF8] hover:text-[#A5B4FC] transition-colors"
-          >
+          <button onClick={() => { setDraft({ ...todayLog }); setShowLog(true); }} className="text-xs text-[#818CF8] hover:text-[#A5B4FC] transition-colors">
             {wellbeingLogged ? 'Edit' : '+ Log'}
           </button>
         </div>
-
         {wellbeingLogged ? (
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'Sleep', value: todayLog.sleep !== undefined ? `${todayLog.sleep}h` : null, max: 10, color: todayLog.sleep !== undefined ? (todayLog.sleep >= 7 ? '#34D399' : todayLog.sleep >= 6 ? '#FBBF24' : '#F87171') : '#3F3F46' },
-              { label: 'Energy', value: todayLog.energyLevel !== undefined ? `${todayLog.energyLevel}/10` : null, max: 10, color: todayLog.energyLevel !== undefined ? (todayLog.energyLevel >= 7 ? '#34D399' : todayLog.energyLevel >= 5 ? '#FBBF24' : '#F87171') : '#3F3F46' },
-              { label: 'Focus', value: todayLog.focusLevel !== undefined ? `${todayLog.focusLevel}/10` : null, max: 10, color: todayLog.focusLevel !== undefined ? (todayLog.focusLevel >= 7 ? '#34D399' : todayLog.focusLevel >= 5 ? '#FBBF24' : '#F87171') : '#3F3F46' },
+              { label: 'Sleep', val: todayLog.sleep !== undefined ? `${todayLog.sleep}h` : null, color: todayLog.sleep !== undefined ? (todayLog.sleep >= 7 ? '#34D399' : todayLog.sleep >= 6 ? '#FBBF24' : '#F87171') : '#3F3F46' },
+              { label: 'Energy', val: todayLog.energyLevel !== undefined ? `${todayLog.energyLevel}/10` : null, color: todayLog.energyLevel !== undefined ? (todayLog.energyLevel >= 7 ? '#34D399' : todayLog.energyLevel >= 5 ? '#FBBF24' : '#F87171') : '#3F3F46' },
+              { label: 'Focus', val: todayLog.focusLevel !== undefined ? `${todayLog.focusLevel}/10` : null, color: todayLog.focusLevel !== undefined ? (todayLog.focusLevel >= 7 ? '#34D399' : todayLog.focusLevel >= 5 ? '#FBBF24' : '#F87171') : '#3F3F46' },
             ].map(m => (
               <div key={m.label} className="bg-[#0A0A0A] rounded-lg p-3 text-center">
                 <p className="text-[10px] text-[#52525B] mb-1">{m.label}</p>
-                <p className="text-xl font-bold" style={{ color: m.color }}>{m.value ?? '—'}</p>
+                <p className="text-xl font-bold" style={{ color: m.color }}>{m.val ?? '—'}</p>
               </div>
             ))}
           </div>
         ) : (
           <div className="text-center py-4">
             <p className="text-sm text-[#3F3F46] mb-3">Log sleep, energy & focus to unlock personalized insights</p>
-            <button
-              onClick={() => { setDraft({ ...todayLog }); setShowLog(true); }}
-              className="px-4 py-2 bg-[#818CF8] hover:bg-[#6366F1] text-white text-sm font-medium rounded-lg transition-colors"
-            >
-              Log Now
-            </button>
+            <button onClick={() => { setDraft({ ...todayLog }); setShowLog(true); }} className="px-4 py-2 bg-[#818CF8] hover:bg-[#6366F1] text-white text-sm font-medium rounded-lg transition-colors">Log Now</button>
           </div>
         )}
       </div>
 
-      {/* Insights */}
+      {tomorrowPlan.length > 0 && (
+        <div className="bg-[#111111] border border-[#1E1E1E] rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-base">🌅</span>
+            <h2 className="text-sm font-semibold text-white">Tomorrow's Plan</h2>
+            <span className="text-[10px] px-1.5 py-0.5 bg-[#818CF8]/10 text-[#818CF8] rounded font-semibold ml-auto">Based on your data</span>
+          </div>
+          <div className="space-y-2">
+            {tomorrowPlan.map((action, i) => (
+              <div key={i} className="flex gap-3 p-3 bg-[#0A0A0A] rounded-lg">
+                <span className="text-lg flex-shrink-0 mt-0.5">{action.icon}</span>
+                <div className="min-w-0">
+                  <div className="mb-0.5">
+                    <span className="text-[10px] px-1.5 py-0.5 bg-[#1E1E1E] text-[#71717A] rounded font-semibold uppercase tracking-wide">{action.category}</span>
+                  </div>
+                  <p className="text-sm font-medium text-white leading-snug">{action.action}</p>
+                  <p className="text-xs text-[#71717A] mt-0.5 leading-relaxed">{action.why}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="bg-[#111111] border border-[#1E1E1E] rounded-xl p-4">
+        <h2 className="text-sm font-semibold text-white mb-3">{period}-Day Performance</h2>
+        {periodScore.overall !== null ? (
+          <div className="flex items-center gap-5">
+            <div className="flex-shrink-0 w-16 h-16 rounded-full border-[3px] flex items-center justify-center" style={{ borderColor: scoreColor(periodScore.overall) }}>
+              <span className="text-xl font-bold" style={{ color: scoreColor(periodScore.overall) }}>{periodScore.overall}</span>
+            </div>
+            <div className="flex-1 space-y-2.5">
+              {scoreItems.filter(s => s.value !== null).map(s => (
+                <div key={s.label} className="flex items-center gap-2">
+                  <span className="text-sm w-4 flex-shrink-0">{s.icon}</span>
+                  <span className="text-xs text-[#71717A] w-14 flex-shrink-0">{s.label}</span>
+                  <div className="flex-1 h-1.5 bg-[#1A1A1A] rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${s.value}%`, backgroundColor: scoreColor(s.value!) }} />
+                  </div>
+                  <span className="text-xs font-semibold w-9 text-right flex-shrink-0" style={{ color: scoreColor(s.value!) }}>{s.value}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-[#3F3F46] text-center py-3">Log a few days of data to see your performance score</p>
+        )}
+      </div>
+
+      {patterns.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-[11px] font-semibold text-[#52525B] uppercase tracking-wider">Recurring Patterns</p>
+          {patterns.map((p, i) => {
+            const c = patternColors[p.severity];
+            return (
+              <div key={i} className={`rounded-xl p-4 border ${c.bg} ${c.border}`}>
+                <div className="flex items-start gap-3">
+                  <span className="text-xl flex-shrink-0 mt-0.5">{p.icon}</span>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${c.dot}`} />
+                      <h3 className="text-sm font-semibold text-white">{p.title}</h3>
+                    </div>
+                    <p className="text-xs text-[#A1A1AA] leading-relaxed">{p.body}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {insights.length > 0 && (
         <div className="space-y-3">
           <p className="text-[11px] font-semibold text-[#52525B] uppercase tracking-wider">Recommendations</p>
@@ -281,9 +551,7 @@ export default function Insights({ dailyLogs, setDailyLogs, habits, targets }: I
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h3 className="text-sm font-semibold text-white">{ins.title}</h3>
-                      {ins.metric && (
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold flex-shrink-0 ${c.badge}`}>{ins.metric}</span>
-                      )}
+                      {ins.metric && <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold flex-shrink-0 ${c.badge}`}>{ins.metric}</span>}
                     </div>
                     <p className="text-xs text-[#A1A1AA] leading-relaxed">{ins.body}</p>
                   </div>
@@ -294,53 +562,40 @@ export default function Insights({ dailyLogs, setDailyLogs, habits, targets }: I
         </div>
       )}
 
-      {/* 14-day Trends */}
       {hasAnyData && (
         <div className="bg-[#111111] border border-[#1E1E1E] rounded-xl p-4 space-y-5">
-          <p className="text-[11px] font-semibold text-[#52525B] uppercase tracking-wider">14-Day Trends</p>
-
+          <p className="text-[11px] font-semibold text-[#52525B] uppercase tracking-wider">{period}-Day Trends</p>
           {[
-            { label: 'Sleep (hours)', data: sleepData, max: 10, goodColor: '#34D399', warnColor: '#FBBF24', badColor: '#F87171', threshold: 7 },
-            { label: 'Energy (/10)', data: energyData, max: 10, goodColor: '#818CF8', warnColor: '#FBBF24', badColor: '#F87171', threshold: 6 },
-            { label: 'Focus (/10)', data: focusData, max: 10, goodColor: '#818CF8', warnColor: '#FBBF24', badColor: '#F87171', threshold: 6 },
-          ].filter(t => t.data.some(v => v !== null)).map(trend => (
-            <div key={trend.label}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-[#A1A1AA]">{trend.label}</span>
-                {(() => {
-                  const vals = trend.data.filter(v => v !== null) as number[];
-                  if (!vals.length) return null;
-                  const a = avg(vals);
-                  const color = a >= trend.threshold ? trend.goodColor : a >= trend.threshold * 0.8 ? trend.warnColor : trend.badColor;
-                  return <span className="text-xs font-semibold" style={{ color }}>{a.toFixed(1)} avg</span>;
-                })()}
+            { label: 'Sleep (hours)', data: sleepData, max: 10, threshold: 7, good: '#34D399', warn: '#FBBF24', bad: '#F87171' },
+            { label: 'Energy (/10)', data: energyData, max: 10, threshold: 6, good: '#818CF8', warn: '#FBBF24', bad: '#F87171' },
+            { label: 'Focus (/10)', data: focusData, max: 10, threshold: 6, good: '#818CF8', warn: '#FBBF24', bad: '#F87171' },
+          ].filter(t => t.data.some(v => v !== null)).map(trend => {
+            const vals = trend.data.filter((v): v is number => v !== null);
+            const a = vals.length ? avg(vals) : null;
+            const aColor = a !== null ? (a >= trend.threshold ? trend.good : a >= trend.threshold * 0.8 ? trend.warn : trend.bad) : '#3F3F46';
+            return (
+              <div key={trend.label}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-[#A1A1AA]">{trend.label}</span>
+                  {a !== null && <span className="text-xs font-semibold" style={{ color: aColor }}>{a.toFixed(1)} avg</span>}
+                </div>
+                <div className="flex items-end gap-px h-10">
+                  {trend.data.map((val, idx) => {
+                    const h = val !== null ? Math.max(8, (val / trend.max) * 100) : 5;
+                    const color = val === null ? '#1A1A1A' : val >= trend.threshold ? trend.good : val >= trend.threshold * 0.8 ? trend.warn : trend.bad;
+                    return <div key={idx} className="flex-1 rounded-sm" style={{ height: `${h}%`, backgroundColor: color, opacity: val === null ? 0.2 : 1 }} />;
+                  })}
+                </div>
+                <div className="flex justify-between mt-1">
+                  <span className="text-[9px] text-[#2A2A2A]">{period}d ago</span>
+                  <span className="text-[9px] text-[#2A2A2A]">today</span>
+                </div>
               </div>
-              <div className="flex items-end gap-0.5 h-12">
-                {trend.data.map((val, i) => {
-                  const h = val !== null ? Math.max(8, (val / trend.max) * 100) : 6;
-                  const color = val === null ? '#1A1A1A'
-                    : val >= trend.threshold ? trend.goodColor
-                    : val >= trend.threshold * 0.8 ? trend.warnColor
-                    : trend.badColor;
-                  return (
-                    <div
-                      key={i}
-                      className="flex-1 rounded-sm transition-all"
-                      style={{ height: `${h}%`, backgroundColor: color, opacity: val === null ? 0.3 : 1 }}
-                    />
-                  );
-                })}
-              </div>
-              <div className="flex justify-between mt-1">
-                <span className="text-[9px] text-[#2A2A2A]">14 days ago</span>
-                <span className="text-[9px] text-[#2A2A2A]">today</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {/* Log modal */}
       {showLog && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#111111] border border-[#1E1E1E] rounded-2xl w-full max-w-sm p-6 space-y-5">
@@ -348,9 +603,8 @@ export default function Insights({ dailyLogs, setDailyLogs, habits, targets }: I
               <h2 className="text-base font-semibold text-white">Today's Wellbeing</h2>
               <button onClick={() => setShowLog(false)} className="text-[#52525B] hover:text-white text-xl leading-none">×</button>
             </div>
-
             {[
-              { label: 'Sleep', key: 'sleep', unit: 'hours', min: 0, max: 12, step: 0.5, hint: '7-9h is optimal' },
+              { label: 'Sleep', key: 'sleep', unit: 'h', min: 0, max: 12, step: 0.5, hint: '7–9h is optimal' },
               { label: 'Energy', key: 'energyLevel', unit: '/10', min: 1, max: 10, step: 1, hint: '1 = exhausted, 10 = on fire' },
               { label: 'Focus', key: 'focusLevel', unit: '/10', min: 1, max: 10, step: 1, hint: '1 = scattered, 10 = locked in' },
             ].map(f => {
@@ -361,10 +615,7 @@ export default function Insights({ dailyLogs, setDailyLogs, habits, targets }: I
                     <label className="text-sm font-medium text-white">{f.label}</label>
                     <span className="text-sm font-bold text-[#818CF8]">{val !== undefined ? `${val}${f.unit}` : '—'}</span>
                   </div>
-                  <input
-                    type="range"
-                    min={f.min} max={f.max} step={f.step}
-                    value={val ?? (f.min + f.max) / 2}
+                  <input type="range" min={f.min} max={f.max} step={f.step} value={val ?? (f.min + f.max) / 2}
                     onChange={e => setDraft(d => ({ ...d, [f.key]: Number(e.target.value) }))}
                     onMouseDown={() => { if (val === undefined) setDraft(d => ({ ...d, [f.key]: Math.round((f.min + f.max) / 2) })); }}
                     className="w-full accent-[#818CF8] cursor-pointer"
@@ -373,7 +624,6 @@ export default function Insights({ dailyLogs, setDailyLogs, habits, targets }: I
                 </div>
               );
             })}
-
             <div className="flex gap-3">
               <button onClick={() => setShowLog(false)} className="flex-1 py-2.5 border border-[#1E1E1E] text-[#71717A] text-sm rounded-lg">Cancel</button>
               <button onClick={saveLog} className="flex-1 py-2.5 bg-[#818CF8] hover:bg-[#6366F1] text-white text-sm font-medium rounded-lg transition-colors">Save</button>

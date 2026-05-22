@@ -139,7 +139,7 @@ export default function App() {
         )}
         {tab === 'insights' && (
           <Insights dailyLogs={dailyLogs} setDailyLogs={setDailyLogs}
-            habits={habits} targets={targets} />
+            habits={habits} targets={targets} goals={goals} />
         )}
       </main>
     </div>
