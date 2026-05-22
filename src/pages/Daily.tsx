@@ -132,7 +132,6 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
         </p>
       </div>
 
-      {/* Non-negotiables */}
       <div className="bg-[#111111] border border-[#1E1E1E] rounded-xl p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
@@ -184,7 +183,6 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
         </div>
       </div>
 
-      {/* Today's numbers */}
       <div className="bg-[#111111] border border-[#1E1E1E] rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-white">Today's Numbers</h2>
@@ -231,10 +229,27 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
               </div>
             );
           })}
+          {(['sleep', 'energyLevel', 'focusLevel'] as const).map(k => {
+            const labels = { sleep: 'Sleep', energyLevel: 'Energy', focusLevel: 'Focus' };
+            const units = { sleep: 'h', energyLevel: '/10', focusLevel: '/10' };
+            const val = todayLog[k] as number | undefined;
+            const color = val === undefined ? undefined
+              : k === 'sleep' ? (val >= 7 ? '#34D399' : val >= 6 ? '#FBBF24' : '#F87171')
+              : (val >= 7 ? '#34D399' : val >= 5 ? '#FBBF24' : '#F87171');
+            return (
+              <div key={k} className="bg-[#0A0A0A] rounded-lg p-3">
+                <p className="text-[11px] text-[#52525B] mb-1">{labels[k]}</p>
+                {val !== undefined ? (
+                  <p className="text-base font-bold" style={{ color }}>{val}{units[k]}</p>
+                ) : (
+                  <p className="text-[#2A2A2A] text-sm mt-1">Not logged</p>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Focus / tasks */}
       <div className="bg-[#111111] border border-[#1E1E1E] rounded-xl p-4 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-white">Today's Focus</h2>
@@ -274,7 +289,6 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
         </div>
       )}
 
-      {/* Projects */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-white">Working On</h2>
@@ -332,7 +346,6 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
         )}
       </div>
 
-      {/* Metrics modal */}
       {showMetrics && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#111111] border border-[#1E1E1E] rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-5">
@@ -349,6 +362,25 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
                   { label: 'Protein (g)', key: 'protein', ph: `target: ${targets.protein}g` },
                   { label: 'Screen time (h)', key: 'screenTime', ph: `target: ${targets.screenTime}h` },
                   { label: 'Phone pickups', key: 'phonePickups', ph: `target: ${targets.phonePickups}` },
+                ].map(f => (
+                  <div key={f.key} className="flex items-center gap-3">
+                    <label className="text-sm text-[#A1A1AA] w-36 flex-shrink-0">{f.label}</label>
+                    <input type="number" placeholder={f.ph}
+                      value={(metricsDraft[f.key as keyof DailyLog] as number | undefined) ?? ''}
+                      onChange={e => setMetricsDraft(d => ({ ...d, [f.key]: e.target.value ? Number(e.target.value) : undefined }))}
+                      className="flex-1 bg-[#0A0A0A] border border-[#1E1E1E] rounded-lg px-3 py-2 text-sm text-white placeholder-[#2A2A2A] focus:outline-none focus:border-[#818CF8]"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-[11px] text-[#52525B] uppercase tracking-wider font-medium mb-3">Wellbeing</p>
+              <div className="space-y-2">
+                {[
+                  { label: 'Sleep (hours)', key: 'sleep', ph: '7.5' },
+                  { label: 'Energy (1–10)', key: 'energyLevel', ph: '7' },
+                  { label: 'Focus (1–10)', key: 'focusLevel', ph: '7' },
                 ].map(f => (
                   <div key={f.key} className="flex items-center gap-3">
                     <label className="text-sm text-[#A1A1AA] w-36 flex-shrink-0">{f.label}</label>
@@ -388,7 +420,6 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
         </div>
       )}
 
-      {/* Project modal */}
       {showProjectForm && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-[#111111] border border-[#1E1E1E] rounded-2xl w-full max-w-md p-6 space-y-4">
