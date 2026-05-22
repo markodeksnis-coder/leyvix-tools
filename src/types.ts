@@ -79,4 +79,11 @@ export interface Targets {
   closes: number;
 }
 
+export interface VisionImage {
+  id: string;
+  src: string;
+  caption?: string;
+  addedAt: string;
+}
+
 export type TabId = 'dashboard' | 'goals' | 'dream-self' | 'daily' | 'weekly' | 'insights';

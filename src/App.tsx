@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import type { TabId, Goal, Priority, Project, DreamSelfData, Habit, DailyLog, Targets } from './types';
+import type { TabId, Goal, Priority, Project, DreamSelfData, Habit, DailyLog, Targets, VisionImage } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { initialDreamSelf, initialGoals, initialProjects, initialHabits, initialTargets } from './seedData';
 import Nav from './components/Nav';
@@ -9,6 +9,7 @@ import DreamSelf from './pages/DreamSelf';
 import Daily from './pages/Daily';
 import Weekly from './pages/Weekly';
 import Insights from './pages/Insights';
+import VisionBoard from './pages/VisionBoard';
 
 function getWeekDates(offset = 0): string[] {
   const today = new Date();
@@ -66,6 +67,7 @@ function getCurrentStreak(logs: string[]): number {
 
 export default function App() {
   const [tab, setTab] = useState<TabId>('dashboard');
+  const [showVision, setShowVision] = useState(false);
   const [goals, setGoals] = useLocalStorage<Goal[]>('perf:goals', initialGoals);
   const [priorities, setPriorities] = useLocalStorage<Priority[]>('perf:priorities', []);
   const [projects, setProjects] = useLocalStorage<Project[]>('perf:projects', initialProjects);
@@ -73,6 +75,7 @@ export default function App() {
   const [habits, setHabits] = useLocalStorage<Habit[]>('perf:habits', initialHabits);
   const [dailyLogs, setDailyLogs] = useLocalStorage<DailyLog[]>('perf:dailylogs', []);
   const [targets, setTargets] = useLocalStorage<Targets>('perf:targets', initialTargets);
+  const [visionImages, setVisionImages] = useLocalStorage<VisionImage[]>('perf:vision', []);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -102,8 +105,20 @@ export default function App() {
               <p className="text-[11px] text-[#3F3F46]">Personal growth tracker</p>
             </div>
           </div>
-          <div className="text-xs text-[#3F3F46]">
-            {goals.filter(g => g.progress === 100).length}/{goals.length} goals complete
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowVision(true)}
+              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 border border-[#1E1E1E] hover:border-[#818CF8] text-[#71717A] hover:text-[#818CF8] rounded-lg transition-colors"
+            >
+              <span>🖼️</span>
+              <span>Vision</span>
+              {visionImages.length > 0 && (
+                <span className="text-[10px] bg-[#818CF8]/20 text-[#818CF8] px-1 rounded font-semibold">{visionImages.length}</span>
+              )}
+            </button>
+            <div className="text-xs text-[#3F3F46]">
+              {goals.filter(g => g.progress === 100).length}/{goals.length} goals
+            </div>
           </div>
         </div>
       </header>
@@ -142,6 +157,23 @@ export default function App() {
             habits={habits} targets={targets} goals={goals} />
         )}
       </main>
+
+      {/* Vision Board sidebar */}
+      {showVision && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowVision(false)}
+          />
+          <div className="relative w-full max-w-sm h-full bg-[#0A0A0A] border-l border-[#1E1E1E] overflow-hidden shadow-2xl animate-slide-in">
+            <VisionBoard
+              images={visionImages}
+              setImages={setVisionImages}
+              onClose={() => setShowVision(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
