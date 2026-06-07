@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  background-color: #0A0A0A;
-  color: #ffffff;
+  background-color: #F0F2FF;
+  color: #0F172A;
 }
 
 * {
@@ -24,30 +24,31 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: #CBD5E1;
   border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #94A3B8;
 }
 
 input[type="range"] {
   -webkit-appearance: none;
   height: 4px;
   border-radius: 2px;
-  background: #1E1E1E;
+  background: #E2E8F0;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: #818CF8;
+  background: linear-gradient(135deg, #7C3AED, #3B82F6);
   cursor: pointer;
+  box-shadow: 0 1px 4px rgba(124, 58, 237, 0.35);
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(0.5);
+  filter: invert(0.3);
 }

@@ -9,8 +9,8 @@ interface ProgressBarProps {
 export default function ProgressBar({
   value,
   max = 100,
-  color = '#818CF8',
-  height = 'h-1.5',
+  color = '#7C3AED',
+  height = 'h-2',
   showLabel = false,
 }: ProgressBarProps) {
   const pct = Math.min(100, Math.max(0, Math.round((value / (max || 1)) * 100)));
@@ -18,11 +18,11 @@ export default function ProgressBar({
     <div className="w-full">
       {showLabel && (
         <div className="flex justify-between mb-1">
-          <span className="text-xs text-[#71717A]">Progress</span>
-          <span className="text-xs text-[#A1A1AA]">{pct}%</span>
+          <span className="text-xs text-slate-500">Progress</span>
+          <span className="text-xs text-slate-400">{pct}%</span>
         </div>
       )}
-      <div className={`w-full bg-[#1E1E1E] rounded-full ${height} overflow-hidden`}>
+      <div className={`w-full bg-slate-100 rounded-full ${height} overflow-hidden`}>
         <div
           className={`${height} rounded-full transition-all duration-700 ease-out`}
           style={{ width: `${pct}%`, backgroundColor: color }}

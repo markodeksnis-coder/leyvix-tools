@@ -93,30 +93,30 @@ export default function App() {
   const energyToday = dailyLogs.find(l => l.date === today)?.energyLevel ?? null;
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white">
-      <header className="border-b border-[#1A1A1A] bg-[#0A0A0A]">
+    <div className="min-h-screen bg-[#F0F2FF] text-slate-900">
+      <header className="border-b border-slate-100 bg-white shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#818CF8] flex items-center justify-center">
-              <span className="text-white font-bold text-sm">P</span>
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-blue-500 flex items-center justify-center shadow-lg shadow-violet-200">
+              <span className="text-white font-black text-sm">P</span>
             </div>
             <div>
-              <h1 className="text-sm font-semibold text-white leading-tight">Performance</h1>
-              <p className="text-[11px] text-[#3F3F46]">Personal growth tracker</p>
+              <h1 className="text-sm font-black text-slate-900 leading-tight tracking-tight">Performance</h1>
+              <p className="text-[11px] text-slate-400">Personal growth tracker</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowVision(true)}
-              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 border border-[#1E1E1E] hover:border-[#818CF8] text-[#71717A] hover:text-[#818CF8] rounded-lg transition-colors"
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-violet-50 hover:bg-violet-100 border border-violet-200 hover:border-violet-300 text-violet-600 rounded-xl transition-all font-semibold"
             >
               <span>🖼️</span>
               <span>Vision</span>
               {visionImages.length > 0 && (
-                <span className="text-[10px] bg-[#818CF8]/20 text-[#818CF8] px-1 rounded font-semibold">{visionImages.length}</span>
+                <span className="text-[10px] bg-violet-600 text-white px-1.5 py-0.5 rounded-full font-bold">{visionImages.length}</span>
               )}
             </button>
-            <div className="text-xs text-[#3F3F46]">
+            <div className="text-xs text-slate-400 font-semibold">
               {goals.filter(g => g.progress === 100).length}/{goals.length} goals
             </div>
           </div>
@@ -158,14 +158,13 @@ export default function App() {
         )}
       </main>
 
-      {/* Vision Board sidebar */}
       {showVision && (
         <div className="fixed inset-0 z-50 flex justify-end">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
             onClick={() => setShowVision(false)}
           />
-          <div className="relative w-full max-w-sm h-full bg-[#0A0A0A] border-l border-[#1E1E1E] overflow-hidden shadow-2xl animate-slide-in">
+          <div className="relative w-full max-w-sm h-full bg-white border-l border-slate-200 overflow-hidden shadow-2xl">
             <VisionBoard
               images={visionImages}
               setImages={setVisionImages}
