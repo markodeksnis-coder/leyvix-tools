@@ -28,10 +28,8 @@ function getStreak(logs: string[]): number {
   let streak = 0;
   const cur = new Date(sorted[0]);
   for (const date of sorted) {
-    if (date === cur.toISOString().split('T')[0]) {
-      streak++;
-      cur.setDate(cur.getDate() - 1);
-    } else break;
+    if (date === cur.toISOString().split('T')[0]) { streak++; cur.setDate(cur.getDate() - 1); }
+    else break;
   }
   return streak;
 }
@@ -126,56 +124,48 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-white">Daily</h1>
-        <p className="text-sm text-[#52525B] mt-0.5">
+        <h1 className="text-xl font-black text-slate-900 tracking-tight">Daily</h1>
+        <p className="text-sm text-slate-400 mt-0.5 font-medium">
           {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
         </p>
       </div>
 
-      <div className="bg-[#111111] border border-[#1E1E1E] rounded-xl p-4">
+      <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-white">Non-Negotiables</h2>
-            <span className={`text-[11px] px-1.5 py-0.5 rounded font-medium ${
-              completedHabits === habits.length && habits.length > 0
-                ? 'bg-[#34D399]/10 text-[#34D399]'
-                : 'bg-[#1E1E1E] text-[#52525B]'
+            <h2 className="text-sm font-bold text-slate-900">Non-Negotiables</h2>
+            <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${
+              completedHabits === habits.length && habits.length > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'
             }`}>{completedHabits}/{habits.length}</span>
           </div>
         </div>
-        <ProgressBar value={completedHabits} max={habits.length || 1} color="#34D399" height="h-1" />
-        <div className="mt-3 divide-y divide-[#161616]">
+        <ProgressBar value={completedHabits} max={habits.length || 1} color="#10B981" height="h-1.5" />
+        <div className="mt-3 divide-y divide-slate-50">
           {habits.map(habit => {
             const streak = getStreak(habit.logs);
             const longest = getLongestStreak(habit.logs);
             const doneToday = habit.logs.includes(today);
             return (
               <div key={habit.id} className="flex items-center gap-3 py-2.5">
-                <button
-                  onClick={() => toggleHabit(habit.id)}
+                <button onClick={() => toggleHabit(habit.id)}
                   className={`w-5 h-5 rounded border flex-shrink-0 flex items-center justify-center transition-all ${
-                    doneToday ? 'bg-[#34D399] border-[#34D399]' : 'border-[#333] hover:border-[#34D399]'
-                  }`}
-                >
-                  {doneToday && <span className="text-[#0A0A0A] text-[10px] font-bold">✓</span>}
+                    doneToday ? 'bg-emerald-500 border-emerald-500' : 'border-slate-200 hover:border-emerald-400'
+                  }`}>
+                  {doneToday && <span className="text-white text-[10px] font-bold">✓</span>}
                 </button>
-                <span className={`text-sm flex-1 ${doneToday ? 'text-[#52525B] line-through' : 'text-[#E4E4E7]'}`}>
+                <span className={`text-sm flex-1 font-medium ${ doneToday ? 'text-slate-300 line-through' : 'text-slate-700' }`}>
                   {habit.name}
                 </span>
                 <div className="flex gap-0.5 items-center">
                   {last7.map(date => (
                     <span key={date} className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                      habit.logs.includes(date) ? 'bg-[#34D399]' : 'bg-[#1E1E1E]'
+                      habit.logs.includes(date) ? 'bg-emerald-500' : 'bg-slate-100'
                     }`} />
                   ))}
                 </div>
                 <div className="text-right flex-shrink-0 min-w-[52px]">
-                  {streak >= 1 && (
-                    <div className="text-[11px] text-[#FBBF24] font-semibold">{streak}d 🔥</div>
-                  )}
-                  {longest > streak && longest >= 2 && (
-                    <div className="text-[10px] text-[#3F3F46]">best {longest}d</div>
-                  )}
+                  {streak >= 1 && <div className="text-[11px] text-amber-500 font-bold">{streak}d 🔥</div>}
+                  {longest > streak && longest >= 2 && <div className="text-[10px] text-slate-300 font-medium">best {longest}d</div>}
                 </div>
               </div>
             );
@@ -183,13 +173,11 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
         </div>
       </div>
 
-      <div className="bg-[#111111] border border-[#1E1E1E] rounded-xl p-4">
+      <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-white">Today's Numbers</h2>
-          <button
-            onClick={() => { setMetricsDraft({ ...todayLog }); setShowMetrics(true); }}
-            className="text-xs text-[#818CF8] hover:text-[#A5B4FC] transition-colors"
-          >
+          <h2 className="text-sm font-bold text-slate-900">Today's Numbers</h2>
+          <button onClick={() => { setMetricsDraft({ ...todayLog }); setShowMetrics(true); }}
+            className="text-xs text-violet-600 hover:text-violet-700 font-semibold transition-colors">
             {dailyLogs.some(l => l.date === today) ? 'Edit' : '+ Log'}
           </button>
         </div>
@@ -197,20 +185,20 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
           {healthFields.map(f => {
             const val = todayLog[f.key] as number | undefined;
             const pct = pctOf(val, f.target, f.lower);
-            const color = pct === null ? undefined : pct >= 90 ? '#34D399' : pct >= 65 ? '#FBBF24' : '#F87171';
+            const color = pct === null ? undefined : pct >= 90 ? '#10B981' : pct >= 65 ? '#F59E0B' : '#EF4444';
             return (
-              <div key={f.key} className="bg-[#0A0A0A] rounded-lg p-3">
-                <p className="text-[11px] text-[#52525B] mb-1">{f.label}</p>
+              <div key={f.key} className="bg-slate-50 rounded-xl p-3">
+                <p className="text-[11px] text-slate-400 font-medium mb-1">{f.label}</p>
                 {val !== undefined ? (
                   <>
-                    <p className="text-base font-bold" style={{ color }}>
+                    <p className="text-base font-black" style={{ color }}>
                       {f.key === 'steps' ? val.toLocaleString() : val}{f.unit}
                     </p>
-                    <p className="text-[10px] text-[#3F3F46] mt-0.5">target {f.key === 'steps' ? f.target.toLocaleString() : f.target}{f.unit}</p>
+                    <p className="text-[10px] text-slate-300 mt-0.5 font-medium">target {f.key === 'steps' ? f.target.toLocaleString() : f.target}{f.unit}</p>
                     <div className="mt-1.5"><ProgressBar value={pct!} color={color!} height="h-0.5" /></div>
                   </>
                 ) : (
-                  <p className="text-[#2A2A2A] text-sm mt-1">Not logged</p>
+                  <p className="text-slate-200 text-sm mt-1">Not logged</p>
                 )}
               </div>
             );
@@ -219,12 +207,12 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
             const labels = { callsBooked: 'Calls Booked', showUps: 'Show-ups', closes: 'Closes' };
             const val = todayLog[k] as number | undefined;
             return (
-              <div key={k} className="bg-[#0A0A0A] rounded-lg p-3">
-                <p className="text-[11px] text-[#52525B] mb-1">{labels[k]}</p>
+              <div key={k} className="bg-slate-50 rounded-xl p-3">
+                <p className="text-[11px] text-slate-400 font-medium mb-1">{labels[k]}</p>
                 {val !== undefined ? (
-                  <p className="text-base font-bold text-[#818CF8]">{val}</p>
+                  <p className="text-base font-black text-violet-600">{val}</p>
                 ) : (
-                  <p className="text-[#2A2A2A] text-sm mt-1">Not logged</p>
+                  <p className="text-slate-200 text-sm mt-1">Not logged</p>
                 )}
               </div>
             );
@@ -234,15 +222,15 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
             const units = { sleep: 'h', energyLevel: '/10', focusLevel: '/10' };
             const val = todayLog[k] as number | undefined;
             const color = val === undefined ? undefined
-              : k === 'sleep' ? (val >= 7 ? '#34D399' : val >= 6 ? '#FBBF24' : '#F87171')
-              : (val >= 7 ? '#34D399' : val >= 5 ? '#FBBF24' : '#F87171');
+              : k === 'sleep' ? (val >= 7 ? '#10B981' : val >= 6 ? '#F59E0B' : '#EF4444')
+              : (val >= 7 ? '#10B981' : val >= 5 ? '#F59E0B' : '#EF4444');
             return (
-              <div key={k} className="bg-[#0A0A0A] rounded-lg p-3">
-                <p className="text-[11px] text-[#52525B] mb-1">{labels[k]}</p>
+              <div key={k} className="bg-slate-50 rounded-xl p-3">
+                <p className="text-[11px] text-slate-400 font-medium mb-1">{labels[k]}</p>
                 {val !== undefined ? (
-                  <p className="text-base font-bold" style={{ color }}>{val}{units[k]}</p>
+                  <p className="text-base font-black" style={{ color }}>{val}{units[k]}</p>
                 ) : (
-                  <p className="text-[#2A2A2A] text-sm mt-1">Not logged</p>
+                  <p className="text-slate-200 text-sm mt-1">Not logged</p>
                 )}
               </div>
             );
@@ -250,93 +238,91 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
         </div>
       </div>
 
-      <div className="bg-[#111111] border border-[#1E1E1E] rounded-xl p-4 space-y-3">
+      <div className="bg-white border border-slate-100 rounded-2xl p-4 space-y-3 shadow-sm">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-white">Today's Focus</h2>
-          {todayItems.length > 0 && <span className="text-xs text-[#52525B]">{completedCount}/{todayItems.length}</span>}
+          <h2 className="text-sm font-bold text-slate-900">Today's Focus</h2>
+          {todayItems.length > 0 && <span className="text-xs text-slate-400 font-semibold">{completedCount}/{todayItems.length}</span>}
         </div>
         <div className="flex gap-2">
           <input type="text" placeholder={isPriority ? 'Add top priority…' : 'Add task…'}
             value={newItem} onChange={e => setNewItem(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addItem()}
-            className="flex-1 bg-[#0A0A0A] border border-[#1E1E1E] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#3F3F46] focus:outline-none focus:border-[#818CF8] transition-colors"
+            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-300 focus:outline-none focus:border-violet-400 transition-colors"
           />
           <button onClick={addItem} disabled={!newItem.trim()}
-            className="px-4 py-2.5 bg-[#818CF8] hover:bg-[#6366F1] disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors"
-          >Add</button>
+            className="px-4 py-2.5 bg-gradient-to-r from-violet-600 to-blue-500 hover:from-violet-700 hover:to-blue-600 disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-violet-200">Add</button>
         </div>
         <button onClick={() => setIsPriority(!isPriority)}
           className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg transition-colors ${
-            isPriority ? 'bg-[#818CF8]/15 text-[#818CF8]' : 'bg-[#1A1A1A] text-[#52525B] hover:text-[#A1A1AA]'
-          }`}
-        >
-          <span className={`w-1.5 h-1.5 rounded-full ${isPriority ? 'bg-[#818CF8]' : 'bg-[#3F3F46]'}`} />
+            isPriority ? 'bg-violet-100 text-violet-600 font-semibold' : 'bg-slate-100 text-slate-400 hover:text-slate-600'
+          }`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${ isPriority ? 'bg-violet-600' : 'bg-slate-300' }`} />
           Mark as Top Priority
         </button>
       </div>
 
       {topPriorities.length > 0 && (
-        <div className="bg-[#111111] border border-[#818CF8]/20 rounded-xl p-4">
-          <p className="text-[11px] font-semibold text-[#818CF8] uppercase tracking-wider mb-3">Top Priorities</p>
+        <div className="bg-violet-50 border border-violet-200 rounded-2xl p-4">
+          <p className="text-[11px] font-bold text-violet-600 uppercase tracking-wider mb-3">Top Priorities</p>
           <ul className="space-y-1">{topPriorities.map(item => <ItemRow key={item.id} item={item} onToggle={toggle} onRemove={remove} />)}</ul>
         </div>
       )}
 
       {tasks.length > 0 && (
-        <div className="bg-[#111111] border border-[#1E1E1E] rounded-xl p-4">
-          <p className="text-[11px] font-semibold text-[#52525B] uppercase tracking-wider mb-3">Tasks</p>
+        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Tasks</p>
           <ul className="space-y-1">{tasks.map(item => <ItemRow key={item.id} item={item} onToggle={toggle} onRemove={remove} />)}</ul>
         </div>
       )}
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-white">Working On</h2>
+          <h2 className="text-sm font-bold text-slate-900">Working On</h2>
           <button onClick={() => { setProjectDraft({ title: '', description: '', progress: 0 }); setEditingProject(null); setShowProjectForm(true); }}
-            className="text-xs text-[#818CF8] hover:text-[#A5B4FC] transition-colors">+ Add</button>
+            className="text-xs text-violet-600 hover:text-violet-700 font-semibold transition-colors">+ Add</button>
         </div>
         {projects.length === 0 ? (
-          <div className="bg-[#111111] border border-[#1E1E1E] rounded-xl p-5 text-center">
-            <p className="text-[#3F3F46] text-sm">No active projects.</p>
+          <div className="bg-white border border-slate-100 rounded-2xl p-5 text-center shadow-sm">
+            <p className="text-slate-400 text-sm">No active projects.</p>
           </div>
         ) : (
           <div className="space-y-2">
             {projects.map(project => (
-              <div key={project.id} className="bg-[#111111] border border-[#1E1E1E] rounded-xl p-4">
+              <div key={project.id} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                      project.status === 'active' ? 'bg-[#34D399]' : project.status === 'paused' ? 'bg-[#FBBF24]' : 'bg-[#3F3F46]'
+                      project.status === 'active' ? 'bg-emerald-500' : project.status === 'paused' ? 'bg-amber-400' : 'bg-slate-300'
                     }`} />
-                    <h3 className="text-sm font-medium text-white">{project.title}</h3>
+                    <h3 className="text-sm font-bold text-slate-900">{project.title}</h3>
                   </div>
                   <div className="flex gap-3">
                     <button onClick={() => { setProjectDraft({ title: project.title, description: project.description, progress: project.progress }); setEditingProject(project); setShowProjectForm(true); }}
-                      className="text-[#3F3F46] hover:text-[#A1A1AA] text-xs transition-colors">Edit</button>
+                      className="text-slate-400 hover:text-violet-600 text-xs transition-colors font-medium">Edit</button>
                     <button onClick={() => setProjects(projects.filter(p => p.id !== project.id))}
-                      className="text-[#3F3F46] hover:text-[#F87171] text-xs transition-colors">Delete</button>
+                      className="text-slate-400 hover:text-red-500 text-xs transition-colors font-medium">Delete</button>
                   </div>
                 </div>
-                {project.description && <p className="text-xs text-[#52525B] ml-4 mb-2">{project.description}</p>}
+                {project.description && <p className="text-xs text-slate-400 ml-4 mb-2">{project.description}</p>}
                 <div className="ml-4">
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-[#52525B]">Progress</span>
-                    <span className="text-white">{project.progress}%</span>
+                    <span className="text-slate-400 font-medium">Progress</span>
+                    <span className="text-slate-700 font-bold">{project.progress}%</span>
                   </div>
                   <input type="range" min={0} max={100} value={project.progress}
                     onChange={e => setProjects(projects.map(p => p.id === project.id ? { ...p, progress: Number(e.target.value) } : p))}
-                    className="w-full accent-[#818CF8] cursor-pointer"
+                    className="w-full accent-violet-600 cursor-pointer"
                   />
                 </div>
                 <div className="flex gap-1 ml-4 mt-2">
                   {(['active', 'paused', 'completed'] as const).map(s => (
                     <button key={s} onClick={() => setProjects(projects.map(p => p.id === project.id ? { ...p, status: s } : p))}
-                      className={`text-[11px] px-2 py-0.5 rounded capitalize transition-colors ${
+                      className={`text-[11px] px-2 py-0.5 rounded-full capitalize transition-colors font-medium ${
                         project.status === s
-                          ? s === 'active' ? 'bg-[#34D399]/10 text-[#34D399]'
-                          : s === 'paused' ? 'bg-[#FBBF24]/10 text-[#FBBF24]'
-                          : 'bg-[#3F3F46]/20 text-[#71717A]'
-                          : 'text-[#3F3F46] hover:text-[#52525B]'
+                          ? s === 'active' ? 'bg-emerald-100 text-emerald-700'
+                          : s === 'paused' ? 'bg-amber-100 text-amber-700'
+                          : 'bg-slate-100 text-slate-600'
+                          : 'text-slate-300 hover:text-slate-500'
                       }`}>{s}</button>
                   ))}
                 </div>
@@ -347,14 +333,14 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
       </div>
 
       {showMetrics && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111111] border border-[#1E1E1E] rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-5">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white border border-slate-100 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 space-y-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-white">Log Today's Numbers</h2>
-              <button onClick={() => setShowMetrics(false)} className="text-[#52525B] hover:text-white text-xl leading-none">×</button>
+              <h2 className="text-base font-black text-slate-900">Log Today's Numbers</h2>
+              <button onClick={() => setShowMetrics(false)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
             </div>
             <div>
-              <p className="text-[11px] text-[#52525B] uppercase tracking-wider font-medium mb-3">Health</p>
+              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-3">Health</p>
               <div className="space-y-2">
                 {[
                   { label: 'Steps', key: 'steps', ph: `target: ${targets.steps.toLocaleString()}` },
@@ -364,18 +350,18 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
                   { label: 'Phone pickups', key: 'phonePickups', ph: `target: ${targets.phonePickups}` },
                 ].map(f => (
                   <div key={f.key} className="flex items-center gap-3">
-                    <label className="text-sm text-[#A1A1AA] w-36 flex-shrink-0">{f.label}</label>
+                    <label className="text-sm text-slate-500 font-medium w-36 flex-shrink-0">{f.label}</label>
                     <input type="number" placeholder={f.ph}
                       value={(metricsDraft[f.key as keyof DailyLog] as number | undefined) ?? ''}
                       onChange={e => setMetricsDraft(d => ({ ...d, [f.key]: e.target.value ? Number(e.target.value) : undefined }))}
-                      className="flex-1 bg-[#0A0A0A] border border-[#1E1E1E] rounded-lg px-3 py-2 text-sm text-white placeholder-[#2A2A2A] focus:outline-none focus:border-[#818CF8]"
+                      className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-300 focus:outline-none focus:border-violet-400"
                     />
                   </div>
                 ))}
               </div>
             </div>
             <div>
-              <p className="text-[11px] text-[#52525B] uppercase tracking-wider font-medium mb-3">Wellbeing</p>
+              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-3">Wellbeing</p>
               <div className="space-y-2">
                 {[
                   { label: 'Sleep (hours)', key: 'sleep', ph: '7.5' },
@@ -383,18 +369,18 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
                   { label: 'Focus (1–10)', key: 'focusLevel', ph: '7' },
                 ].map(f => (
                   <div key={f.key} className="flex items-center gap-3">
-                    <label className="text-sm text-[#A1A1AA] w-36 flex-shrink-0">{f.label}</label>
+                    <label className="text-sm text-slate-500 font-medium w-36 flex-shrink-0">{f.label}</label>
                     <input type="number" placeholder={f.ph}
                       value={(metricsDraft[f.key as keyof DailyLog] as number | undefined) ?? ''}
                       onChange={e => setMetricsDraft(d => ({ ...d, [f.key]: e.target.value ? Number(e.target.value) : undefined }))}
-                      className="flex-1 bg-[#0A0A0A] border border-[#1E1E1E] rounded-lg px-3 py-2 text-sm text-white placeholder-[#2A2A2A] focus:outline-none focus:border-[#818CF8]"
+                      className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-300 focus:outline-none focus:border-violet-400"
                     />
                   </div>
                 ))}
               </div>
             </div>
             <div>
-              <p className="text-[11px] text-[#52525B] uppercase tracking-wider font-medium mb-3">Sales</p>
+              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-3">Sales</p>
               <div className="space-y-2">
                 {[
                   { label: 'Calls Booked', key: 'callsBooked' },
@@ -402,44 +388,45 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
                   { label: 'Closes', key: 'closes' },
                 ].map(f => (
                   <div key={f.key} className="flex items-center gap-3">
-                    <label className="text-sm text-[#A1A1AA] w-36 flex-shrink-0">{f.label}</label>
+                    <label className="text-sm text-slate-500 font-medium w-36 flex-shrink-0">{f.label}</label>
                     <input type="number" placeholder="0"
                       value={(metricsDraft[f.key as keyof DailyLog] as number | undefined) ?? ''}
                       onChange={e => setMetricsDraft(d => ({ ...d, [f.key]: e.target.value ? Number(e.target.value) : undefined }))}
-                      className="flex-1 bg-[#0A0A0A] border border-[#1E1E1E] rounded-lg px-3 py-2 text-sm text-white placeholder-[#2A2A2A] focus:outline-none focus:border-[#818CF8]"
+                      className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-900 placeholder-slate-300 focus:outline-none focus:border-violet-400"
                     />
                   </div>
                 ))}
               </div>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setShowMetrics(false)} className="flex-1 py-2.5 border border-[#1E1E1E] text-[#71717A] text-sm rounded-lg">Cancel</button>
-              <button onClick={saveMetrics} className="flex-1 py-2.5 bg-[#818CF8] hover:bg-[#6366F1] text-white text-sm font-medium rounded-lg transition-colors">Save</button>
+              <button onClick={() => setShowMetrics(false)} className="flex-1 py-2.5 border border-slate-200 text-slate-500 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors">Cancel</button>
+              <button onClick={saveMetrics} className="flex-1 py-2.5 bg-gradient-to-r from-violet-600 to-blue-500 hover:from-violet-700 hover:to-blue-600 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-violet-200">Save</button>
             </div>
           </div>
         </div>
       )}
 
       {showProjectForm && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111111] border border-[#1E1E1E] rounded-2xl w-full max-w-md p-6 space-y-4">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white border border-slate-100 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-white">{editingProject ? 'Edit Project' : 'New Project'}</h2>
-              <button onClick={() => setShowProjectForm(false)} className="text-[#52525B] hover:text-white text-xl leading-none">×</button>
+              <h2 className="text-base font-black text-slate-900">{editingProject ? 'Edit Project' : 'New Project'}</h2>
+              <button onClick={() => setShowProjectForm(false)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
             </div>
             <input type="text" placeholder="Project name *" value={projectDraft.title} autoFocus
               onChange={e => setProjectDraft(d => ({ ...d, title: e.target.value }))}
-              className="w-full bg-[#0A0A0A] border border-[#1E1E1E] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#3F3F46] focus:outline-none focus:border-[#818CF8]"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-300 focus:outline-none focus:border-violet-400"
             />
             <textarea placeholder="Short description (optional)" value={projectDraft.description} rows={2}
               onChange={e => setProjectDraft(d => ({ ...d, description: e.target.value }))}
-              className="w-full bg-[#0A0A0A] border border-[#1E1E1E] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#3F3F46] focus:outline-none focus:border-[#818CF8] resize-none"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-300 focus:outline-none focus:border-violet-400 resize-none"
             />
             <div className="flex gap-3">
-              <button onClick={() => setShowProjectForm(false)} className="flex-1 py-2.5 border border-[#1E1E1E] text-[#71717A] text-sm rounded-lg">Cancel</button>
+              <button onClick={() => setShowProjectForm(false)} className="flex-1 py-2.5 border border-slate-200 text-slate-500 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors">Cancel</button>
               <button onClick={saveProject} disabled={!projectDraft.title.trim()}
-                className="flex-1 py-2.5 bg-[#818CF8] hover:bg-[#6366F1] disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors"
-              >{editingProject ? 'Save' : 'Add'}</button>
+                className="flex-1 py-2.5 bg-gradient-to-r from-violet-600 to-blue-500 hover:from-violet-700 hover:to-blue-600 disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-violet-200">
+                {editingProject ? 'Save' : 'Add'}
+              </button>
             </div>
           </div>
         </div>
@@ -453,14 +440,13 @@ function ItemRow({ item, onToggle, onRemove }: { item: Priority; onToggle: (id: 
     <li className="flex items-center gap-3 group py-1.5">
       <button onClick={() => onToggle(item.id)}
         className={`w-5 h-5 rounded-full border flex-shrink-0 flex items-center justify-center transition-all ${
-          item.completed ? 'bg-[#818CF8] border-[#818CF8]' : 'border-[#333] hover:border-[#818CF8]'
-        }`}
-      >
+          item.completed ? 'bg-violet-600 border-violet-600' : 'border-slate-200 hover:border-violet-400'
+        }`}>
         {item.completed && <span className="text-white text-[10px]">✓</span>}
       </button>
-      <span className={`text-sm flex-1 ${item.completed ? 'line-through text-[#3F3F46]' : 'text-[#E4E4E7]'}`}>{item.title}</span>
+      <span className={`text-sm flex-1 font-medium ${ item.completed ? 'line-through text-slate-300' : 'text-slate-700' }`}>{item.title}</span>
       <button onClick={() => onRemove(item.id)}
-        className="opacity-0 group-hover:opacity-100 text-[#3F3F46] hover:text-[#F87171] text-lg transition-all leading-none">×</button>
+        className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 text-lg transition-all leading-none">×</button>
     </li>
   );
 }

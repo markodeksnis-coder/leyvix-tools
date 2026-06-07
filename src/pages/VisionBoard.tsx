@@ -68,41 +68,39 @@ export default function VisionBoard({ images, setImages, onClose }: VisionBoardP
   const canAdd = addMode === 'url' ? urlInput.trim().length > 0 : preview !== null;
 
   return (
-    <div className="flex flex-col h-full relative bg-[#0A0A0A]">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3.5 border-b border-[#1E1E1E] flex-shrink-0">
+    <div className="flex flex-col h-full relative bg-white">
+      <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 flex-shrink-0">
         <div>
-          <h2 className="text-sm font-semibold text-white">Vision Board</h2>
-          <p className="text-[11px] text-[#52525B] mt-0.5">Your future, visualized</p>
+          <h2 className="text-sm font-black text-slate-900">Vision Board</h2>
+          <p className="text-[11px] text-slate-400 mt-0.5 font-medium">Your future, visualized</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => { reset(); setShowAdd(true); }}
-            className="text-xs px-3 py-1.5 bg-[#818CF8] hover:bg-[#6366F1] text-white font-medium rounded-lg transition-colors"
+            className="text-xs px-3 py-1.5 bg-gradient-to-r from-violet-600 to-blue-500 hover:from-violet-700 hover:to-blue-600 text-white font-semibold rounded-xl transition-all shadow-md shadow-violet-200"
           >
             + Photo
           </button>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-[#52525B] hover:text-white hover:bg-[#1A1A1A] text-xl leading-none transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 text-xl leading-none transition-colors"
           >
             ×
           </button>
         </div>
       </div>
 
-      {/* Images masonry grid */}
       <div className="flex-1 overflow-y-auto p-3">
         {images.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center py-16">
             <div className="text-5xl mb-4">🌅</div>
-            <p className="text-sm font-semibold text-white mb-1">Your vision board is empty</p>
-            <p className="text-xs text-[#52525B] leading-relaxed mb-5">
+            <p className="text-sm font-bold text-slate-900 mb-1">Your vision board is empty</p>
+            <p className="text-xs text-slate-400 leading-relaxed mb-5">
               Add photos that represent your dreams,<br />goals, and the life you're building
             </p>
             <button
               onClick={() => { reset(); setShowAdd(true); }}
-              className="px-4 py-2 bg-[#818CF8] hover:bg-[#6366F1] text-white text-sm font-medium rounded-lg transition-colors"
+              className="px-4 py-2 bg-gradient-to-r from-violet-600 to-blue-500 hover:from-violet-700 hover:to-blue-600 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-violet-200"
             >
               Add First Photo
             </button>
@@ -112,50 +110,40 @@ export default function VisionBoard({ images, setImages, onClose }: VisionBoardP
             {images.map(img => (
               <div
                 key={img.id}
-                className="break-inside-avoid relative group rounded-xl overflow-hidden cursor-pointer mb-2 bg-[#111111]"
+                className="break-inside-avoid relative group rounded-xl overflow-hidden cursor-pointer mb-2 bg-slate-100"
                 onClick={() => setFullscreen(img)}
               >
-                <img
-                  src={img.src}
-                  alt={img.caption ?? ''}
-                  className="w-full object-cover"
+                <img src={img.src} alt={img.caption ?? ''} className="w-full object-cover"
                   onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
                 {img.caption && (
                   <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent px-2 pt-6 pb-2">
-                    <p className="text-[11px] text-white font-medium leading-tight">{img.caption}</p>
+                    <p className="text-[11px] text-white font-semibold leading-tight">{img.caption}</p>
                   </div>
                 )}
                 <button
                   onClick={e => { e.stopPropagation(); remove(img.id); }}
-                  className="absolute top-1.5 right-1.5 w-5 h-5 bg-black/60 hover:bg-red-500 text-white rounded-full text-xs leading-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                >
-                  ×
-                </button>
+                  className="absolute top-1.5 right-1.5 w-5 h-5 bg-black/40 hover:bg-red-500 text-white rounded-full text-xs leading-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                >×</button>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Add photo panel (slides over board) */}
       {showAdd && (
-        <div className="absolute inset-0 bg-[#0A0A0A] z-10 flex flex-col">
-          <div className="flex items-center justify-between px-4 py-3.5 border-b border-[#1E1E1E] flex-shrink-0">
-            <h3 className="text-sm font-semibold text-white">Add Photo</h3>
-            <button onClick={() => { setShowAdd(false); reset(); }} className="text-[#52525B] hover:text-white text-xl leading-none">×</button>
+        <div className="absolute inset-0 bg-white z-10 flex flex-col">
+          <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100 flex-shrink-0">
+            <h3 className="text-sm font-black text-slate-900">Add Photo</h3>
+            <button onClick={() => { setShowAdd(false); reset(); }} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {/* Upload / URL toggle */}
-            <div className="flex gap-1 bg-[#111111] border border-[#1E1E1E] rounded-lg p-1">
+            <div className="flex gap-1 bg-slate-50 border border-slate-200 rounded-xl p-1">
               {(['upload', 'url'] as const).map(m => (
-                <button
-                  key={m}
-                  onClick={() => { setAddMode(m); reset(); }}
-                  className={`flex-1 text-xs py-1.5 rounded-md font-medium transition-colors ${
-                    addMode === m ? 'bg-[#818CF8] text-white' : 'text-[#52525B] hover:text-[#A1A1AA]'
-                  }`}
-                >
+                <button key={m} onClick={() => { setAddMode(m); reset(); }}
+                  className={`flex-1 text-xs py-1.5 rounded-lg font-semibold transition-all ${
+                    addMode === m ? 'bg-gradient-to-r from-violet-600 to-blue-500 text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'
+                  }`}>
                   {m === 'upload' ? '📁 Upload File' : '🔗 Image URL'}
                 </button>
               ))}
@@ -164,48 +152,35 @@ export default function VisionBoard({ images, setImages, onClose }: VisionBoardP
             {addMode === 'upload' ? (
               <div>
                 {loading ? (
-                  <div className="border-2 border-dashed border-[#333] rounded-xl p-8 text-center">
-                    <p className="text-sm text-[#52525B]">Compressing…</p>
+                  <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center">
+                    <p className="text-sm text-slate-400 font-medium">Compressing…</p>
                   </div>
                 ) : !preview ? (
                   <div
                     onClick={() => fileRef.current?.click()}
-                    className="border-2 border-dashed border-[#333] hover:border-[#818CF8] rounded-xl p-8 text-center cursor-pointer transition-colors group"
+                    className="border-2 border-dashed border-slate-200 hover:border-violet-400 rounded-2xl p-8 text-center cursor-pointer transition-colors group"
                   >
                     <p className="text-4xl mb-2">📷</p>
-                    <p className="text-sm text-white font-medium group-hover:text-[#818CF8] transition-colors">Tap to choose a photo</p>
-                    <p className="text-xs text-[#52525B] mt-1">JPG, PNG, WEBP, GIF</p>
-                    <input
-                      ref={fileRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
+                    <p className="text-sm text-slate-700 font-semibold group-hover:text-violet-600 transition-colors">Tap to choose a photo</p>
+                    <p className="text-xs text-slate-400 mt-1">JPG, PNG, WEBP, GIF</p>
+                    <input ref={fileRef} type="file" accept="image/*" className="hidden"
                       onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }}
                     />
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <img src={preview} alt="Preview" className="w-full rounded-xl object-cover max-h-56" />
-                    <button onClick={reset} className="text-xs text-[#F87171] hover:text-red-400 transition-colors">
-                      Choose different photo
-                    </button>
+                    <img src={preview} alt="Preview" className="w-full rounded-2xl object-cover max-h-56" />
+                    <button onClick={reset} className="text-xs text-red-400 hover:text-red-500 font-medium transition-colors">Choose different photo</button>
                   </div>
                 )}
               </div>
             ) : (
               <div className="space-y-3">
-                <input
-                  type="url"
-                  placeholder="Paste image URL…"
-                  value={urlInput}
-                  onChange={e => setUrlInput(e.target.value)}
-                  className="w-full bg-[#111111] border border-[#1E1E1E] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#3F3F46] focus:outline-none focus:border-[#818CF8]"
+                <input type="url" placeholder="Paste image URL…" value={urlInput} onChange={e => setUrlInput(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-300 focus:outline-none focus:border-violet-400"
                 />
                 {urlInput && (
-                  <img
-                    src={urlInput}
-                    alt="Preview"
-                    className="w-full rounded-xl object-cover max-h-48"
+                  <img src={urlInput} alt="Preview" className="w-full rounded-2xl object-cover max-h-48"
                     onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     onLoad={e => { (e.target as HTMLImageElement).style.display = ''; }}
                   />
@@ -214,57 +189,36 @@ export default function VisionBoard({ images, setImages, onClose }: VisionBoardP
             )}
 
             <div>
-              <label className="text-xs text-[#71717A] mb-1.5 block">Caption (optional)</label>
-              <input
-                type="text"
-                placeholder="e.g. Dream home, Financial freedom…"
-                value={caption}
+              <label className="text-xs text-slate-500 font-semibold mb-1.5 block">Caption (optional)</label>
+              <input type="text" placeholder="e.g. Dream home, Financial freedom…" value={caption}
                 onChange={e => setCaption(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && canAdd && addImage()}
-                className="w-full bg-[#111111] border border-[#1E1E1E] rounded-lg px-3 py-2.5 text-sm text-white placeholder-[#3F3F46] focus:outline-none focus:border-[#818CF8]"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-300 focus:outline-none focus:border-violet-400"
               />
             </div>
 
             <div className="flex gap-3">
-              <button
-                onClick={() => { setShowAdd(false); reset(); }}
-                className="flex-1 py-2.5 border border-[#1E1E1E] text-[#71717A] text-sm rounded-lg hover:text-white transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={addImage}
-                disabled={!canAdd}
-                className="flex-1 py-2.5 bg-[#818CF8] hover:bg-[#6366F1] disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors"
-              >
-                Add to Board
-              </button>
+              <button onClick={() => { setShowAdd(false); reset(); }}
+                className="flex-1 py-2.5 border border-slate-200 text-slate-500 text-sm font-medium rounded-xl hover:bg-slate-50 transition-colors">Cancel</button>
+              <button onClick={addImage} disabled={!canAdd}
+                className="flex-1 py-2.5 bg-gradient-to-r from-violet-600 to-blue-500 hover:from-violet-700 hover:to-blue-600 disabled:opacity-40 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-violet-200">Add to Board</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Fullscreen view */}
       {fullscreen && (
-        <div className="absolute inset-0 bg-black z-20 flex flex-col">
+        <div className="absolute inset-0 bg-slate-900 z-20 flex flex-col">
           <div className="flex items-center justify-between p-4 flex-shrink-0">
-            <p className="text-sm font-medium text-white truncate flex-1">{fullscreen.caption ?? ''}</p>
+            <p className="text-sm font-semibold text-white truncate flex-1">{fullscreen.caption ?? ''}</p>
             <button onClick={() => setFullscreen(null)} className="text-white text-2xl leading-none ml-3 flex-shrink-0">×</button>
           </div>
           <div className="flex-1 flex items-center justify-center px-4 min-h-0">
-            <img
-              src={fullscreen.src}
-              alt={fullscreen.caption ?? ''}
-              className="max-w-full max-h-full object-contain rounded-xl"
-            />
+            <img src={fullscreen.src} alt={fullscreen.caption ?? ''} className="max-w-full max-h-full object-contain rounded-xl" />
           </div>
           <div className="p-4 flex-shrink-0">
-            <button
-              onClick={() => { remove(fullscreen.id); setFullscreen(null); }}
-              className="w-full py-2.5 border border-red-500/30 text-red-400 text-sm rounded-lg hover:bg-red-500/10 transition-colors"
-            >
-              Remove from Board
-            </button>
+            <button onClick={() => { remove(fullscreen.id); setFullscreen(null); }}
+              className="w-full py-2.5 border border-red-400/40 text-red-400 text-sm font-medium rounded-xl hover:bg-red-500/10 transition-colors">Remove from Board</button>
           </div>
         </div>
       )}
