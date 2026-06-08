@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - claude/performance-app-setup-1HK0b
+      - claude/general-session-cAnkE
 
 permissions:
   contents: write

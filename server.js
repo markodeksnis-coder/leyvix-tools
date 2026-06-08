@@ -335,6 +335,21 @@ app.post('/api/chat', async (req, res) => {
     return res.status(400).json({ error: 'Invalid messages' });
   }
 
+  // Strip out any messages with empty content (e.g. streaming placeholders)
+  const validMessages = messages.filter(msg => {
+    if (typeof msg.content === 'string') return msg.content.trim().length > 0;
+    if (Array.isArray(msg.content)) {
+      return msg.content.every(
+        block => block.type !== 'text' || block.text.trim().length > 0
+      );
+    }
+    return false;
+  });
+
+  if (validMessages.length === 0) {
+    return res.status(400).json({ error: 'No valid messages to send' });
+  }
+
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
@@ -344,7 +359,7 @@ app.post('/api/chat', async (req, res) => {
       model: 'claude-sonnet-4-6',
       max_tokens: 4096,
       system: SYSTEM_PROMPT,
-      messages,
+      messages: validMessages,
     });
 
     stream.on('text', (text) => {

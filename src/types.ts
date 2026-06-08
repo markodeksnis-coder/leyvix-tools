@@ -14,6 +14,7 @@ export interface Goal {
   milestones: Milestone[];
   createdAt: string;
   targetDate?: string;
+  progressHistory?: { date: string; value: number }[];
 }
 
 export interface LifeArea {
@@ -56,6 +57,9 @@ export interface DailyLog {
   callsBooked?: number;
   showUps?: number;
   closes?: number;
+  sleep?: number;
+  energyLevel?: number;
+  focusLevel?: number;
 }
 
 export interface Habit {
@@ -75,4 +79,11 @@ export interface Targets {
   closes: number;
 }
 
-export type TabId = 'dashboard' | 'goals' | 'dream-self' | 'daily' | 'weekly';
+export interface VisionImage {
+  id: string;
+  src: string;
+  caption?: string;
+  addedAt: string;
+}
+
+export type TabId = 'dashboard' | 'goals' | 'dream-self' | 'daily' | 'weekly' | 'insights';
