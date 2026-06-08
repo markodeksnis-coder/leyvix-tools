@@ -83,7 +83,7 @@ function buildTomorrowPlan(dailyLogs: DailyLog[], habits: Habit[], targets: Targ
   const sleepLogs = logsLast7.filter(l => l.sleep !== undefined);
   const avgSleep = sleepLogs.length >= 2 ? avg(sleepLogs.map(l => l.sleep!)) : todayLog?.sleep;
   if (avgSleep !== undefined && avgSleep < 6.5) {
-    actions.push({ icon: '🛏', category: 'Recovery', action: 'Get to bed by 10 PM tonight', why: `${avgSleep.toFixed(1)}h avg this week is building sleep debt. Tonight's sleep directly powers tomorrow.` });
+    actions.push({ icon: '🛏', category: 'Recovery', action: 'Get to bed by 10 PM tonight', why: `${avgSleep.toFixed(1)}h avg this week is building sleep debt. Tonight\'s sleep directly powers tomorrow.` });
   }
 
   const proteinLogs = logsLast7.filter(l => l.protein !== undefined);
@@ -156,7 +156,7 @@ function detectPatterns(dailyLogs: DailyLog[], habits: Habit[], targets: Targets
   const wdScreen = logs.filter(l => l.screenTime !== undefined && [1,2,3,4,5].includes(dow(l.date))).map(l => l.screenTime!);
   const weScreen = logs.filter(l => l.screenTime !== undefined && [0,6].includes(dow(l.date))).map(l => l.screenTime!);
   if (wdScreen.length >= 3 && weScreen.length >= 2 && avg(weScreen) - avg(wdScreen) >= 1.5) {
-    patterns.push({ icon: '📱', severity: 'bad', title: 'Screen time spikes on weekends', body: `Weekdays: ${avg(wdScreen).toFixed(1)}h · Weekends: ${avg(weScreen).toFixed(1)}h. Weekend screen habits set the tone for Monday's focus.` });
+    patterns.push({ icon: '📱', severity: 'bad', title: 'Screen time spikes on weekends', body: `Weekdays: ${avg(wdScreen).toFixed(1)}h · Weekends: ${avg(weScreen).toFixed(1)}h. Weekend screen habits set the tone for Monday\'s focus.` });
   }
 
   const habitMissGroups: { name: string; days: string[] }[] = [];
@@ -202,7 +202,7 @@ function detectPatterns(dailyLogs: DailyLog[], habits: Habit[], targets: Targets
 
   const fullDays = habits.length > 0 ? dates.filter(d => habits.every(h => h.logs.includes(d))).length : 0;
   if (habits.length > 0 && fullDays / dates.length >= 0.75 && fullDays >= 5) {
-    patterns.push({ icon: '🔥', severity: 'good', title: `${Math.round((fullDays / dates.length) * 100)}% full habit completion`, body: `You complete all habits ${Math.round((fullDays / dates.length) * 100)}% of days. This isn't discipline anymore — it's identity.` });
+    patterns.push({ icon: '🔥', severity: 'good', title: `${Math.round((fullDays / dates.length) * 100)}% full habit completion`, body: `You complete all habits ${Math.round((fullDays / dates.length) * 100)}% of days. This isn\'t discipline anymore — it\'s identity.` });
   }
 
   return patterns.slice(0, 6);
@@ -293,7 +293,7 @@ function generateInsights(dailyLogs: DailyLog[], habits: Habit[], targets: Targe
   if (proteinTotal.length >= 3 && below.length >= 3) insights.push({ type: 'tip', icon: '🥩', priority: 3, title: 'Protein below target most days', body: `${below.length}/${proteinTotal.length} days under ${Math.round(targets.protein * 0.8)}g. Add Greek yogurt or a shake.`, metric: `${below.length}/${proteinTotal.length} days under` });
 
   const maxStreak = habits.reduce((max, h) => Math.max(max, getCurrentStreak(h.logs)), 0);
-  if (maxStreak >= 7) insights.push({ type: 'win', icon: '🏆', priority: 5, title: `${maxStreak}-day streak`, body: `At ${maxStreak} days this is becoming identity. Don't break it.`, metric: `${maxStreak} days` });
+  if (maxStreak >= 7) insights.push({ type: 'win', icon: '🏆', priority: 5, title: `${maxStreak}-day streak`, body: `At ${maxStreak} days this is becoming identity. Don\'t break it.`, metric: `${maxStreak} days` });
 
   if (!logs.some(l => l.energyLevel !== undefined)) insights.push({ type: 'tip', icon: '📊', priority: 4, title: 'Start tracking wellbeing', body: 'Log sleep, energy & focus daily. After 5 days the insights become precise and personalized.' });
 
@@ -304,6 +304,155 @@ function scoreColor(v: number): string {
   if (v >= 80) return '#10B981';
   if (v >= 60) return '#F59E0B';
   return '#EF4444';
+}
+
+function RadarChart({ scores }: { scores: { label: string; value: number | null }[] }) {
+  const size = 200;
+  const cx = 100, cy = 100;
+  const maxR = 62;
+  const n = scores.length;
+
+  const angleOf = (i: number) => (i * 2 * Math.PI / n) - Math.PI / 2;
+
+  const ptAt = (i: number, r: number) => ({
+    x: cx + r * Math.cos(angleOf(i)),
+    y: cy + r * Math.sin(angleOf(i)),
+  });
+
+  const gridPolygons = [0.25, 0.5, 0.75, 1.0].map(level =>
+    scores.map((_, i) => { const p = ptAt(i, level * maxR); return `${p.x},${p.y}`; }).join(' ')
+  );
+
+  const dataPoints = scores.map((s, i) => ptAt(i, ((s.value ?? 0) / 100) * maxR));
+  const dataPolygon = dataPoints.map(p => `${p.x},${p.y}`).join(' ');
+
+  const labelR = maxR + 20;
+  const labelPts = scores.map((s, i) => ({ ...ptAt(i, labelR), label: s.label, value: s.value }));
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ overflow: 'visible' }}>
+      <defs>
+        <linearGradient id="radarFill" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.15" />
+        </linearGradient>
+      </defs>
+      {gridPolygons.map((pts, i) => (
+        <polygon key={i} points={pts} fill="none" stroke="#E2E8F0" strokeWidth={i === 3 ? 1.5 : 1} />
+      ))}
+      {scores.map((_, i) => {
+        const outer = ptAt(i, maxR);
+        return <line key={i} x1={cx} y1={cy} x2={outer.x} y2={outer.y} stroke="#E2E8F0" strokeWidth="1" />;
+      })}
+      <polygon points={dataPolygon} fill="url(#radarFill)" stroke="#7C3AED" strokeWidth="2.5" strokeLinejoin="round" />
+      {dataPoints.map((p, i) => scores[i].value !== null ? (
+        <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="#7C3AED" stroke="white" strokeWidth="1.5" />
+      ) : null)}
+      {labelPts.map((l, i) => (
+        <text key={i} x={l.x} y={l.y} textAnchor="middle" dominantBaseline="middle"
+          fill={l.value !== null ? '#475569' : '#CBD5E1'}
+          fontSize="9" fontWeight="700" fontFamily="system-ui,sans-serif">
+          {l.label}{l.value !== null ? ` ${l.value}` : ''}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
+function AreaChart({ data, color, max = 10, threshold }: { data: (number | null)[]; color: string; max?: number; threshold?: number }) {
+  const W = 300, H = 80;
+  const pad = 10;
+  const n = data.length;
+  if (n < 2) return null;
+
+  const xOf = (i: number) => pad + (i / (n - 1)) * (W - 2 * pad);
+  const yOf = (v: number) => pad + (H - 2 * pad) * (1 - Math.min(v, max) / max);
+  const bottom = H - pad;
+
+  const validPts = data
+    .map((v, i) => v !== null ? { x: xOf(i), y: yOf(v) } : null)
+    .filter((p): p is { x: number; y: number } => p !== null);
+
+  if (validPts.length < 1) return null;
+
+  const linePath = validPts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  const areaPath = `${linePath} L ${validPts[validPts.length - 1].x.toFixed(1)} ${bottom} L ${validPts[0].x.toFixed(1)} ${bottom} Z`;
+  const gradId = `ag${color.replace(/[^a-z0-9]/gi, '')}`;
+
+  return (
+    <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.02" />
+        </linearGradient>
+      </defs>
+      {[0.25, 0.5, 0.75, 1.0].map(v => (
+        <line key={v} x1={pad} y1={yOf(v * max)} x2={W - pad} y2={yOf(v * max)}
+          stroke="#E2E8F0" strokeWidth="0.5" />
+      ))}
+      {threshold !== undefined && (
+        <line x1={pad} y1={yOf(threshold)} x2={W - pad} y2={yOf(threshold)}
+          stroke={color} strokeWidth="1" strokeDasharray="4,3" opacity="0.45" />
+      )}
+      <path d={areaPath} fill={`url(#${gradId})`} />
+      <path d={linePath} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      {validPts.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r="2.5" fill={color} stroke="white" strokeWidth="1.5" />
+      ))}
+    </svg>
+  );
+}
+
+function BestDayChart({ dailyLogs }: { dailyLogs: DailyLog[] }) {
+  const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const dowMap = [1, 2, 3, 4, 5, 6, 0];
+
+  const avgs = dowMap.map(d => {
+    const dayLogs = dailyLogs.filter(l => new Date(l.date + 'T12:00:00').getDay() === d);
+    const vals = [
+      ...dayLogs.filter(l => l.energyLevel !== undefined).map(l => l.energyLevel!),
+      ...dayLogs.filter(l => l.focusLevel !== undefined).map(l => l.focusLevel!),
+    ];
+    return vals.length >= 1 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  });
+
+  if (avgs.every(v => v === null)) return null;
+
+  const valid = avgs.filter((v): v is number => v !== null);
+  const maxVal = Math.max(...valid);
+  const minVal = Math.min(...valid);
+  const spread = maxVal - minVal;
+
+  return (
+    <div className="space-y-2">
+      {DAYS.map((day, i) => {
+        const val = avgs[i];
+        if (val === null) return (
+          <div key={day} className="flex items-center gap-3">
+            <span className="text-[11px] text-slate-400 font-semibold w-8 flex-shrink-0">{day}</span>
+            <div className="flex-1 h-4 bg-slate-50 rounded-full" />
+            <span className="text-[11px] text-slate-300 font-bold w-10 text-right flex-shrink-0">—</span>
+          </div>
+        );
+        const pct = (val / 10) * 100;
+        const isBest = val === maxVal && spread >= 1;
+        const isWorst = val === minVal && spread >= 1;
+        const barColor = isBest ? '#10B981' : isWorst ? '#EF4444' : '#7C3AED';
+        return (
+          <div key={day} className="flex items-center gap-3">
+            <span className="text-[11px] text-slate-700 font-bold w-8 flex-shrink-0">{day}</span>
+            <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: barColor }} />
+            </div>
+            <span className="text-[11px] font-black flex-shrink-0" style={{ color: barColor, minWidth: '3.5rem', textAlign: 'right' }}>
+              {val.toFixed(1)}{isBest ? ' 🏆' : isWorst ? ' ⚠️' : ''}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 const insightColors = {
@@ -336,6 +485,7 @@ export default function Insights({ dailyLogs, setDailyLogs, habits, targets, goa
   const energyData = periodDates.map(d => dailyLogs.find(l => l.date === d)?.energyLevel ?? null);
   const focusData = periodDates.map(d => dailyLogs.find(l => l.date === d)?.focusLevel ?? null);
   const hasAnyData = sleepData.some(v => v !== null) || energyData.some(v => v !== null);
+  const hasBestDayData = dailyLogs.some(l => l.energyLevel !== undefined || l.focusLevel !== undefined);
 
   const saveLog = () => {
     setDailyLogs([...dailyLogs.filter(l => l.date !== today), { ...draft, date: today }]);
@@ -345,11 +495,11 @@ export default function Insights({ dailyLogs, setDailyLogs, habits, targets, goa
   const wellbeingLogged = todayLog.energyLevel !== undefined || todayLog.sleep !== undefined || todayLog.focusLevel !== undefined;
 
   const scoreItems = [
-    { label: 'Sleep', value: periodScore.sleep, icon: '😴' },
-    { label: 'Energy', value: periodScore.energy, icon: '⚡' },
-    { label: 'Habits', value: periodScore.habits, icon: '🔥' },
-    { label: 'Nutrition', value: periodScore.nutrition, icon: '🥩' },
-    { label: 'Work', value: periodScore.work, icon: '💼' },
+    { label: 'Sleep', value: periodScore.sleep },
+    { label: 'Energy', value: periodScore.energy },
+    { label: 'Habits', value: periodScore.habits },
+    { label: 'Nutrition', value: periodScore.nutrition },
+    { label: 'Work', value: periodScore.work },
   ];
 
   return (
@@ -426,32 +576,16 @@ export default function Insights({ dailyLogs, setDailyLogs, habits, targets, goa
       )}
 
       <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
-        <h2 className="text-sm font-bold text-slate-900 mb-3">{period}-Day Performance</h2>
+        <h2 className="text-sm font-bold text-slate-900 mb-4">{period}-Day Performance</h2>
         {periodScore.overall !== null ? (
-          <div className="flex items-center gap-5">
-            <div className="flex-shrink-0 relative">
-              <svg width="64" height="64" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="32" cy="32" r="27" fill="none" stroke="#E2E8F0" strokeWidth="6" />
-                <circle cx="32" cy="32" r="27" fill="none" stroke={scoreColor(periodScore.overall)} strokeWidth="6"
-                  strokeDasharray={2 * Math.PI * 27}
-                  strokeDashoffset={2 * Math.PI * 27 - (periodScore.overall / 100) * 2 * Math.PI * 27}
-                  strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1s ease-out' }} />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-lg font-black" style={{ color: scoreColor(periodScore.overall) }}>{periodScore.overall}</span>
+          <div className="flex flex-col items-center gap-2">
+            <RadarChart scores={scoreItems} />
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-3xl font-black" style={{ color: scoreColor(periodScore.overall) }}>{periodScore.overall}</span>
+              <div>
+                <p className="text-[11px] font-bold text-slate-500">Overall Score</p>
+                <p className="text-[10px] text-slate-300">{period}-day average</p>
               </div>
-            </div>
-            <div className="flex-1 space-y-2.5">
-              {scoreItems.filter(s => s.value !== null).map(s => (
-                <div key={s.label} className="flex items-center gap-2">
-                  <span className="text-sm w-4 flex-shrink-0">{s.icon}</span>
-                  <span className="text-xs text-slate-500 font-medium w-14 flex-shrink-0">{s.label}</span>
-                  <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${s.value}%`, backgroundColor: scoreColor(s.value!) }} />
-                  </div>
-                  <span className="text-xs font-bold w-9 text-right flex-shrink-0" style={{ color: scoreColor(s.value!) }}>{s.value}%</span>
-                </div>
-              ))}
             </div>
           </div>
         ) : (
@@ -509,33 +643,37 @@ export default function Insights({ dailyLogs, setDailyLogs, habits, targets, goa
         <div className="bg-white border border-slate-100 rounded-2xl p-4 space-y-5 shadow-sm">
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{period}-Day Trends</p>
           {[
-            { label: 'Sleep (hours)', data: sleepData, max: 10, threshold: 7, good: '#10B981', warn: '#F59E0B', bad: '#EF4444' },
-            { label: 'Energy (/10)', data: energyData, max: 10, threshold: 6, good: '#7C3AED', warn: '#F59E0B', bad: '#EF4444' },
-            { label: 'Focus (/10)', data: focusData, max: 10, threshold: 6, good: '#3B82F6', warn: '#F59E0B', bad: '#EF4444' },
+            { label: 'Sleep (hours)', data: sleepData, max: 10, color: '#3B82F6', threshold: 7 },
+            { label: 'Energy /10', data: energyData, max: 10, color: '#7C3AED', threshold: 6 },
+            { label: 'Focus /10', data: focusData, max: 10, color: '#10B981', threshold: 6 },
           ].filter(t => t.data.some(v => v !== null)).map(trend => {
             const vals = trend.data.filter((v): v is number => v !== null);
             const a = vals.length ? avg(vals) : null;
-            const aColor = a !== null ? (a >= trend.threshold ? trend.good : a >= trend.threshold * 0.8 ? trend.warn : trend.bad) : '#94A3B8';
+            const aColor = a !== null ? scoreColor((a / trend.max) * 100) : '#94A3B8';
             return (
               <div key={trend.label}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-slate-500 font-semibold">{trend.label}</span>
                   {a !== null && <span className="text-xs font-bold" style={{ color: aColor }}>{a.toFixed(1)} avg</span>}
                 </div>
-                <div className="flex items-end gap-px h-10">
-                  {trend.data.map((val, idx) => {
-                    const h = val !== null ? Math.max(8, (val / trend.max) * 100) : 5;
-                    const color = val === null ? '#E2E8F0' : val >= trend.threshold ? trend.good : val >= trend.threshold * 0.8 ? trend.warn : trend.bad;
-                    return <div key={idx} className="flex-1 rounded-sm" style={{ height: `${h}%`, backgroundColor: color, opacity: val === null ? 0.4 : 1 }} />;
-                  })}
-                </div>
+                <AreaChart data={trend.data} color={trend.color} max={trend.max} threshold={trend.threshold} />
                 <div className="flex justify-between mt-1">
-                  <span className="text-[9px] text-slate-300 font-medium">{period}d ago</span>
-                  <span className="text-[9px] text-slate-300 font-medium">today</span>
+                  <span className="text-[9px] text-slate-300">{period}d ago</span>
+                  <span className="text-[9px] text-slate-300">today</span>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {hasBestDayData && (
+        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-sm font-bold text-slate-900">Best Day of Week</h2>
+            <span className="text-[10px] px-2 py-0.5 bg-violet-100 text-violet-600 rounded-full font-bold ml-auto">Avg Energy + Focus</span>
+          </div>
+          <BestDayChart dailyLogs={dailyLogs} />
         </div>
       )}
 
@@ -544,7 +682,7 @@ export default function Insights({ dailyLogs, setDailyLogs, habits, targets, goa
           <div className="bg-white border border-slate-100 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-black text-slate-900">Today's Wellbeing</h2>
-              <button onClick={() => setShowLog(false)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
+              <button onClick={() => setShowLog(false)} className="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
             </div>
             {[
               { label: 'Sleep', key: 'sleep', unit: 'h', min: 0, max: 12, step: 0.5, hint: '7–9h is optimal' },
