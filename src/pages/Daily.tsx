@@ -56,6 +56,54 @@ function getLast7(): string[] {
   });
 }
 
+function get84Days(): string[] {
+  return Array.from({ length: 84 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (83 - i));
+    return d.toISOString().split('T')[0];
+  });
+}
+
+function HabitHeatmap({ habit, today }: { habit: Habit; today: string }) {
+  const days = get84Days();
+  // Split into 12 weeks of 7
+  const weeks: string[][] = Array.from({ length: 12 }, (_, w) => days.slice(w * 7, w * 7 + 7));
+  const completionCount = days.filter(d => habit.logs.includes(d)).length;
+  const pct = Math.round((completionCount / 84) * 100);
+
+  return (
+    <div className="mt-3 pt-3 border-t border-slate-50">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">12-Week View</span>
+        <span className="text-[10px] font-bold text-violet-500">{pct}% consistency</span>
+      </div>
+      <div className="flex gap-[3px]">
+        {weeks.map((week, wi) => (
+          <div key={wi} className="flex flex-col gap-[3px]">
+            {week.map(date => {
+              const done = habit.logs.includes(date);
+              const isToday = date === today;
+              return (
+                <div
+                  key={date}
+                  className={`w-[7px] h-[7px] rounded-[2px] transition-colors ${
+                    done ? 'bg-emerald-500' : 'bg-slate-100'
+                  }`}
+                  style={isToday ? { outline: '1.5px solid #7C3AED', outlineOffset: '0.5px' } : undefined}
+                />
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-between mt-1.5">
+        <span className="text-[9px] text-slate-300">12 weeks ago</span>
+        <span className="text-[9px] text-slate-300">today</span>
+      </div>
+    </div>
+  );
+}
+
 export default function Daily({ priorities, setPriorities, projects, setProjects, habits, setHabits, dailyLogs, setDailyLogs, targets }: DailyProps) {
   const today = todayStr();
   const todayLog = dailyLogs.find(l => l.date === today) ?? { date: today };
@@ -66,6 +114,7 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [projectDraft, setProjectDraft] = useState({ title: '', description: '', progress: 0 });
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [expandedHabit, setExpandedHabit] = useState<string | null>(null);
 
   const todayItems = priorities.filter(p => p.date === today);
   const topPriorities = todayItems.filter(p => p.isPriority);
@@ -145,28 +194,39 @@ export default function Daily({ priorities, setPriorities, projects, setProjects
             const streak = getStreak(habit.logs);
             const longest = getLongestStreak(habit.logs);
             const doneToday = habit.logs.includes(today);
+            const isExpanded = expandedHabit === habit.id;
             return (
-              <div key={habit.id} className="flex items-center gap-3 py-2.5">
-                <button onClick={() => toggleHabit(habit.id)}
-                  className={`w-5 h-5 rounded border flex-shrink-0 flex items-center justify-center transition-all ${
-                    doneToday ? 'bg-emerald-500 border-emerald-500' : 'border-slate-200 hover:border-emerald-400'
-                  }`}>
-                  {doneToday && <span className="text-white text-[10px] font-bold">✓</span>}
-                </button>
-                <span className={`text-sm flex-1 font-medium ${ doneToday ? 'text-slate-300 line-through' : 'text-slate-700' }`}>
-                  {habit.name}
-                </span>
-                <div className="flex gap-0.5 items-center">
-                  {last7.map(date => (
-                    <span key={date} className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                      habit.logs.includes(date) ? 'bg-emerald-500' : 'bg-slate-100'
-                    }`} />
-                  ))}
+              <div key={habit.id}>
+                <div className="flex items-center gap-3 py-2.5">
+                  <button onClick={() => toggleHabit(habit.id)}
+                    className={`w-5 h-5 rounded border flex-shrink-0 flex items-center justify-center transition-all ${
+                      doneToday ? 'bg-emerald-500 border-emerald-500' : 'border-slate-200 hover:border-emerald-400'
+                    }`}>
+                    {doneToday && <span className="text-white text-[10px] font-bold">✓</span>}
+                  </button>
+                  <span className={`text-sm flex-1 font-medium ${ doneToday ? 'text-slate-300 line-through' : 'text-slate-700' }`}>
+                    {habit.name}
+                  </span>
+                  <div className="flex gap-0.5 items-center">
+                    {last7.map(date => (
+                      <span key={date} className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                        habit.logs.includes(date) ? 'bg-emerald-500' : 'bg-slate-100'
+                      }`} />
+                    ))}
+                  </div>
+                  <div className="text-right flex-shrink-0 min-w-[52px]">
+                    {streak >= 1 && <div className="text-[11px] text-amber-500 font-bold">{streak}d 🔥</div>}
+                    {longest > streak && longest >= 2 && <div className="text-[10px] text-slate-300 font-medium">best {longest}d</div>}
+                  </div>
+                  <button
+                    onClick={() => setExpandedHabit(isExpanded ? null : habit.id)}
+                    className="text-slate-300 hover:text-violet-500 transition-colors text-xs ml-1 flex-shrink-0"
+                    title="View heatmap"
+                  >
+                    {isExpanded ? '▲' : '▼'}
+                  </button>
                 </div>
-                <div className="text-right flex-shrink-0 min-w-[52px]">
-                  {streak >= 1 && <div className="text-[11px] text-amber-500 font-bold">{streak}d 🔥</div>}
-                  {longest > streak && longest >= 2 && <div className="text-[10px] text-slate-300 font-medium">best {longest}d</div>}
-                </div>
+                {isExpanded && <HabitHeatmap habit={habit} today={today} />}
               </div>
             );
           })}
