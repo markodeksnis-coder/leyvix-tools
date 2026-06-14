@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - claude/performance-app-setup-1HK0b
+      - claude/build-new-app-MLhPs
 
 permissions:
   contents: write
