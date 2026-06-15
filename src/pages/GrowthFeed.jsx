@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, ChevronDown, ChevronUp, Play, Zap } from 'lucide-react'
+import { Plus, ChevronDown, ChevronUp, Play, Zap, Key } from 'lucide-react'
 import Modal from '../components/Modal'
 import { today, fmtShort } from '../utils'
 import feedData from '../data/growthFeedData.json'
@@ -185,6 +185,8 @@ export default function GrowthFeed() {
   const [addForm, setAddForm] = useState({ youtube_url: '', title: '', channel: '', pillar: 'Mindset' })
   const [dropping, setDropping] = useState(false)
   const [dropError, setDropError] = useState('')
+  const [showKeyModal, setShowKeyModal] = useState(false)
+  const [keyInput, setKeyInput] = useState('')
 
   const handleWatch = (id, openTab) => {
     if (openTab) {
@@ -210,6 +212,13 @@ export default function GrowthFeed() {
     }])
     setAddForm({ youtube_url: '', title: '', channel: '', pillar: 'Mindset' })
     setShowAddModal(false)
+  }
+
+  const handleSaveKey = () => {
+    const k = keyInput.trim()
+    if (k) { localStorage.setItem('anthropic_key', k); setDropError('') }
+    setShowKeyModal(false)
+    setKeyInput('')
   }
 
   const handleDrop = async () => {
@@ -264,6 +273,13 @@ export default function GrowthFeed() {
             >
               <Zap size={9} fill={dropping ? 'none' : 'white'} />
               {dropping ? 'Dropping...' : 'Drop 3 Videos'}
+            </button>
+            <button
+              onClick={() => { setKeyInput(localStorage.getItem('anthropic_key') || ''); setShowKeyModal(true) }}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors"
+              title="Set API Key"
+            >
+              <Key size={9} />
             </button>
             <button
               onClick={() => setShowAddModal(true)}
@@ -384,6 +400,32 @@ export default function GrowthFeed() {
             <div className="flex gap-2 pt-1">
               <button onClick={handleAddVideo} className="flex-1 py-2.5 bg-[#dc2626] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors">Add to Feed</button>
               <button onClick={() => setShowAddModal(false)} className="px-4 py-2.5 border border-[#2a2a2a] text-[#444] text-[10px] uppercase tracking-widest hover:border-[#666] transition-colors">Cancel</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* API Key Modal */}
+      {showKeyModal && (
+        <Modal title="Set Anthropic API Key" onClose={() => setShowKeyModal(false)}>
+          <div className="space-y-4">
+            <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#666' }}>
+              Paste your key from <span style={{ color: '#dc2626' }}>console.anthropic.com</span>. Saved to your browser only.
+            </p>
+            <div>
+              <label className={cls.label}>API Key</label>
+              <input
+                value={keyInput}
+                onChange={e => setKeyInput(e.target.value)}
+                autoFocus
+                placeholder="sk-ant-api03-..."
+                className={cls.input}
+                type="password"
+              />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button onClick={handleSaveKey} className="flex-1 py-2.5 bg-[#dc2626] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors">Save Key</button>
+              <button onClick={() => setShowKeyModal(false)} className="px-4 py-2.5 border border-[#2a2a2a] text-[#444] text-[10px] uppercase tracking-widest hover:border-[#666] transition-colors">Cancel</button>
             </div>
           </div>
         </Modal>
