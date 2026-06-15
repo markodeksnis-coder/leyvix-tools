@@ -1,11 +1,34 @@
 import { useState } from 'react'
-import { Plus, ChevronDown, ChevronUp, Pencil, Trophy, X } from 'lucide-react'
+import { Plus, Pencil, X } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import Heatmap from '../components/Heatmap'
 import Modal from '../components/Modal'
 import { calcStreak, today, fmtShort, daysSinceStart } from '../utils'
 
-const CONTENT_CATS = ['All','Sales','Psychology','Business','Theology','Fitness','Relationships','Door-to-Door','Other']
+const CONTENT_CATS = ['All', 'Sales', 'Psychology', 'Business', 'Theology', 'Fitness', 'Relationships', 'Door-to-Door', 'Other']
+
+const CAT_COLORS = {
+  Sales: '#3b82f6',
+  Psychology: '#8b5cf6',
+  Business: '#f59e0b',
+  Theology: '#10b981',
+  Fitness: '#ef4444',
+  Relationships: '#ec4899',
+  'Door-to-Door': '#f97316',
+  Other: '#6b7280',
+}
+
+const TROPHY_STYLES = [
+  { bg: 'linear-gradient(135deg, #78350f, #92400e)', border: '#f59e0b', shadow: '0 0 24px rgba(245,158,11,0.4)', numColor: '#facc15', medal: '🥇' },
+  { bg: 'linear-gradient(135deg, #1e293b, #334155)', border: '#94a3b8', shadow: '0 0 16px rgba(148,163,184,0.2)', numColor: '#e2e8f0', medal: '🥈' },
+  { bg: 'linear-gradient(135deg, #431407, #7c2d12)', border: '#f97316', shadow: '0 0 16px rgba(249,115,22,0.2)', numColor: '#fb923c', medal: '🥉' },
+]
+
+const SectionHeader = ({ children }) => (
+  <div className="font-display text-white" style={{ fontSize: 22, borderLeft: '2px solid #dc2626', paddingLeft: 12 }}>
+    {children}
+  </div>
+)
 
 const cls = {
   input: "w-full bg-[#080808] border border-[#2a2a2a] px-3 py-2 text-sm text-white placeholder-[#333] focus:outline-none focus:border-[#dc2626] transition-colors",
@@ -16,7 +39,7 @@ export default function Record() {
   const [habits, setHabits] = useLocalStorage('marko_habits', [])
   const [content, setContent] = useLocalStorage('marko_content', [])
   const [contentCat, setContentCat] = useState('All')
-  const [expandedHeatmaps, setExpandedHeatmaps] = useState({})
+  const [collapsedHeatmaps, setCollapsedHeatmaps] = useState({})
   const [showContentModal, setShowContentModal] = useState(false)
   const [showHabitModal, setShowHabitModal] = useState(false)
   const [editHabit, setEditHabit] = useState(null)
@@ -50,6 +73,8 @@ export default function Record() {
     fails: (h.fails || []).filter(f => f !== todayStr),
   }))
 
+  const toggleHeatmap = id => setCollapsedHeatmaps(p => ({ ...p, [id]: !p[id] }))
+
   const saveHabit = () => {
     if (!habitForm.name.trim()) return
     if (editHabit) {
@@ -74,27 +99,27 @@ export default function Record() {
 
   const trophies = habits.map(h => {
     const s = calcStreak(h.logs)
-    return { name: h.name, best: s.longest }
+    return { name: h.name, icon: h.icon || '🎯', best: s.longest }
   }).filter(t => t.best > 0).sort((a, b) => b.best - a.best)
 
   const thisWeekStart = (() => {
     const d = new Date(); d.setDate(d.getDate() - d.getDay()); return d.toISOString().split('T')[0]
   })()
-  const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`
+  const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
 
   return (
     <div className="h-full flex flex-col">
       <div className="px-8 py-5 border-b border-[#2a2a2a] shrink-0">
-        <h1 className="text-xl font-bold uppercase tracking-tight">{dayName}, {dateLabel}</h1>
-        <p className="text-[10px] font-mono text-[#dc2626] mt-0.5 uppercase tracking-widest">Day {dayNum} of the war.</p>
+        <h1 className="font-display text-white" style={{ fontSize: 28 }}>{dayName}, {dateLabel}</h1>
+        <p style={{ fontFamily: 'Inter', fontSize: 13, color: '#dc2626', marginTop: 2 }}>Day {dayNum} of the war.</p>
       </div>
 
       <div className="flex-1 overflow-auto px-8 py-6 space-y-10">
 
-        {/* Streak Grid */}
+        {/* Active Streaks */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#444]">Active Streaks</span>
+            <SectionHeader>Active Streaks</SectionHeader>
             <button
               onClick={() => { setHabitForm({ name: '', icon: '🎯', category: 'Health', target: 'Daily' }); setEditHabit(null); setShowHabitModal(true) }}
               className="flex items-center gap-1 px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors"
@@ -108,49 +133,99 @@ export default function Record() {
               const doneToday = h.logs.includes(todayStr)
               const failedToday = (h.fails || []).includes(todayStr)
               const isRecord = streak.current > 0 && streak.current === streak.longest && streak.current > 1
-              const numColor = streak.current === 0 ? '#dc2626' : isRecord ? '#facc15' : 'white'
-              const borderCls = failedToday ? 'border-[#dc2626]/50' : isRecord ? 'border-[#facc15]/40' : 'border-[#2a2a2a]'
+              const numColor = (failedToday || streak.current === 0) ? '#ef4444' : isRecord ? '#facc15' : '#ffffff'
+              const numShadow = isRecord ? '0 0 20px rgba(250,204,21,0.6)' : 'none'
+              const topBorderColor = isRecord ? '#facc15' : failedToday ? '#dc2626' : streak.current > 0 ? '#16a34a' : '#333'
               const badge = failedToday ? '💀' : isRecord ? '👑' : streak.current > 7 ? '🔥' : ''
-              const expanded = expandedHeatmaps[h.id]
+              const expanded = !collapsedHeatmaps[h.id]
+              const lastFail = [...(h.fails || [])].sort().at(-1)
 
               return (
-                <div key={h.id} className={`bg-[#0f0f0f] border ${borderCls} p-4 transition-all hover:shadow-[0_0_12px_rgba(220,38,38,0.15)]`}>
-                  <div className="flex items-start justify-between mb-1">
-                    <span className="text-[9px] font-mono uppercase tracking-widest text-[#444] leading-tight pr-1">{h.name}</span>
+                <div
+                  key={h.id}
+                  style={{ background: '#111111', border: '1px solid #222222', borderTop: `3px solid ${topBorderColor}` }}
+                  className="p-4 transition-all"
+                >
+                  {/* Name row — click to toggle heatmap */}
+                  <div className="flex items-start justify-between mb-2">
+                    <button
+                      onClick={() => toggleHeatmap(h.id)}
+                      className="text-left flex-1 pr-1 hover:opacity-80 transition-opacity"
+                      style={{ fontFamily: 'Inter', fontSize: 12, color: '#888', lineHeight: 1.3 }}
+                    >
+                      {h.icon} {h.name}
+                    </button>
                     <button
                       onClick={() => { setHabitForm({ name: h.name, icon: h.icon || '🎯', category: h.category || 'Health', target: h.target || 'Daily' }); setEditHabit(h); setShowHabitModal(true) }}
-                      className="text-[#222] hover:text-[#666] transition-colors shrink-0"
-                    ><Pencil size={10} /></button>
+                      className="text-[#333] hover:text-[#666] transition-colors shrink-0"
+                    >
+                      <Pencil size={10} />
+                    </button>
                   </div>
-                  <div className="flex items-end gap-1 my-1">
-                    <span className="font-mono font-black select-none" style={{ fontSize: 64, color: numColor, lineHeight: 1 }}>{streak.current}</span>
-                    {badge && <span className="text-xl mb-1 leading-none">{badge}</span>}
+
+                  {/* Big streak number */}
+                  <div className="flex items-end gap-1">
+                    <span
+                      className="font-display select-none"
+                      style={{ fontSize: 96, color: numColor, lineHeight: 1, textShadow: numShadow }}
+                    >
+                      {streak.current}
+                    </span>
+                    {badge && <span className="text-2xl mb-1 leading-none">{badge}</span>}
                   </div>
-                  <div className="text-[9px] font-mono text-[#333] mb-3 space-y-0.5">
-                    <div>BEST: <span className="text-[#555]">{streak.longest}d</span></div>
-                    <div>WK: {streak.weekCount} · MO: {streak.monthCount}</div>
+
+                  {/* DAY STREAK label */}
+                  <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#555555', marginTop: -4, marginBottom: 8 }}>
+                    DAY STREAK
                   </div>
-                  {doneToday || failedToday ? (
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[9px] font-mono uppercase tracking-widest ${doneToday ? 'text-[#16a34a]' : 'text-[#dc2626]'}`}>
-                        {doneToday ? '✓ DONE' : '✗ FAILED'}
-                      </span>
-                      <button onClick={() => undoHabit(h.id)} className="text-[9px] font-mono text-[#333] hover:text-[#666] uppercase tracking-widest transition-colors">UNDO</button>
+
+                  {/* BEST + BROKE */}
+                  <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#555555', marginBottom: 10 }} className="space-y-0.5">
+                    <div>BEST <span style={{ color: 'white' }}>{streak.longest}d</span></div>
+                    <div>BROKE {lastFail ? fmtShort(lastFail) : '—'}</div>
+                  </div>
+
+                  {/* Action buttons */}
+                  {doneToday ? (
+                    <div className="flex items-center gap-2">
+                      <div
+                        style={{ background: '#166534', fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', padding: '6px 0', flex: 1, textAlign: 'center' }}
+                      >
+                        ✓ LOGGED
+                      </div>
+                      <button onClick={() => undoHabit(h.id)} style={{ fontFamily: 'Inter', fontSize: 10, color: '#333' }} className="hover:text-[#555] transition-colors">UNDO</button>
+                    </div>
+                  ) : failedToday ? (
+                    <div className="flex items-center gap-2">
+                      <div
+                        style={{ border: '1px solid #dc2626', fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#dc2626', padding: '6px 0', flex: 1, textAlign: 'center' }}
+                      >
+                        ✗ FAILED
+                      </div>
+                      <button onClick={() => undoHabit(h.id)} style={{ fontFamily: 'Inter', fontSize: 10, color: '#333' }} className="hover:text-[#555] transition-colors">UNDO</button>
                     </div>
                   ) : (
                     <div className="flex gap-1.5">
-                      <button onClick={() => logHabit(h.id)} className="flex-1 py-1.5 bg-[#16a34a]/20 border border-[#16a34a]/30 text-[#16a34a] text-[8px] font-mono uppercase tracking-widest hover:bg-[#16a34a]/30 transition-colors">✓ Done</button>
-                      <button onClick={() => failHabit(h.id)} className="flex-1 py-1.5 border border-red-900/40 text-red-700 text-[8px] font-mono uppercase tracking-widest hover:border-[#dc2626] hover:text-[#dc2626] transition-colors">✗ Fail</button>
+                      <button
+                        onClick={() => logHabit(h.id)}
+                        style={{ background: '#16a34a', fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white' }}
+                        className="flex-1 py-1.5 hover:opacity-90 transition-opacity"
+                      >
+                        ✓ Done
+                      </button>
+                      <button
+                        onClick={() => failHabit(h.id)}
+                        style={{ border: '1px solid #dc2626', color: '#dc2626', fontFamily: 'Inter', fontSize: 12, fontWeight: 700 }}
+                        className="flex-1 py-1.5 hover:bg-[#dc2626]/10 transition-colors"
+                      >
+                        ✗ Fail
+                      </button>
                     </div>
                   )}
-                  <button
-                    onClick={() => setExpandedHeatmaps(p => ({ ...p, [h.id]: !p[h.id] }))}
-                    className="w-full flex items-center justify-center gap-1 text-[8px] font-mono text-[#222] hover:text-[#444] uppercase tracking-widest transition-colors mt-2 pt-2 border-t border-[#141414]"
-                  >
-                    {expanded ? <ChevronUp size={9} /> : <ChevronDown size={9} />} Heatmap
-                  </button>
+
+                  {/* Collapsible heatmap (default expanded) */}
                   {expanded && (
-                    <div className="mt-3 overflow-x-auto">
+                    <div className="mt-3 pt-3 border-t border-[#1a1a1a] overflow-x-auto">
                       <Heatmap logs={h.logs} fails={h.fails || []} />
                     </div>
                   )}
@@ -163,42 +238,62 @@ export default function Record() {
         {/* Content Library */}
         <section>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#444]">Content Library</span>
+            <SectionHeader>Content Library</SectionHeader>
             <button onClick={() => setShowContentModal(true)} className="flex items-center gap-1 px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors">
               <Plus size={9} /> Add Entry
             </button>
           </div>
-          <div className="flex gap-4 mb-3 text-[9px] font-mono text-[#333] uppercase tracking-widest flex-wrap">
-            <span>Total: <span className="text-[#666]">{content.length}</span></span>
-            <span>This week: <span className="text-[#666]">{content.filter(c => c.date >= thisWeekStart).length}</span></span>
-            <span>This month: <span className="text-[#666]">{content.filter(c => c.date >= thisMonthStart).length}</span></span>
+          <div className="flex gap-4 mb-3 flex-wrap" style={{ fontFamily: 'Inter', fontSize: 11, color: '#444' }}>
+            <span>Total <span style={{ color: '#666' }}>{content.length}</span></span>
+            <span>This week <span style={{ color: '#666' }}>{content.filter(c => c.date >= thisWeekStart).length}</span></span>
+            <span>This month <span style={{ color: '#666' }}>{content.filter(c => c.date >= thisMonthStart).length}</span></span>
           </div>
           <div className="flex gap-1 overflow-x-auto mb-3 pb-1">
             {CONTENT_CATS.map(cat => (
               <button key={cat} onClick={() => setContentCat(cat)}
-                className={`px-3 py-1.5 text-[9px] font-mono uppercase tracking-widest whitespace-nowrap shrink-0 transition-all ${
-                  contentCat === cat ? 'bg-[#dc2626] text-white' : 'border border-[#2a2a2a] text-[#444] hover:border-[#dc2626] hover:text-white'
-                }`}>
+                className={`px-3 py-1.5 text-[9px] font-mono uppercase tracking-widest whitespace-nowrap shrink-0 transition-all ${contentCat === cat ? 'bg-[#dc2626] text-white' : 'border border-[#2a2a2a] text-[#444] hover:border-[#dc2626] hover:text-white'}`}>
                 {cat}
               </button>
             ))}
           </div>
           {filteredContent.length === 0 ? (
-            <div className="bg-[#0f0f0f] border border-[#2a2a2a] p-8 text-center text-[#333] text-[10px] font-mono uppercase tracking-widest">No entries yet</div>
+            <div className="p-8 text-center" style={{ background: '#111', fontFamily: 'Inter', fontSize: 12, color: '#333' }}>No entries yet</div>
           ) : (
-            <div className="bg-[#0f0f0f] border border-[#2a2a2a]">
-              <div className="grid grid-cols-[90px_110px_1fr_1fr_28px] gap-3 px-4 py-2 border-b border-[#2a2a2a] text-[8px] font-mono uppercase tracking-widest text-[#333]">
-                <span>Date</span><span>Category</span><span>Title</span><span>Takeaway</span><span></span>
-              </div>
-              {filteredContent.map(c => (
-                <div key={c.id} className="grid grid-cols-[90px_110px_1fr_1fr_28px] gap-3 px-4 py-3 border-b border-[#141414] hover:bg-[#141414] transition-colors items-start group">
-                  <span className="text-[9px] font-mono text-[#333]">{fmtShort(c.date)}</span>
-                  <span className="text-[9px] font-mono text-[#dc2626] uppercase tracking-widest">{c.category}</span>
-                  <span className="text-sm text-[#999] font-medium">{c.title}</span>
-                  <span className="text-xs text-[#555] leading-relaxed">{c.takeaway}</span>
-                  <button onClick={() => deleteContent(c.id)} className="text-[#222] hover:text-[#dc2626] opacity-0 group-hover:opacity-100 transition-all mt-0.5"><X size={11} /></button>
-                </div>
-              ))}
+            <div className="space-y-2">
+              {filteredContent.map(c => {
+                const color = CAT_COLORS[c.category] || '#6b7280'
+                return (
+                  <div
+                    key={c.id}
+                    style={{ background: '#111111', borderLeft: `3px solid ${color}` }}
+                    className="p-4 group transition-all hover:bg-[#161616] cursor-default"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span style={{ background: color, fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: 'white', padding: '2px 8px', borderRadius: 9999 }}>
+                            {c.category}
+                          </span>
+                        </div>
+                        <div style={{ fontFamily: 'Inter', fontSize: 16, fontWeight: 700, color: 'white', marginBottom: 4 }}>
+                          {c.title}
+                        </div>
+                        {c.takeaway && (
+                          <div style={{ fontFamily: 'Inter', fontSize: 13, color: '#aaaaaa', fontStyle: 'italic' }}>
+                            {c.takeaway}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#444' }}>{fmtShort(c.date)}</span>
+                        <button onClick={() => deleteContent(c.id)} className="text-[#333] hover:text-[#dc2626] opacity-0 group-hover:opacity-100 transition-all">
+                          <X size={11} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
         </section>
@@ -206,19 +301,44 @@ export default function Record() {
         {/* Trophy Wall */}
         {trophies.length > 0 && (
           <section>
-            <div className="flex items-center gap-2 mb-4">
-              <Trophy size={12} className="text-[#facc15]" />
-              <span className="text-[10px] font-mono uppercase tracking-widest text-[#444]">Trophy Wall</span>
+            <div className="mb-4">
+              <SectionHeader>Trophy Wall</SectionHeader>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-              {trophies.map(t => (
-                <div key={t.name} className="bg-[#0f0f0f] border border-[#facc15]/20 p-4 hover:border-[#facc15]/50 transition-colors">
-                  <div className="text-[9px] font-mono uppercase tracking-widest text-[#444] mb-1">{t.name}</div>
-                  <div className="text-4xl font-mono font-black text-[#facc15]">{t.best}</div>
-                  <div className="text-[9px] font-mono text-[#333] mt-1">day best streak</div>
-                </div>
-              ))}
+
+            {/* Top 3 — big cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              {trophies.slice(0, 3).map((t, i) => {
+                const ts = TROPHY_STYLES[i]
+                return (
+                  <div
+                    key={t.name}
+                    style={{ background: ts.bg, border: `1px solid ${ts.border}`, boxShadow: ts.shadow }}
+                    className="p-5 relative overflow-hidden"
+                  >
+                    {/* Shine overlay */}
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 60%)', pointerEvents: 'none' }} />
+                    <div className="text-4xl mb-2">{ts.medal}</div>
+                    <div className="font-display" style={{ fontSize: 18, color: ts.numColor }}>{t.icon} {t.name}</div>
+                    <div className="font-display" style={{ fontSize: 72, color: ts.numColor, lineHeight: 1 }}>{t.best}</div>
+                    <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#888', marginTop: 4 }}>ALL-TIME RECORD</div>
+                  </div>
+                )
+              })}
             </div>
+
+            {/* Rest — smaller grid */}
+            {trophies.length > 3 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {trophies.slice(3).map(t => (
+                  <div key={t.name} style={{ background: '#111111', border: '1px solid #222222' }} className="p-4">
+                    <div className="text-2xl mb-1">🏆</div>
+                    <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#888' }}>{t.icon} {t.name}</div>
+                    <div className="font-display" style={{ fontSize: 48, color: 'white', lineHeight: 1 }}>{t.best}</div>
+                    <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#555', marginTop: 2 }}>ALL-TIME RECORD</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         )}
       </div>
@@ -233,7 +353,7 @@ export default function Record() {
             <div className="grid grid-cols-2 gap-3">
               <div><label className={cls.label}>Category</label>
                 <select value={habitForm.category} onChange={e => setHabitForm({ ...habitForm, category: e.target.value })} className={cls.input}>
-                  {['Health','Fitness','Business','Mind','Soul','Other'].map(c => <option key={c}>{c}</option>)}
+                  {['Health', 'Fitness', 'Business', 'Mind', 'Soul', 'Other'].map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
               <div><label className={cls.label}>Frequency</label>
@@ -257,7 +377,7 @@ export default function Record() {
             <div className="grid grid-cols-2 gap-3">
               <div><label className={cls.label}>Category</label>
                 <select value={contentForm.category} onChange={e => setContentForm({ ...contentForm, category: e.target.value })} className={cls.input}>
-                  {['Sales','Psychology','Business','Theology','Fitness','Relationships','Door-to-Door','Other'].map(c => <option key={c}>{c}</option>)}
+                  {['Sales', 'Psychology', 'Business', 'Theology', 'Fitness', 'Relationships', 'Door-to-Door', 'Other'].map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
               <div><label className={cls.label}>Date</label><input type="date" value={contentForm.date} onChange={e => setContentForm({ ...contentForm, date: e.target.value })} className={cls.input} /></div>
