@@ -5,13 +5,18 @@ import Modal from '../components/Modal'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { pct, fmtShort } from '../utils'
 
-const CHART_TT = { contentStyle: { background: '#141414', border: '1px solid #2a2a2a', borderRadius: 0, fontSize: 11, fontFamily: 'monospace' }, labelStyle: { color: '#444' }, itemStyle: { color: '#fff' } }
+const CARD = { background: '#111018', border: '1px solid #1e1b2e', borderRadius: 12, padding: 20 }
+const CHART_TT = {
+  contentStyle: { background: '#111018', border: '1px solid #1e1b2e', borderRadius: 8, fontSize: 11, fontFamily: 'Inter' },
+  labelStyle: { color: '#6b7280' },
+  itemStyle: { color: '#fff' },
+}
 
 const cls = {
-  input: "w-full bg-[#080808] border border-[#2a2a2a] px-3 py-2 text-sm text-white placeholder-[#333] focus:outline-none focus:border-[#dc2626] font-mono transition-colors",
-  label: "block text-[9px] font-mono uppercase tracking-widest text-[#444] mb-1.5",
-  primary: "flex-1 py-2.5 bg-[#dc2626] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors",
-  secondary: "px-4 py-2.5 border border-[#2a2a2a] text-[#444] text-[10px] uppercase tracking-widest hover:border-[#666] hover:text-white transition-colors",
+  input: "w-full bg-[#0a0a0f] border border-[#1e1b2e] px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#7c3aed] transition-colors rounded-lg",
+  label: "block text-[9px] font-mono uppercase tracking-widest text-[#555] mb-1.5",
+  primary: "flex-1 py-2.5 text-white text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity rounded-lg",
+  secondary: "px-4 py-2.5 border border-[#1e1b2e] text-[#555] text-[10px] uppercase tracking-widest hover:border-[#444] hover:text-white transition-colors rounded-lg",
 }
 
 export default function Body() {
@@ -88,7 +93,7 @@ export default function Body() {
     }))
   }
 
-  const weightChart = (body.weightHistory || []).slice(-30).map(w => ({ date: w.date.slice(5), weight: w.weight }))
+  const weightChart = (body.weightHistory || []).slice(-90).map(w => ({ date: w.date.slice(5), weight: w.weight }))
   const last7Cal = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (6 - i))
     const ds = d.toISOString().split('T')[0]
@@ -107,77 +112,134 @@ export default function Body() {
   const projDays = bfDiff > 0 ? Math.round(bfDiff / 0.5 * 7) : null
   const projDate = projDays ? new Date(Date.now() + projDays * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null
 
+  const LABEL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }
+
   return (
-    <div className="h-full flex flex-col">
-      <div className="px-8 py-5 border-b border-[#2a2a2a] flex items-center justify-between shrink-0">
+    <div className="h-full flex flex-col" style={{ background: '#0a0a0f' }}>
+      {/* Header */}
+      <div className="px-6 py-4 shrink-0 flex items-center justify-between" style={{ borderBottom: '1px solid #1e1b2e' }}>
         <div>
-          <h1 className="text-xl font-bold uppercase tracking-tight">Body</h1>
-          <p className="text-[10px] font-mono text-[#444] mt-0.5 uppercase tracking-widest">Physical optimization system</p>
+          <h1 style={{ fontFamily: 'Inter', fontSize: 20, fontWeight: 700, color: 'white', letterSpacing: '0.06em' }}>BODY</h1>
+          <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#6b7280', marginTop: 2 }}>Physical optimization system</p>
         </div>
         <div className="flex gap-2">
           {tab === 'fitness' ? (
             <>
-              <button onClick={() => om('stats')} className="px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors">Update Stats</button>
-              <button onClick={() => om('pr')} className="px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors">Log PR</button>
-              <button onClick={() => om('workout')} className="flex items-center gap-1.5 px-4 py-2 bg-[#dc2626] text-white text-[9px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors">
-                <Plus size={10} strokeWidth={2.5} /> Log Workout
+              <button onClick={() => om('stats')} style={{ background: 'transparent', color: '#6b7280', border: '1px solid #1e1b2e', borderRadius: 8, padding: '6px 12px', fontFamily: 'Inter', fontSize: 11, cursor: 'pointer' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#7c3aed'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#1e1b2e'}
+              >Update Stats</button>
+              <button onClick={() => om('pr')} style={{ background: 'transparent', color: '#6b7280', border: '1px solid #1e1b2e', borderRadius: 8, padding: '6px 12px', fontFamily: 'Inter', fontSize: 11, cursor: 'pointer' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#7c3aed'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#1e1b2e'}
+              >Log PR</button>
+              <button onClick={() => om('workout')} style={{ background: '#7c3aed', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Plus size={12} strokeWidth={2.5} /> Log Workout
               </button>
             </>
           ) : (
-            <button onClick={() => om('meal')} className="flex items-center gap-1.5 px-4 py-2 bg-[#dc2626] text-white text-[9px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors">
-              <Plus size={10} strokeWidth={2.5} /> Log Meal
+            <button onClick={() => om('meal')} style={{ background: '#7c3aed', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Plus size={12} strokeWidth={2.5} /> Log Meal
             </button>
           )}
         </div>
       </div>
 
-      <div className="px-8 py-3 border-b border-[#2a2a2a] flex gap-1 shrink-0">
+      {/* Tabs */}
+      <div className="px-6 py-3 flex gap-1 shrink-0" style={{ borderBottom: '1px solid #1e1b2e' }}>
         {['fitness', 'diet'].map(t => (
-          <button key={t} onClick={() => setTab(t)} className={`px-4 py-1.5 text-[9px] font-mono uppercase tracking-widest transition-all ${tab === t ? 'bg-[#dc2626] text-white font-bold' : 'text-[#444] border border-transparent hover:border-[#2a2a2a] hover:text-white'}`}>{t}</button>
+          <button key={t} onClick={() => setTab(t)}
+            style={{
+              padding: '5px 14px', borderRadius: 8, fontFamily: 'Inter', fontSize: 12, fontWeight: tab === t ? 600 : 400,
+              background: tab === t ? '#7c3aed' : 'transparent',
+              color: tab === t ? 'white' : '#6b7280',
+              border: 'none', cursor: 'pointer', textTransform: 'capitalize', transition: 'all 0.15s',
+            }}
+          >{t}</button>
         ))}
       </div>
 
-      <div className="flex-1 overflow-auto px-8 py-6">
+      <div className="flex-1 overflow-auto px-6 py-5" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {tab === 'fitness' ? (
-          <div className="space-y-6">
+          <>
+            {/* Stats row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <StatCard label="Weight" value={body.currentWeight ? `${body.currentWeight}` : '—'} unit={body.currentWeight ? 'lbs' : ''} />
-              <StatCard label="Body Fat" value={body.bodyFat ? `${body.bodyFat}` : '—'} unit={body.bodyFat ? '%' : ''} />
-              <StatCard label="Goal BF%" value={body.goalBodyFat || '10'} unit="%" />
-              <StatCard label="Days to Goal" value={projDays ? `${projDays}` : '—'} unit={projDays ? 'days' : ''} sub={projDate || ''} />
+              {[
+                { label: 'Weight', value: body.currentWeight ? `${body.currentWeight}` : '—', unit: body.currentWeight ? 'lbs' : '' },
+                { label: 'Body Fat', value: body.bodyFat ? `${body.bodyFat}` : '—', unit: body.bodyFat ? '%' : '' },
+                { label: 'Goal BF%', value: body.goalBodyFat || '10', unit: '%' },
+                { label: 'Days to Goal', value: projDays ? `${projDays}` : '—', unit: projDays ? 'days' : '', sub: projDate || '' },
+              ].map(s => (
+                <div key={s.label} style={CARD}>
+                  <div style={LABEL}>{s.label}</div>
+                  <div style={{ fontFamily: 'Inter', display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                    <span style={{ fontSize: 28, fontWeight: 800, color: 'white', lineHeight: 1 }}>{s.value}</span>
+                    {s.unit && <span style={{ fontSize: 12, color: '#6b7280' }}>{s.unit}</span>}
+                  </div>
+                  {s.sub && <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#8b5cf6', marginTop: 4 }}>{s.sub}</div>}
+                </div>
+              ))}
             </div>
 
+            {/* Weight chart */}
             {weightChart.length > 1 && (
-              <div>
-                <div className="text-[9px] font-mono uppercase tracking-widest text-[#444] mb-3">Weight Trend (Last 30 Days)</div>
-                <div className="bg-[#0f0f0f] border border-[#2a2a2a] p-4">
-                  <ResponsiveContainer width="100%" height={140}>
-                    <LineChart data={weightChart}>
-                      <XAxis dataKey="date" tick={{ fill: '#333', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
-                      <YAxis domain={['auto', 'auto']} tick={{ fill: '#333', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} width={30} />
-                      <Tooltip {...CHART_TT} formatter={v => [`${v} lbs`, '']} />
-                      <Line type="monotone" dataKey="weight" stroke="#dc2626" strokeWidth={1.5} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+              <div style={CARD}>
+                <div style={LABEL}>Weight Trend (Last 90 Days)</div>
+                <ResponsiveContainer width="100%" height={140}>
+                  <LineChart data={weightChart}>
+                    <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} interval={Math.floor(weightChart.length / 6)} />
+                    <YAxis domain={['auto', 'auto']} tick={{ fill: '#6b7280', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} width={32} />
+                    <Tooltip {...CHART_TT} formatter={v => [`${v} lbs`, '']} />
+                    <Line type="monotone" dataKey="weight" stroke="#7c3aed" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             )}
 
-            <div>
-              <div className="text-[9px] font-mono uppercase tracking-widest text-[#444] mb-3">Last 10 Workouts</div>
+            {/* Personal Records Table */}
+            {body.prs && Object.keys(body.prs).length > 0 && (
+              <div style={CARD}>
+                <div style={LABEL}>Personal Records</div>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #1e1b2e' }}>
+                      {['EXERCISE', 'WEIGHT', 'REPS', 'DATE'].map(h => (
+                        <th key={h} style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'left', padding: '0 12px 10px' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(body.prs).map(([ex, pr]) => (
+                      <tr key={ex} style={{ borderBottom: '1px solid #1e1b2e' }}>
+                        <td style={{ padding: '10px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', fontWeight: 600 }}>{ex}</td>
+                        <td style={{ padding: '10px 12px', fontFamily: 'Inter', fontSize: 18, fontWeight: 800, color: '#8b5cf6' }}>
+                          {pr.weight}<span style={{ fontSize: 11, color: '#6b7280', marginLeft: 2 }}>lbs</span>
+                        </td>
+                        <td style={{ padding: '10px 12px', fontFamily: 'Inter', fontSize: 13, color: '#d1d5db' }}>{pr.reps} rep{pr.reps > 1 ? 's' : ''}</td>
+                        <td style={{ padding: '10px 12px', fontFamily: 'Inter', fontSize: 11, color: '#6b7280' }}>{fmtShort(pr.date)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Workouts */}
+            <div style={CARD}>
+              <div style={LABEL}>Recent Workouts</div>
               {(!body.workouts || body.workouts.length === 0) ? (
-                <div className="bg-[#0f0f0f] border border-[#2a2a2a] p-6 text-center text-[#333] text-xs font-mono">No workouts logged yet</div>
+                <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#333', textAlign: 'center', padding: '24px 0' }}>No workouts logged yet</div>
               ) : (
-                <div className="space-y-1">
-                  {(body.workouts || []).slice(0, 10).map(w => (
-                    <div key={w.id} className="bg-[#0f0f0f] border border-[#2a2a2a] p-3 hover:border-[#dc2626]/30 transition-colors">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-sm font-semibold">{w.name}</span>
-                        <span className="text-[9px] font-mono text-[#333]">{fmtShort(w.date)}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {(body.workouts || []).slice(0, 8).map(w => (
+                    <div key={w.id} style={{ background: '#0a0a0f', border: '1px solid #1e1b2e', borderRadius: 8, padding: '10px 14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <span style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 600, color: 'white' }}>{w.name}</span>
+                        <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#6b7280' }}>{fmtShort(w.date)}</span>
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                         {(w.exercises || []).map((ex, i) => (
-                          <span key={i} className="text-[9px] font-mono text-[#555] border border-[#1a1a1a] px-1.5 py-0.5">
+                          <span key={i} style={{ fontFamily: 'Inter', fontSize: 11, color: '#8b5cf6', border: '1px solid #1e1b2e', borderRadius: 4, padding: '2px 8px' }}>
                             {ex.name} {ex.sets}×{ex.reps}{ex.weight ? ` @ ${ex.weight}lbs` : ''}
                           </span>
                         ))}
@@ -187,24 +249,10 @@ export default function Body() {
                 </div>
               )}
             </div>
-
-            {body.prs && Object.keys(body.prs).length > 0 && (
-              <div>
-                <div className="text-[9px] font-mono uppercase tracking-widest text-[#444] mb-3">Personal Records</div>
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2">
-                  {Object.entries(body.prs).map(([ex, pr]) => (
-                    <div key={ex} className="bg-[#0f0f0f] border border-[#2a2a2a] p-3 hover:border-[#dc2626]/30 transition-colors">
-                      <div className="text-[9px] font-mono text-[#444] uppercase tracking-widest mb-1">{ex}</div>
-                      <div className="text-xl font-mono font-black text-[#dc2626]">{pr.weight}<span className="text-xs text-[#444]">lbs</span></div>
-                      <div className="text-[9px] font-mono text-[#333]">{pr.reps} rep{pr.reps > 1 ? 's' : ''} · {fmtShort(pr.date)}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          </>
         ) : (
-          <div className="space-y-6">
+          <>
+            {/* Macro cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
                 { label: 'Calories', current: todayDiet.calories, target: diet.targets?.calories, unit: 'kcal' },
@@ -215,59 +263,68 @@ export default function Body() {
                 const p = pct(m.current || 0, m.target)
                 const over = p >= 100
                 return (
-                  <div key={m.label} className="bg-[#0f0f0f] border border-[#2a2a2a] p-4">
-                    <div className="text-[9px] font-mono uppercase tracking-widest text-[#444] mb-2">{m.label}</div>
-                    <div className="font-mono mb-2">
-                      <span className="text-2xl font-bold text-white">{m.current || 0}</span>
-                      <span className="text-xs text-[#444] ml-1">/ {m.target} {m.unit}</span>
+                  <div key={m.label} style={CARD}>
+                    <div style={LABEL}>{m.label}</div>
+                    <div style={{ fontFamily: 'Inter', marginBottom: 10 }}>
+                      <span style={{ fontSize: 24, fontWeight: 800, color: 'white' }}>{m.current || 0}</span>
+                      <span style={{ fontSize: 11, color: '#6b7280', marginLeft: 4 }}>/ {m.target} {m.unit}</span>
                     </div>
-                    <div className="h-0.5 bg-[#1a1a1a]">
-                      <div className={`h-0.5 transition-all ${over ? 'bg-[#dc2626]' : 'bg-[#16a34a]'}`} style={{ width: `${Math.min(100, p)}%` }} />
+                    <div style={{ height: 4, background: '#1e1b2e', borderRadius: 2 }}>
+                      <div style={{ height: 4, background: over ? '#ef4444' : '#7c3aed', borderRadius: 2, width: `${Math.min(100, p)}%`, transition: 'width 0.3s' }} />
                     </div>
-                    <div className={`text-[9px] font-mono mt-1 ${over ? 'text-[#dc2626]' : 'text-[#333]'}`}>{p}%</div>
+                    <div style={{ fontFamily: 'Inter', fontSize: 10, color: over ? '#ef4444' : '#6b7280', marginTop: 4 }}>{p}%</div>
                   </div>
                 )
               })}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[9px] font-mono uppercase tracking-widest text-[#444]">7-Day Calories</span>
-                  <span className="text-[9px] font-mono text-[#333]">30d avg: {avg30} kcal</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Calorie chart */}
+              <div style={CARD}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                  <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>7-Day Calories</span>
+                  <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#6b7280' }}>30d avg: <span style={{ color: '#8b5cf6' }}>{avg30}</span> kcal</span>
                 </div>
-                <div className="bg-[#0f0f0f] border border-[#2a2a2a] p-4">
-                  <ResponsiveContainer width="100%" height={120}>
-                    <BarChart data={last7Cal}>
-                      <XAxis dataKey="date" tick={{ fill: '#333', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: '#333', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} width={32} />
-                      <Tooltip {...CHART_TT} formatter={v => [`${v} kcal`, '']} />
-                      <Bar dataKey="calories" fill="#dc2626" opacity={0.7} radius={0} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <ResponsiveContainer width="100%" height={120}>
+                  <BarChart data={last7Cal}>
+                    <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: '#6b7280', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} width={32} />
+                    <Tooltip {...CHART_TT} formatter={v => [`${v} kcal`, '']} />
+                    <Bar dataKey="calories" fill="#7c3aed" opacity={0.8} radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
 
-              <div>
-                <div className="text-[9px] font-mono uppercase tracking-widest text-[#444] mb-3">Supplements Today</div>
-                <div className="space-y-1">
-                  {(diet.supplements || []).map(s => {
-                    const done = (s.logs || []).includes(today)
-                    return (
-                      <button key={s.id} onClick={() => toggleSupp(s.id)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 border transition-colors ${done ? 'border-[#16a34a]/30 bg-[#16a34a]/10' : 'border-[#2a2a2a] bg-[#0f0f0f] hover:border-[#444]'}`}
-                      >
-                        <div className={`w-4 h-4 border flex items-center justify-center shrink-0 ${done ? 'bg-[#16a34a] border-[#16a34a]' : 'border-[#333]'}`}>
-                          {done && <Check size={10} strokeWidth={3} className="text-white" />}
-                        </div>
-                        <span className={`text-xs font-mono ${done ? 'text-[#16a34a]' : 'text-[#555]'}`}>{s.name}</span>
-                      </button>
-                    )
-                  })}
-                </div>
+              {/* Supplements */}
+              <div style={CARD}>
+                <div style={LABEL}>Supplements Today</div>
+                {(diet.supplements || []).length === 0 ? (
+                  <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#333', textAlign: 'center', padding: '24px 0' }}>No supplements added</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {(diet.supplements || []).map(s => {
+                      const done = (s.logs || []).includes(today)
+                      return (
+                        <button key={s.id} onClick={() => toggleSupp(s.id)}
+                          style={{
+                            width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px',
+                            background: done ? 'rgba(34,197,94,0.08)' : '#0a0a0f',
+                            border: `1px solid ${done ? 'rgba(34,197,94,0.3)' : '#1e1b2e'}`,
+                            borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s',
+                          }}
+                        >
+                          <div style={{ width: 18, height: 18, borderRadius: 4, background: done ? '#22c55e' : 'transparent', border: `1px solid ${done ? '#22c55e' : '#444'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            {done && <Check size={11} strokeWidth={3} color="white" />}
+                          </div>
+                          <span style={{ fontFamily: 'Inter', fontSize: 13, color: done ? '#22c55e' : '#6b7280' }}>{s.name}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
 
@@ -283,16 +340,19 @@ export default function Body() {
               <div className="space-y-2">
                 {wf.exercises.map((ex, i) => (
                   <div key={i} className="grid grid-cols-4 gap-2">
-                    <input value={ex.name} onChange={e => setWf(w => ({ ...w, exercises: w.exercises.map((x, j) => j === i ? { ...x, name: e.target.value } : x) }))} placeholder="Exercise" className={cls.input + " col-span-1"} />
+                    <input value={ex.name} onChange={e => setWf(w => ({ ...w, exercises: w.exercises.map((x, j) => j === i ? { ...x, name: e.target.value } : x) }))} placeholder="Exercise" className={cls.input + ' col-span-1'} />
                     <input value={ex.sets} onChange={e => setWf(w => ({ ...w, exercises: w.exercises.map((x, j) => j === i ? { ...x, sets: e.target.value } : x) }))} placeholder="Sets" className={cls.input} />
                     <input value={ex.reps} onChange={e => setWf(w => ({ ...w, exercises: w.exercises.map((x, j) => j === i ? { ...x, reps: e.target.value } : x) }))} placeholder="Reps" className={cls.input} />
                     <input value={ex.weight} onChange={e => setWf(w => ({ ...w, exercises: w.exercises.map((x, j) => j === i ? { ...x, weight: e.target.value } : x) }))} placeholder="lbs" className={cls.input} />
                   </div>
                 ))}
-                <button onClick={() => setWf(w => ({ ...w, exercises: [...w.exercises, { name: '', sets: '', reps: '', weight: '' }] }))} className="text-[9px] font-mono text-[#444] uppercase tracking-widest hover:text-[#888] transition-colors">+ Add Exercise</button>
+                <button onClick={() => setWf(w => ({ ...w, exercises: [...w.exercises, { name: '', sets: '', reps: '', weight: '' }] }))} style={{ fontFamily: 'Inter', fontSize: 11, color: '#7c3aed', background: 'none', border: 'none', cursor: 'pointer' }}>+ Add Exercise</button>
               </div>
             </div>
-            <div className="flex gap-2 pt-1"><button onClick={logWorkout} className={cls.primary}>Save</button><button onClick={() => cm('workout')} className={cls.secondary}>Cancel</button></div>
+            <div className="flex gap-2 pt-1">
+              <button onClick={logWorkout} className={cls.primary} style={{ background: '#7c3aed' }}>Save</button>
+              <button onClick={() => cm('workout')} className={cls.secondary}>Cancel</button>
+            </div>
           </div>
         </Modal>
       )}
@@ -305,7 +365,10 @@ export default function Body() {
               <div><label className={cls.label}>Body Fat %</label><input type="number" value={sf.bodyFat} onChange={e => setSf(s => ({ ...s, bodyFat: e.target.value }))} className={cls.input} /></div>
               <div><label className={cls.label}>Goal BF %</label><input type="number" value={sf.goalBodyFat} onChange={e => setSf(s => ({ ...s, goalBodyFat: e.target.value }))} className={cls.input} /></div>
             </div>
-            <div className="flex gap-2 pt-1"><button onClick={updateStats} className={cls.primary}>Update</button><button onClick={() => cm('stats')} className={cls.secondary}>Cancel</button></div>
+            <div className="flex gap-2 pt-1">
+              <button onClick={updateStats} className={cls.primary} style={{ background: '#7c3aed' }}>Update</button>
+              <button onClick={() => cm('stats')} className={cls.secondary}>Cancel</button>
+            </div>
           </div>
         </Modal>
       )}
@@ -320,8 +383,11 @@ export default function Body() {
               <div><label className={cls.label}>Carbs (g)</label><input type="number" value={mf.carbs} onChange={e => setMf({ ...mf, carbs: e.target.value })} placeholder="60" className={cls.input} /></div>
               <div><label className={cls.label}>Fats (g)</label><input type="number" value={mf.fats} onChange={e => setMf({ ...mf, fats: e.target.value })} placeholder="15" className={cls.input} /></div>
             </div>
-            <p className="text-[9px] font-mono text-[#333]">Adds to existing totals for that day.</p>
-            <div className="flex gap-2 pt-1"><button onClick={logMeal} className={cls.primary}>Save</button><button onClick={() => cm('meal')} className={cls.secondary}>Cancel</button></div>
+            <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#444' }}>Adds to existing totals for that day.</p>
+            <div className="flex gap-2 pt-1">
+              <button onClick={logMeal} className={cls.primary} style={{ background: '#7c3aed' }}>Save</button>
+              <button onClick={() => cm('meal')} className={cls.secondary}>Cancel</button>
+            </div>
           </div>
         </Modal>
       )}
@@ -335,23 +401,13 @@ export default function Body() {
               <div><label className={cls.label}>Reps</label><input type="number" value={prf.reps} onChange={e => setPrf({ ...prf, reps: e.target.value })} placeholder="5" className={cls.input} /></div>
               <div><label className={cls.label}>Date</label><input type="date" value={prf.date} onChange={e => setPrf({ ...prf, date: e.target.value })} className={cls.input} /></div>
             </div>
-            <div className="flex gap-2 pt-1"><button onClick={addPR} className={cls.primary}>Save PR</button><button onClick={() => cm('pr')} className={cls.secondary}>Cancel</button></div>
+            <div className="flex gap-2 pt-1">
+              <button onClick={addPR} className={cls.primary} style={{ background: '#7c3aed' }}>Save PR</button>
+              <button onClick={() => cm('pr')} className={cls.secondary}>Cancel</button>
+            </div>
           </div>
         </Modal>
       )}
-    </div>
-  )
-}
-
-function StatCard({ label, value, unit, sub }) {
-  return (
-    <div className="bg-[#0f0f0f] border border-[#2a2a2a] p-4">
-      <div className="text-[9px] font-mono uppercase tracking-widest text-[#444] mb-2">{label}</div>
-      <div className="font-mono">
-        <span className="text-3xl font-black text-white">{value}</span>
-        {unit && <span className="text-sm text-[#444] ml-1">{unit}</span>}
-      </div>
-      {sub && <div className="text-[9px] font-mono text-[#dc2626] mt-1">{sub}</div>}
     </div>
   )
 }
