@@ -277,9 +277,8 @@ export default function GrowthFeed() {
             <button
               onClick={() => { setKeyInput(localStorage.getItem('anthropic_key') || ''); setShowKeyModal(true) }}
               className="flex items-center gap-1.5 px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors"
-              title="Set API Key"
             >
-              <Key size={9} />
+              <Key size={9} /> API Key
             </button>
             <button
               onClick={() => setShowAddModal(true)}
