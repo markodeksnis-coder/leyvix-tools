@@ -3,6 +3,7 @@ import { Plus, ChevronDown, ChevronUp, Play, Zap, Key } from 'lucide-react'
 import Modal from '../components/Modal'
 import { today, fmtShort } from '../utils'
 import feedData from '../data/growthFeedData.json'
+import curatedVideos from '../data/curatedVideos.json'
 
 const PILLAR_COLORS = {
   Mindset: '#8b5cf6',
@@ -52,18 +53,12 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
     >
       {/* Thumbnail — 16:9 */}
       <div className="relative group/thumb overflow-hidden" style={{ paddingTop: '56.25%' }}>
-        {video.video_id ? (
-          <img
-            src={`https://img.youtube.com/vi/${video.video_id}/maxresdefault.jpg`}
-            alt={video.title}
-            className="absolute inset-0 w-full h-full object-cover transition-all duration-200 group-hover/thumb:brightness-110"
-            onError={e => { e.target.src = `https://img.youtube.com/vi/${video.video_id}/hqdefault.jpg` }}
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center" style={{ background: color + '22' }}>
-            <Play size={32} color={color} />
-          </div>
-        )}
+        <img
+          src={`https://img.youtube.com/vi/${video.video_id}/maxresdefault.jpg`}
+          alt={video.title}
+          className="absolute inset-0 w-full h-full object-cover transition-all duration-200 group-hover/thumb:brightness-110"
+          onError={e => { e.target.src = `https://img.youtube.com/vi/${video.video_id}/hqdefault.jpg` }}
+        />
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity bg-black/30">
           <div style={{ background: '#dc2626', borderRadius: '50%', padding: 12 }}>
             <Play size={20} fill="white" color="white" />
@@ -141,9 +136,10 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
   )
 }
 
-async function fetchVideoDrop() {
+async function fetchVideoDrop(existingIds = []) {
   const apiKey = localStorage.getItem('anthropic_key') || import.meta.env.VITE_ANTHROPIC_API_KEY || ''
-  if (!apiKey) throw new Error('No API key — add your key in the Coach section settings')
+  if (!apiKey) throw new Error('No API key — click the API Key button and paste your key')
+  const available = curatedVideos.filter(v => !existingIds.includes(v.id))
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -154,19 +150,16 @@ async function fetchVideoDrop() {
     },
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
+      max_tokens: 256,
       messages: [{
         role: 'user',
-        content: `You are a growth content curator. Recommend 3 specific, real YouTube videos for a high-performance self-improvement platform covering pillars: Mindset, Business, Social Skills, Style, Health.
+        content: `You are a growth content curator. Pick exactly 3 videos from this list that cover 3 different pillars. Vary the selection — don't always pick the same ones.
 
-Choose well-known creators (Alex Hormozi, Andrew Huberman, Charlie Morgan, Ryan Holiday, GQ, RSD, etc). Pick 3 different pillars.
+Available videos:
+${available.map(v => `id:${v.id} | ${v.pillar} | "${v.title}" by ${v.channel}`).join('\n')}
 
-Return ONLY a valid JSON array with exactly 3 objects, each with:
-- title: exact video title (as accurate as possible)
-- channel: creator/channel name
-- pillar: one of "Mindset", "Business", "Social Skills", "Style", "Health"
-
-Return only the JSON array. No other text.`,
+Return ONLY a JSON array of exactly 3 video ids, like: ["c1","c7","c14"]
+No other text.`,
       }],
     }),
   })
@@ -177,12 +170,8 @@ Return only the JSON array. No other text.`,
   const data = await res.json()
   const text = data.content[0].text.trim()
   const jsonStr = text.startsWith('[') ? text : text.slice(text.indexOf('['), text.lastIndexOf(']') + 1)
-  const videos = JSON.parse(jsonStr)
-  return videos.map(v => ({
-    ...v,
-    video_id: null,
-    youtube_url: `https://www.youtube.com/results?search_query=${encodeURIComponent(v.title + ' ' + v.channel)}`,
-  }))
+  const ids = JSON.parse(jsonStr)
+  return ids.map(id => curatedVideos.find(v => v.id === id)).filter(Boolean)
 }
 
 export default function GrowthFeed() {
@@ -234,7 +223,7 @@ export default function GrowthFeed() {
     setDropping(true)
     setDropError('')
     try {
-      const newVids = await fetchVideoDrop()
+      const newVids = await fetchVideoDrop(videos.map(v => v.id))
       setVideos(vs => [...vs, ...newVids.map(v => ({
         ...v,
         id: Date.now().toString() + Math.random(),
