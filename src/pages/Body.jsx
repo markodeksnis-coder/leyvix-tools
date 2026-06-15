@@ -1,125 +1,125 @@
 import { useState } from 'react'
-import { Plus, Scale, Percent, Dumbbell, Pencil } from 'lucide-react'
+import { Plus, Pencil, X, Check } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import Modal from '../components/Modal'
-import {
-  LineChart, Line, BarChart, Bar,
-  XAxis, YAxis, Tooltip, ResponsiveContainer
-} from 'recharts'
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { pct, fmtShort } from '../utils'
 
-const WORKOUT_TYPES = ['Push', 'Pull', 'Legs', 'Upper', 'Full Body', 'Cardio', 'Other']
+const CHART_TT = { contentStyle: { background: '#151515', border: '1px solid #2a2a2a', borderRadius: 0, fontSize: 11, fontFamily: 'monospace' }, labelStyle: { color: '#666' }, itemStyle: { color: '#e8e8e8' } }
 
 const cls = {
-  input: "w-full bg-[#0a0a0a] border border-[#2a2a2a] px-3 py-2 text-sm text-neutral-100 placeholder-neutral-700 focus:outline-none focus:border-neutral-500 transition-colors font-mono",
-  label: "block text-[10px] font-mono uppercase tracking-widest text-neutral-600 mb-1.5",
-  btnPrimary: "flex-1 py-2.5 bg-white text-black text-[10px] font-semibold uppercase tracking-widest hover:bg-neutral-200 transition-colors",
-  btnSecondary: "px-4 py-2.5 border border-[#2a2a2a] text-neutral-600 text-[10px] uppercase tracking-widest hover:border-neutral-600 hover:text-neutral-300 transition-colors",
-}
-
-const CHART_TOOLTIP = {
-  contentStyle: { background: '#151515', border: '1px solid #2a2a2a', borderRadius: 0, fontSize: 11, fontFamily: 'monospace' },
-  labelStyle: { color: '#666' },
-  itemStyle: { color: '#e8e8e8' },
+  input: "w-full bg-[#0a0a0a] border border-[#2a2a2a] px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#555] font-mono transition-colors",
+  label: "block text-[10px] font-mono uppercase tracking-widest text-[#555] mb-1.5",
+  primary: "flex-1 py-2.5 bg-[#facc15] text-black text-[10px] font-bold uppercase tracking-widest hover:bg-yellow-300 transition-colors",
+  secondary: "px-4 py-2.5 border border-[#2a2a2a] text-[#666] text-[10px] uppercase tracking-widest hover:border-[#555] hover:text-neutral-300 transition-colors",
 }
 
 export default function Body() {
   const [tab, setTab] = useState('fitness')
-  const [bodyStats, setBodyStats] = useLocalStorage('body_stats', { weight: '', bodyFat: '' })
-  const [workouts, setWorkouts] = useLocalStorage('body_workouts', [])
-  const [weightHistory, setWeightHistory] = useLocalStorage('body_weight_history', [])
-  const [diet, setDiet] = useLocalStorage('body_diet', { targets: { calories: 2500, protein: 200 }, history: [] })
+  const [body, setBody] = useLocalStorage('marko_body', {})
+  const [diet, setDiet] = useLocalStorage('marko_diet', { targets: { calories: 2800, protein: 220, carbs: 280, fats: 80 }, history: [], supplements: [] })
 
-  const [modals, setModals] = useState({ workout: false, weight: false, meal: false, stats: false, targets: false })
-  const open = (key) => setModals(m => ({ ...m, [key]: true }))
-  const close = (key) => setModals(m => ({ ...m, [key]: false }))
+  const [modals, setModals] = useState({})
+  const om = (k) => setModals(m => ({ ...m, [k]: true }))
+  const cm = (k) => setModals(m => ({ ...m, [k]: false }))
 
-  const [workoutForm, setWorkoutForm] = useState({ name: '', type: 'Push', notes: '' })
-  const [weightForm, setWeightForm] = useState({ weight: '', date: today() })
-  const [mealForm, setMealForm] = useState({ calories: '', protein: '', date: today() })
-  const [statsForm, setStatsForm] = useState({ weight: '', bodyFat: '' })
-  const [targetsForm, setTargetsForm] = useState({ calories: 2500, protein: 200 })
+  const [wf, setWf] = useState({ date: new Date().toISOString().split('T')[0], name: '', exercises: [{ name: '', sets: '', reps: '', weight: '' }] })
+  const [sf, setSf] = useState({ weight: '' })
+  const [mf, setMf] = useState({ date: new Date().toISOString().split('T')[0], calories: '', protein: '', carbs: '', fats: '' })
+  const [prf, setPrf] = useState({ exercise: '', weight: '', reps: '', date: new Date().toISOString().split('T')[0] })
 
-  const addWorkout = () => {
-    if (!workoutForm.name.trim()) return
-    setWorkouts([{ ...workoutForm, id: Date.now(), date: new Date().toISOString() }, ...workouts])
-    setWorkoutForm({ name: '', type: 'Push', notes: '' })
-    close('workout')
-  }
+  const today = new Date().toISOString().split('T')[0]
+  const todayDiet = diet.history?.find(h => h.date === today) || { calories: 0, protein: 0, carbs: 0, fats: 0 }
 
-  const logWeight = () => {
-    if (!weightForm.weight) return
-    const entry = { weight: parseFloat(weightForm.weight), date: weightForm.date, id: Date.now() }
-    const merged = [...weightHistory.filter(w => w.date !== weightForm.date), entry]
-    merged.sort((a, b) => a.date.localeCompare(b.date))
-    setWeightHistory(merged)
-    setBodyStats({ ...bodyStats, weight: weightForm.weight })
-    setWeightForm({ weight: '', date: today() })
-    close('weight')
-  }
-
-  const logMeal = () => {
-    if (!mealForm.calories) return
-    const idx = diet.history.findIndex(h => h.date === mealForm.date)
-    let newHistory = [...diet.history]
-    if (idx >= 0) {
-      newHistory[idx] = {
-        ...newHistory[idx],
-        calories: (newHistory[idx].calories || 0) + parseFloat(mealForm.calories),
-        protein: (newHistory[idx].protein || 0) + parseFloat(mealForm.protein || 0),
-      }
-    } else {
-      newHistory.push({ date: mealForm.date, calories: parseFloat(mealForm.calories), protein: parseFloat(mealForm.protein || 0), id: Date.now() })
-    }
-    newHistory.sort((a, b) => a.date.localeCompare(b.date))
-    setDiet({ ...diet, history: newHistory })
-    setMealForm({ calories: '', protein: '', date: today() })
-    close('meal')
+  const logWorkout = () => {
+    if (!wf.name.trim()) return
+    const workout = { ...wf, id: Date.now(), exercises: wf.exercises.filter(e => e.name) }
+    setBody(b => ({ ...b, workouts: [workout, ...(b.workouts || [])] }))
+    setWf({ date: today, name: '', exercises: [{ name: '', sets: '', reps: '', weight: '' }] })
+    cm('workout')
   }
 
   const updateStats = () => {
-    setBodyStats({ weight: statsForm.weight || bodyStats.weight, bodyFat: statsForm.bodyFat || bodyStats.bodyFat })
-    close('stats')
+    const w = parseFloat(sf.weight)
+    if (!w) return
+    const entry = { date: today, weight: w }
+    setBody(b => ({
+      ...b,
+      currentWeight: w,
+      weightHistory: [...(b.weightHistory || []).filter(h => h.date !== today), entry].sort((a, b) => a.date.localeCompare(b.date))
+    }))
+    cm('stats')
   }
 
-  const updateTargets = () => {
-    setDiet({ ...diet, targets: { calories: parseFloat(targetsForm.calories) || 2500, protein: parseFloat(targetsForm.protein) || 200 } })
-    close('targets')
+  const logMeal = () => {
+    if (!mf.calories) return
+    const history = [...(diet.history || [])]
+    const idx = history.findIndex(h => h.date === mf.date)
+    if (idx >= 0) {
+      history[idx] = { ...history[idx], calories: (history[idx].calories || 0) + parseFloat(mf.calories || 0), protein: (history[idx].protein || 0) + parseFloat(mf.protein || 0), carbs: (history[idx].carbs || 0) + parseFloat(mf.carbs || 0), fats: (history[idx].fats || 0) + parseFloat(mf.fats || 0) }
+    } else {
+      history.push({ date: mf.date, calories: parseFloat(mf.calories || 0), protein: parseFloat(mf.protein || 0), carbs: parseFloat(mf.carbs || 0), fats: parseFloat(mf.fats || 0) })
+    }
+    setDiet(d => ({ ...d, history: history.sort((a, b) => a.date.localeCompare(b.date)) }))
+    setMf({ date: today, calories: '', protein: '', carbs: '', fats: '' })
+    cm('meal')
   }
 
-  const todayDiet = diet.history.find(h => h.date === today()) || { calories: 0, protein: 0 }
-  const last7 = getLast7Days(diet.history)
-  const chartWeight = weightHistory.slice(-30).map(w => ({ date: w.date.slice(5), weight: w.weight }))
+  const addPR = () => {
+    if (!prf.exercise.trim() || !prf.weight) return
+    setBody(b => ({ ...b, prs: { ...(b.prs || {}), [prf.exercise]: { weight: parseFloat(prf.weight), reps: parseInt(prf.reps) || 1, date: prf.date } } }))
+    setPrf({ exercise: '', weight: '', reps: '', date: today })
+    cm('pr')
+  }
+
+  const toggleSupp = (id) => {
+    const supps = diet.supplements || []
+    setDiet(d => ({
+      ...d,
+      supplements: supps.map(s => s.id === id ? { ...s, logs: s.logs.includes(today) ? s.logs.filter(l => l !== today) : [...s.logs, today] } : s)
+    }))
+  }
+
+  const weightChart = (body.weightHistory || []).slice(-30).map(w => ({ date: w.date.slice(5), weight: w.weight }))
+  const last7Cal = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - (6 - i))
+    const ds = d.toISOString().split('T')[0]
+    const h = diet.history?.find(x => x.date === ds)
+    return { date: ds.slice(5), calories: h?.calories || 0 }
+  })
+  const avg30 = (() => {
+    const d30 = new Date(); d30.setDate(d30.getDate() - 30)
+    const ds30 = d30.toISOString().split('T')[0]
+    const recent = (diet.history || []).filter(h => h.date >= ds30)
+    return recent.length ? Math.round(recent.reduce((s, h) => s + (h.calories || 0), 0) / recent.length) : 0
+  })()
+
+  // Goal date projection for body fat
+  const bf = parseFloat(body.bodyFat || 0)
+  const goalBf = parseFloat(body.goalBodyFat || 10)
+  const bfDiff = bf - goalBf
+  const projDays = bfDiff > 0 ? Math.round(bfDiff / 0.5 * 7) : null
+  const projDate = projDays ? new Date(Date.now() + projDays * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null
 
   return (
     <div className="h-full flex flex-col">
       <div className="px-8 py-6 border-b border-[#1f1f1f] flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Body</h1>
-          <p className="text-[10px] font-mono text-neutral-600 mt-0.5 uppercase tracking-widest">Physical optimization</p>
+          <h1 className="text-xl font-bold tracking-tight uppercase">Body</h1>
+          <p className="text-[10px] font-mono text-[#555] mt-0.5 uppercase tracking-widest">Physical optimization system</p>
         </div>
         <div className="flex gap-2">
-          {tab === 'fitness' && (
+          {tab === 'fitness' ? (
             <>
-              <button
-                onClick={() => { setWeightForm({ weight: '', date: today() }); open('weight') }}
-                className="px-3 py-1.5 border border-[#2a2a2a] text-neutral-600 text-[10px] uppercase tracking-widest hover:border-neutral-600 hover:text-neutral-300 transition-colors"
-              >
-                Log Weight
-              </button>
-              <button
-                onClick={() => { setWorkoutForm({ name: '', type: 'Push', notes: '' }); open('workout') }}
-                className="flex items-center gap-2 px-4 py-2 bg-white text-black text-[10px] font-semibold uppercase tracking-widest hover:bg-neutral-200 transition-colors"
-              >
-                <Plus size={11} strokeWidth={2.5} /> Log Workout
+              <button onClick={() => om('stats')} className="px-3 py-1.5 border border-[#2a2a2a] text-[#666] text-[9px] uppercase tracking-widest hover:border-[#555] hover:text-neutral-300 transition-colors">Update Stats</button>
+              <button onClick={() => om('pr')} className="px-3 py-1.5 border border-[#2a2a2a] text-[#666] text-[9px] uppercase tracking-widest hover:border-[#555] hover:text-neutral-300 transition-colors">Log PR</button>
+              <button onClick={() => om('workout')} className="flex items-center gap-1.5 px-4 py-2 bg-[#facc15] text-black text-[9px] font-bold uppercase tracking-widest hover:bg-yellow-300 transition-colors">
+                <Plus size={10} strokeWidth={2.5} /> Log Workout
               </button>
             </>
-          )}
-          {tab === 'diet' && (
-            <button
-              onClick={() => { setMealForm({ calories: '', protein: '', date: today() }); open('meal') }}
-              className="flex items-center gap-2 px-4 py-2 bg-white text-black text-[10px] font-semibold uppercase tracking-widest hover:bg-neutral-200 transition-colors"
-            >
-              <Plus size={11} strokeWidth={2.5} /> Log Meal
+          ) : (
+            <button onClick={() => om('meal')} className="flex items-center gap-1.5 px-4 py-2 bg-[#facc15] text-black text-[9px] font-bold uppercase tracking-widest hover:bg-yellow-300 transition-colors">
+              <Plus size={10} strokeWidth={2.5} /> Log Meal
             </button>
           )}
         </div>
@@ -127,106 +127,138 @@ export default function Body() {
 
       <div className="px-8 py-3 border-b border-[#1f1f1f] flex gap-1 shrink-0">
         {['fitness', 'diet'].map(t => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest transition-all ${
-              tab === t ? 'bg-white text-black font-semibold' : 'text-neutral-600 hover:text-neutral-300 border border-transparent hover:border-[#2a2a2a]'
-            }`}
-          >
-            {t}
-          </button>
+          <button key={t} onClick={() => setTab(t)} className={`px-4 py-1.5 text-[9px] font-mono uppercase tracking-widest transition-all ${tab === t ? 'bg-[#facc15] text-black font-bold' : 'text-[#555] border border-transparent hover:border-[#2a2a2a] hover:text-neutral-300'}`}>{t}</button>
         ))}
       </div>
 
       <div className="flex-1 overflow-auto px-8 py-6">
         {tab === 'fitness' ? (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-3">
-              <StatCard
-                label="Current Weight"
-                value={bodyStats.weight || '—'}
-                unit={bodyStats.weight ? 'lbs' : ''}
-                icon={<Scale size={13} strokeWidth={1.5} />}
-                onClick={() => { setStatsForm({ weight: bodyStats.weight, bodyFat: bodyStats.bodyFat }); open('stats') }}
-              />
-              <StatCard
-                label="Body Fat"
-                value={bodyStats.bodyFat || '—'}
-                unit={bodyStats.bodyFat ? '%' : ''}
-                icon={<Percent size={13} strokeWidth={1.5} />}
-                onClick={() => { setStatsForm({ weight: bodyStats.weight, bodyFat: bodyStats.bodyFat }); open('stats') }}
-              />
+            {/* Stats row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <StatCard label="Weight" value={body.currentWeight ? `${body.currentWeight}` : '—'} unit={body.currentWeight ? 'lbs' : ''} />
+              <StatCard label="Body Fat" value={body.bodyFat ? `${body.bodyFat}` : '—'} unit={body.bodyFat ? '%' : ''} />
+              <StatCard label="Goal BF%" value={body.goalBodyFat || '10'} unit="%" sub={projDate ? `~${projDate}` : ''} />
+              <StatCard label="Projected" value={projDays ? `${projDays}` : '—'} unit={projDays ? 'days' : ''} sub={projDate || ''} />
             </div>
 
-            <div>
-              <div className="text-[10px] font-mono uppercase tracking-widest text-neutral-600 mb-3">Recent Workouts</div>
-              {workouts.length === 0 ? (
-                <div className="bg-[#111] border border-[#1f1f1f] p-8 text-center text-neutral-700 text-xs font-mono">
-                  No workouts logged yet
+            {/* Weight chart */}
+            {weightChart.length > 1 && (
+              <div>
+                <div className="text-[10px] font-mono uppercase tracking-widest text-[#555] mb-3">Weight Trend</div>
+                <div className="bg-[#111] border border-[#1f1f1f] p-4">
+                  <ResponsiveContainer width="100%" height={140}>
+                    <LineChart data={weightChart}>
+                      <XAxis dataKey="date" tick={{ fill: '#444', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
+                      <YAxis domain={['auto', 'auto']} tick={{ fill: '#444', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} width={30} />
+                      <Tooltip {...CHART_TT} formatter={v => [`${v} lbs`, '']} />
+                      <Line type="monotone" dataKey="weight" stroke="#facc15" strokeWidth={1.5} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
+              </div>
+            )}
+
+            {/* Recent workouts */}
+            <div>
+              <div className="text-[10px] font-mono uppercase tracking-widest text-[#555] mb-3">Last 10 Workouts</div>
+              {(!body.workouts || body.workouts.length === 0) ? (
+                <div className="bg-[#111] border border-[#1f1f1f] p-6 text-center text-[#444] text-xs font-mono">No workouts logged yet</div>
               ) : (
                 <div className="space-y-1">
-                  {workouts.slice(0, 5).map(w => (
-                    <div key={w.id} className="bg-[#111] border border-[#1f1f1f] px-4 py-3 flex items-center justify-between hover:border-[#282828] transition-colors">
-                      <div className="flex items-center gap-3">
-                        <Dumbbell size={13} className="text-neutral-700" strokeWidth={1.5} />
-                        <span className="text-sm font-medium">{w.name}</span>
-                        <span className="text-[9px] font-mono uppercase tracking-widest text-neutral-700 border border-[#222] px-1.5 py-0.5">{w.type}</span>
+                  {(body.workouts || []).slice(0, 10).map(w => (
+                    <div key={w.id} className="bg-[#111] border border-[#1f1f1f] p-3 hover:border-[#2a2a2a] transition-colors">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-sm font-semibold">{w.name}</span>
+                        <span className="text-[9px] font-mono text-[#444]">{fmtShort(w.date)}</span>
                       </div>
-                      <span className="text-[10px] font-mono text-neutral-700">{fmtDate(w.date)}</span>
+                      <div className="flex flex-wrap gap-2">
+                        {(w.exercises || []).map((ex, i) => (
+                          <span key={i} className="text-[9px] font-mono text-[#666] border border-[#1a1a1a] px-1.5 py-0.5">
+                            {ex.name} {ex.sets}×{ex.reps} @ {ex.weight}lbs
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            {chartWeight.length > 1 && (
+            {/* PRs */}
+            {body.prs && Object.keys(body.prs).length > 0 && (
               <div>
-                <div className="text-[10px] font-mono uppercase tracking-widest text-neutral-600 mb-3">Weight Trend</div>
-                <div className="bg-[#111] border border-[#1f1f1f] p-4">
-                  <ResponsiveContainer width="100%" height={150}>
-                    <LineChart data={chartWeight}>
-                      <XAxis dataKey="date" tick={{ fill: '#444', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
-                      <YAxis domain={['auto', 'auto']} tick={{ fill: '#444', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} width={32} />
-                      <Tooltip {...CHART_TOOLTIP} formatter={v => [`${v} lbs`, '']} />
-                      <Line type="monotone" dataKey="weight" stroke="#ffffff" strokeWidth={1.5} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                <div className="text-[10px] font-mono uppercase tracking-widest text-[#555] mb-3">Personal Records</div>
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2">
+                  {Object.entries(body.prs).map(([ex, pr]) => (
+                    <div key={ex} className="bg-[#111] border border-[#1f1f1f] p-3">
+                      <div className="text-[9px] font-mono text-[#555] uppercase tracking-widest mb-1">{ex}</div>
+                      <div className="text-xl font-mono font-black text-[#facc15]">{pr.weight}<span className="text-xs text-[#555]">lbs</span></div>
+                      <div className="text-[9px] font-mono text-[#444]">{pr.reps} rep{pr.reps > 1 ? 's' : ''} · {fmtShort(pr.date)}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-3">
-              <MacroCard
-                label="Calories Today"
-                current={todayDiet.calories}
-                target={diet.targets.calories}
-                unit="kcal"
-                onEdit={() => { setTargetsForm({ calories: diet.targets.calories, protein: diet.targets.protein }); open('targets') }}
-              />
-              <MacroCard
-                label="Protein Today"
-                current={todayDiet.protein}
-                target={diet.targets.protein}
-                unit="g"
-                onEdit={() => { setTargetsForm({ calories: diet.targets.calories, protein: diet.targets.protein }); open('targets') }}
-              />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { label: 'Calories', current: todayDiet.calories, target: diet.targets?.calories, unit: 'kcal' },
+                { label: 'Protein', current: todayDiet.protein, target: diet.targets?.protein, unit: 'g' },
+                { label: 'Carbs', current: todayDiet.carbs, target: diet.targets?.carbs, unit: 'g' },
+                { label: 'Fats', current: todayDiet.fats, target: diet.targets?.fats, unit: 'g' },
+              ].map(m => (
+                <div key={m.label} className="bg-[#111] border border-[#1f1f1f] p-4">
+                  <div className="text-[9px] font-mono uppercase tracking-widest text-[#555] mb-2">{m.label}</div>
+                  <div className="font-mono mb-2">
+                    <span className="text-2xl font-bold text-white">{m.current || 0}</span>
+                    <span className="text-xs text-[#555] ml-1">/ {m.target} {m.unit}</span>
+                  </div>
+                  <div className="h-px bg-[#1a1a1a]">
+                    <div className="h-px bg-[#facc15] transition-all" style={{ width: `${pct(m.current || 0, m.target)}%` }} />
+                  </div>
+                  <div className="text-[9px] font-mono text-[#444] mt-1">{pct(m.current || 0, m.target)}%</div>
+                </div>
+              ))}
             </div>
 
-            <div>
-              <div className="text-[10px] font-mono uppercase tracking-widest text-neutral-600 mb-3">7-Day Calories</div>
-              <div className="bg-[#111] border border-[#1f1f1f] p-4">
-                <ResponsiveContainer width="100%" height={150}>
-                  <BarChart data={last7}>
-                    <XAxis dataKey="date" tick={{ fill: '#444', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#444', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} width={32} />
-                    <Tooltip {...CHART_TOOLTIP} formatter={v => [`${v} kcal`, '']} />
-                    <Bar dataKey="calories" fill="#2a2a2a" radius={0} />
-                  </BarChart>
-                </ResponsiveContainer>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#555]">7-Day Calories</span>
+                  <span className="text-[9px] font-mono text-[#444]">30d avg: {avg30} kcal</span>
+                </div>
+                <div className="bg-[#111] border border-[#1f1f1f] p-4">
+                  <ResponsiveContainer width="100%" height={120}>
+                    <BarChart data={last7Cal}>
+                      <XAxis dataKey="date" tick={{ fill: '#444', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: '#444', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} width={32} />
+                      <Tooltip {...CHART_TT} formatter={v => [`${v} kcal`, '']} />
+                      <Bar dataKey="calories" fill="#facc15" opacity={0.6} radius={0} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div>
+                <div className="text-[10px] font-mono uppercase tracking-widest text-[#555] mb-3">Supplements Today</div>
+                <div className="space-y-1">
+                  {(diet.supplements || []).map(s => {
+                    const done = s.logs.includes(today)
+                    return (
+                      <button key={s.id} onClick={() => toggleSupp(s.id)}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 border transition-colors ${done ? 'border-green-900/50 bg-green-950/20' : 'border-[#1f1f1f] bg-[#111] hover:border-[#2a2a2a]'}`}
+                      >
+                        <div className={`w-4 h-4 border flex items-center justify-center shrink-0 ${done ? 'bg-green-600 border-green-600' : 'border-[#333]'}`}>
+                          {done && <Check size={10} strokeWidth={3} className="text-white" />}
+                        </div>
+                        <span className={`text-xs font-mono ${done ? 'text-green-500' : 'text-[#666]'}`}>{s.name}</span>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             </div>
           </div>
@@ -234,107 +266,67 @@ export default function Body() {
       </div>
 
       {modals.workout && (
-        <Modal title="Log Workout" onClose={() => close('workout')}>
+        <Modal title="Log Workout" onClose={() => cm('workout')}>
           <div className="space-y-4">
-            <div>
-              <label className={cls.label}>Workout Name</label>
-              <input value={workoutForm.name} onChange={e => setWorkoutForm({ ...workoutForm, name: e.target.value })} placeholder="Push Day A" className={cls.input} autoFocus />
+            <div className="grid grid-cols-2 gap-3">
+              <div><label className={cls.label}>Name</label><input value={wf.name} onChange={e => setWf({ ...wf, name: e.target.value })} placeholder="Push Day" className={cls.input} autoFocus /></div>
+              <div><label className={cls.label}>Date</label><input type="date" value={wf.date} onChange={e => setWf({ ...wf, date: e.target.value })} className={cls.input} /></div>
             </div>
             <div>
-              <label className={cls.label}>Type</label>
-              <select value={workoutForm.type} onChange={e => setWorkoutForm({ ...workoutForm, type: e.target.value })} className={cls.input}>
-                {WORKOUT_TYPES.map(t => <option key={t}>{t}</option>)}
-              </select>
+              <label className={cls.label}>Exercises</label>
+              <div className="space-y-2">
+                {wf.exercises.map((ex, i) => (
+                  <div key={i} className="grid grid-cols-4 gap-2">
+                    <input value={ex.name} onChange={e => setWf(w => ({ ...w, exercises: w.exercises.map((x, j) => j === i ? { ...x, name: e.target.value } : x) }))} placeholder="Exercise" className={cls.input + " col-span-1"} />
+                    <input value={ex.sets} onChange={e => setWf(w => ({ ...w, exercises: w.exercises.map((x, j) => j === i ? { ...x, sets: e.target.value } : x) }))} placeholder="Sets" className={cls.input} />
+                    <input value={ex.reps} onChange={e => setWf(w => ({ ...w, exercises: w.exercises.map((x, j) => j === i ? { ...x, reps: e.target.value } : x) }))} placeholder="Reps" className={cls.input} />
+                    <input value={ex.weight} onChange={e => setWf(w => ({ ...w, exercises: w.exercises.map((x, j) => j === i ? { ...x, weight: e.target.value } : x) }))} placeholder="lbs" className={cls.input} />
+                  </div>
+                ))}
+                <button onClick={() => setWf(w => ({ ...w, exercises: [...w.exercises, { name: '', sets: '', reps: '', weight: '' }] }))} className="text-[9px] font-mono text-[#555] uppercase tracking-widest hover:text-[#888] transition-colors">+ Add Exercise</button>
+              </div>
             </div>
-            <div>
-              <label className={cls.label}>Notes</label>
-              <textarea value={workoutForm.notes} onChange={e => setWorkoutForm({ ...workoutForm, notes: e.target.value })} placeholder="PRs, volume, how it felt..." rows={3} className={cls.input + " resize-none"} />
-            </div>
-            <div className="flex gap-2 pt-1">
-              <button onClick={addWorkout} className={cls.btnPrimary}>Save</button>
-              <button onClick={() => close('workout')} className={cls.btnSecondary}>Cancel</button>
-            </div>
+            <div className="flex gap-2 pt-1"><button onClick={logWorkout} className={cls.primary}>Save</button><button onClick={() => cm('workout')} className={cls.secondary}>Cancel</button></div>
           </div>
         </Modal>
       )}
-
-      {modals.weight && (
-        <Modal title="Log Weight" onClose={() => close('weight')}>
-          <div className="space-y-4">
-            <div>
-              <label className={cls.label}>Weight (lbs)</label>
-              <input type="number" value={weightForm.weight} onChange={e => setWeightForm({ ...weightForm, weight: e.target.value })} placeholder="185" className={cls.input} autoFocus />
-            </div>
-            <div>
-              <label className={cls.label}>Date</label>
-              <input type="date" value={weightForm.date} onChange={e => setWeightForm({ ...weightForm, date: e.target.value })} className={cls.input} />
-            </div>
-            <div className="flex gap-2 pt-1">
-              <button onClick={logWeight} className={cls.btnPrimary}>Save</button>
-              <button onClick={() => close('weight')} className={cls.btnSecondary}>Cancel</button>
-            </div>
-          </div>
-        </Modal>
-      )}
-
-      {modals.meal && (
-        <Modal title="Log Meal" onClose={() => close('meal')}>
-          <div className="space-y-4">
-            <div>
-              <label className={cls.label}>Calories</label>
-              <input type="number" value={mealForm.calories} onChange={e => setMealForm({ ...mealForm, calories: e.target.value })} placeholder="500" className={cls.input} autoFocus />
-            </div>
-            <div>
-              <label className={cls.label}>Protein (g)</label>
-              <input type="number" value={mealForm.protein} onChange={e => setMealForm({ ...mealForm, protein: e.target.value })} placeholder="40" className={cls.input} />
-            </div>
-            <div>
-              <label className={cls.label}>Date</label>
-              <input type="date" value={mealForm.date} onChange={e => setMealForm({ ...mealForm, date: e.target.value })} className={cls.input} />
-            </div>
-            <p className="text-[10px] font-mono text-neutral-700">Logging adds to existing totals for the day.</p>
-            <div className="flex gap-2 pt-1">
-              <button onClick={logMeal} className={cls.btnPrimary}>Save</button>
-              <button onClick={() => close('meal')} className={cls.btnSecondary}>Cancel</button>
-            </div>
-          </div>
-        </Modal>
-      )}
-
       {modals.stats && (
-        <Modal title="Update Body Stats" onClose={() => close('stats')}>
+        <Modal title="Update Stats" onClose={() => cm('stats')}>
           <div className="space-y-4">
-            <div>
-              <label className={cls.label}>Weight (lbs)</label>
-              <input type="number" value={statsForm.weight} onChange={e => setStatsForm({ ...statsForm, weight: e.target.value })} placeholder={bodyStats.weight || '185'} className={cls.input} autoFocus />
+            <div><label className={cls.label}>Current Weight (lbs)</label><input type="number" value={sf.weight} onChange={e => setSf({ weight: e.target.value })} placeholder={body.currentWeight || '185'} className={cls.input} autoFocus /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><label className={cls.label}>Body Fat %</label><input type="number" value={body.bodyFat || ''} onChange={e => setBody(b => ({ ...b, bodyFat: e.target.value }))} className={cls.input} /></div>
+              <div><label className={cls.label}>Goal BF %</label><input type="number" value={body.goalBodyFat || ''} onChange={e => setBody(b => ({ ...b, goalBodyFat: e.target.value }))} className={cls.input} /></div>
             </div>
-            <div>
-              <label className={cls.label}>Body Fat %</label>
-              <input type="number" value={statsForm.bodyFat} onChange={e => setStatsForm({ ...statsForm, bodyFat: e.target.value })} placeholder={bodyStats.bodyFat || '15'} className={cls.input} />
-            </div>
-            <div className="flex gap-2 pt-1">
-              <button onClick={updateStats} className={cls.btnPrimary}>Update</button>
-              <button onClick={() => close('stats')} className={cls.btnSecondary}>Cancel</button>
-            </div>
+            <div className="flex gap-2 pt-1"><button onClick={updateStats} className={cls.primary}>Update</button><button onClick={() => cm('stats')} className={cls.secondary}>Cancel</button></div>
           </div>
         </Modal>
       )}
-
-      {modals.targets && (
-        <Modal title="Update Targets" onClose={() => close('targets')}>
+      {modals.meal && (
+        <Modal title="Log Meal" onClose={() => cm('meal')}>
           <div className="space-y-4">
-            <div>
-              <label className={cls.label}>Daily Calories Target</label>
-              <input type="number" value={targetsForm.calories} onChange={e => setTargetsForm({ ...targetsForm, calories: e.target.value })} className={cls.input} autoFocus />
+            <div><label className={cls.label}>Date</label><input type="date" value={mf.date} onChange={e => setMf({ ...mf, date: e.target.value })} className={cls.input} /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><label className={cls.label}>Calories</label><input type="number" value={mf.calories} onChange={e => setMf({ ...mf, calories: e.target.value })} placeholder="500" className={cls.input} autoFocus /></div>
+              <div><label className={cls.label}>Protein (g)</label><input type="number" value={mf.protein} onChange={e => setMf({ ...mf, protein: e.target.value })} placeholder="40" className={cls.input} /></div>
+              <div><label className={cls.label}>Carbs (g)</label><input type="number" value={mf.carbs} onChange={e => setMf({ ...mf, carbs: e.target.value })} placeholder="60" className={cls.input} /></div>
+              <div><label className={cls.label}>Fats (g)</label><input type="number" value={mf.fats} onChange={e => setMf({ ...mf, fats: e.target.value })} placeholder="15" className={cls.input} /></div>
             </div>
-            <div>
-              <label className={cls.label}>Daily Protein Target (g)</label>
-              <input type="number" value={targetsForm.protein} onChange={e => setTargetsForm({ ...targetsForm, protein: e.target.value })} className={cls.input} />
+            <p className="text-[9px] font-mono text-[#444]">Adds to existing totals for that day.</p>
+            <div className="flex gap-2 pt-1"><button onClick={logMeal} className={cls.primary}>Save</button><button onClick={() => cm('meal')} className={cls.secondary}>Cancel</button></div>
+          </div>
+        </Modal>
+      )}
+      {modals.pr && (
+        <Modal title="Log Personal Record" onClose={() => cm('pr')}>
+          <div className="space-y-4">
+            <div><label className={cls.label}>Exercise</label><input value={prf.exercise} onChange={e => setPrf({ ...prf, exercise: e.target.value })} placeholder="Bench Press" className={cls.input} autoFocus /></div>
+            <div className="grid grid-cols-3 gap-3">
+              <div><label className={cls.label}>Weight (lbs)</label><input type="number" value={prf.weight} onChange={e => setPrf({ ...prf, weight: e.target.value })} placeholder="225" className={cls.input} /></div>
+              <div><label className={cls.label}>Reps</label><input type="number" value={prf.reps} onChange={e => setPrf({ ...prf, reps: e.target.value })} placeholder="5" className={cls.input} /></div>
+              <div><label className={cls.label}>Date</label><input type="date" value={prf.date} onChange={e => setPrf({ ...prf, date: e.target.value })} className={cls.input} /></div>
             </div>
-            <div className="flex gap-2 pt-1">
-              <button onClick={updateTargets} className={cls.btnPrimary}>Save</button>
-              <button onClick={() => close('targets')} className={cls.btnSecondary}>Cancel</button>
-            </div>
+            <div className="flex gap-2 pt-1"><button onClick={addPR} className={cls.primary}>Save PR</button><button onClick={() => cm('pr')} className={cls.secondary}>Cancel</button></div>
           </div>
         </Modal>
       )}
@@ -342,57 +334,15 @@ export default function Body() {
   )
 }
 
-function StatCard({ label, value, unit, icon, onClick }) {
+function StatCard({ label, value, unit, sub }) {
   return (
-    <div onClick={onClick} className="bg-[#111] border border-[#1f1f1f] p-5 cursor-pointer hover:border-[#282828] transition-colors group">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2 text-neutral-700">
-          {icon}
-          <span className="text-[9px] font-mono uppercase tracking-widest">{label}</span>
-        </div>
-        <Pencil size={11} className="text-neutral-800 group-hover:text-neutral-600 transition-colors" />
-      </div>
+    <div className="bg-[#111] border border-[#1f1f1f] p-4">
+      <div className="text-[9px] font-mono uppercase tracking-widest text-[#555] mb-2">{label}</div>
       <div className="font-mono">
-        <span className="text-3xl font-semibold text-white">{value}</span>
-        {unit && <span className="text-sm text-neutral-600 ml-1">{unit}</span>}
+        <span className="text-3xl font-black text-white">{value}</span>
+        {unit && <span className="text-sm text-[#555] ml-1">{unit}</span>}
       </div>
+      {sub && <div className="text-[9px] font-mono text-[#facc15] mt-1">{sub}</div>}
     </div>
   )
 }
-
-function MacroCard({ label, current, target, unit, onEdit }) {
-  const pct = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0
-  const over = current > target
-
-  return (
-    <div className="bg-[#111] border border-[#1f1f1f] p-5 group">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-[9px] font-mono uppercase tracking-widest text-neutral-700">{label}</span>
-        <button onClick={onEdit} className="opacity-0 group-hover:opacity-100 transition-opacity">
-          <Pencil size={11} className="text-neutral-700 hover:text-neutral-400" />
-        </button>
-      </div>
-      <div className="font-mono mb-3">
-        <span className={`text-3xl font-semibold ${over ? 'text-green-400' : 'text-white'}`}>{current}</span>
-        <span className="text-sm text-neutral-600 ml-1">/ {target} {unit}</span>
-      </div>
-      <div className="h-px bg-[#1f1f1f]">
-        <div className={`h-px transition-all ${over ? 'bg-green-500' : 'bg-white'}`} style={{ width: `${pct}%` }} />
-      </div>
-      <div className="text-[9px] font-mono text-neutral-700 mt-1.5">{pct}% of target</div>
-    </div>
-  )
-}
-
-function getLast7Days(history) {
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date()
-    d.setDate(d.getDate() - (6 - i))
-    const date = d.toISOString().split('T')[0]
-    const entry = history.find(h => h.date === date)
-    return { date: date.slice(5), calories: entry?.calories || 0 }
-  })
-}
-
-function today() { return new Date().toISOString().split('T')[0] }
-function fmtDate(iso) { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }

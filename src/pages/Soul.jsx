@@ -1,111 +1,122 @@
 import { useState } from 'react'
-import { Plus, Star, User, Pencil, Trash2, X } from 'lucide-react'
+import { Plus, Star, User, Pencil, Trash2, X, Archive } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import Modal from '../components/Modal'
+import { calcStreak, today } from '../utils'
 
 const cls = {
-  input: "w-full bg-[#0a0a0a] border border-[#2a2a2a] px-3 py-2 text-sm text-neutral-100 placeholder-neutral-700 focus:outline-none focus:border-neutral-500 transition-colors",
-  label: "block text-[10px] font-mono uppercase tracking-widest text-neutral-600 mb-1.5",
-  btnPrimary: "flex-1 py-2.5 bg-white text-black text-[10px] font-semibold uppercase tracking-widest hover:bg-neutral-200 transition-colors",
-  btnSecondary: "px-4 py-2.5 border border-[#2a2a2a] text-neutral-600 text-[10px] uppercase tracking-widest hover:border-neutral-600 hover:text-neutral-300 transition-colors",
+  input: "w-full bg-[#0a0a0a] border border-[#2a2a2a] px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#555] transition-colors",
+  label: "block text-[10px] font-mono uppercase tracking-widest text-[#555] mb-1.5",
+  primary: "flex-1 py-2.5 bg-[#facc15] text-black text-[10px] font-bold uppercase tracking-widest hover:bg-yellow-300 transition-colors",
+  secondary: "px-4 py-2.5 border border-[#2a2a2a] text-[#666] text-[10px] uppercase tracking-widest hover:border-[#555] hover:text-neutral-300 transition-colors",
 }
 
-const DEFAULT_VALUES = ['Integrity', 'Excellence', 'Faith', 'Discipline', 'Brotherhood']
-
 export default function Soul() {
-  const [prayers, setPrayers] = useLocalStorage('soul_prayers', [])
-  const [values, setValues] = useLocalStorage('soul_values', DEFAULT_VALUES)
-  const [identity, setIdentity] = useLocalStorage('soul_identity', '')
+  const [data, setData] = useLocalStorage('marko_soul', { prayers: [], values: [], identity: '', identityArchive: [] })
+
+  const prayers = data.prayers || []
+  const values = data.values || []
 
   const [showPrayerModal, setShowPrayerModal] = useState(false)
-  const [prayerForm, setPrayerForm] = useState({ content: '', date: today() })
-  const [editingValueIdx, setEditingValueIdx] = useState(null)
-  const [editingValueText, setEditingValueText] = useState('')
-  const [addingValue, setAddingValue] = useState(false)
-  const [newValueText, setNewValueText] = useState('')
-  const [identityEditing, setIdentityEditing] = useState(false)
+  const [pf, setPf] = useState({ content: '', date: today() })
+  const [editingValIdx, setEditingValIdx] = useState(null)
+  const [editingValText, setEditingValText] = useState('')
+  const [editingValDesc, setEditingValDesc] = useState('')
+  const [addingVal, setAddingVal] = useState(false)
+  const [newVal, setNewVal] = useState({ value: '', description: '' })
+  const [editingIdentity, setEditingIdentity] = useState(false)
   const [identityDraft, setIdentityDraft] = useState('')
+  const [showArchive, setShowArchive] = useState(false)
+
+  const prayerStreak = calcStreak(prayers.map(p => p.date))
 
   const addPrayer = () => {
-    if (!prayerForm.content.trim()) return
-    setPrayers([{ ...prayerForm, id: Date.now() }, ...prayers])
-    setPrayerForm({ content: '', date: today() })
+    if (!pf.content.trim()) return
+    setData(d => ({ ...d, prayers: [{ ...pf, id: Date.now() }, ...(d.prayers || [])] }))
+    setPf({ content: '', date: today() })
     setShowPrayerModal(false)
   }
 
-  const deletePrayer = (id) => setPrayers(prayers.filter(p => p.id !== id))
+  const deletePrayer = id => setData(d => ({ ...d, prayers: prayers.filter(p => p.id !== id) }))
 
-  const startEditValue = (idx) => {
-    setEditingValueIdx(idx)
-    setEditingValueText(values[idx])
+  const startEditVal = (idx) => {
+    setEditingValIdx(idx)
+    setEditingValText(values[idx].value)
+    setEditingValDesc(values[idx].description || '')
   }
 
-  const saveEditValue = () => {
-    if (editingValueText.trim()) {
+  const saveVal = () => {
+    if (editingValText.trim()) {
       const v = [...values]
-      v[editingValueIdx] = editingValueText.trim()
-      setValues(v)
+      v[editingValIdx] = { ...v[editingValIdx], value: editingValText.trim(), description: editingValDesc.trim() }
+      setData(d => ({ ...d, values: v }))
     }
-    setEditingValueIdx(null)
+    setEditingValIdx(null)
   }
 
-  const addValue = () => {
-    if (!newValueText.trim()) return
-    setValues([...values, newValueText.trim()])
-    setNewValueText('')
-    setAddingValue(false)
+  const addVal = () => {
+    if (!newVal.value.trim()) return
+    setData(d => ({ ...d, values: [...(d.values || []), { ...newVal, id: Date.now() }] }))
+    setNewVal({ value: '', description: '' })
+    setAddingVal(false)
   }
 
-  const removeValue = (idx) => setValues(values.filter((_, i) => i !== idx))
+  const deleteVal = idx => setData(d => ({ ...d, values: values.filter((_, i) => i !== idx) }))
 
   const startEditIdentity = () => {
-    setIdentityDraft(identity)
-    setIdentityEditing(true)
+    setIdentityDraft(data.identity || '')
+    setEditingIdentity(true)
   }
 
   const saveIdentity = () => {
-    setIdentity(identityDraft)
-    setIdentityEditing(false)
+    // Archive old if different
+    if (data.identity && data.identity !== identityDraft) {
+      setData(d => ({
+        ...d,
+        identity: identityDraft,
+        identityArchive: [{ id: Date.now(), content: d.identity, date: today() }, ...(d.identityArchive || [])]
+      }))
+    } else {
+      setData(d => ({ ...d, identity: identityDraft }))
+    }
+    setEditingIdentity(false)
   }
 
   return (
     <div className="h-full flex flex-col">
       <div className="px-8 py-6 border-b border-[#1f1f1f] shrink-0">
-        <h1 className="text-xl font-semibold tracking-tight">Soul</h1>
-        <p className="text-[10px] font-mono text-neutral-600 mt-0.5 uppercase tracking-widest">Inner architecture</p>
+        <h1 className="text-xl font-bold tracking-tight uppercase">Soul</h1>
+        <p className="text-[10px] font-mono text-[#555] mt-0.5 uppercase tracking-widest">Inner architecture</p>
       </div>
 
       <div className="flex-1 overflow-auto px-8 py-6 space-y-10">
         {/* Prayer Log */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-neutral-700 text-sm leading-none">✝</span>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-600">Prayer Log</span>
+            <div className="flex items-center gap-3">
+              <span className="text-[#555] text-sm">✝</span>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-[#555]">Prayer Log</span>
+              {prayerStreak.current > 0 && (
+                <span className="text-[9px] font-mono text-[#facc15] border border-[#facc15]/20 px-1.5 py-0.5 uppercase tracking-widest">
+                  {prayerStreak.current}d streak
+                </span>
+              )}
             </div>
-            <button
-              onClick={() => { setPrayerForm({ content: '', date: today() }); setShowPrayerModal(true) }}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-[#2a2a2a] text-neutral-600 text-[10px] uppercase tracking-widest hover:border-neutral-600 hover:text-neutral-300 transition-colors"
-            >
-              <Plus size={10} /> Add
+            <button onClick={() => { setPf({ content: '', date: today() }); setShowPrayerModal(true) }} className="flex items-center gap-1 px-3 py-1.5 border border-[#2a2a2a] text-[#555] text-[9px] uppercase tracking-widest hover:border-[#555] hover:text-neutral-300 transition-colors">
+              <Plus size={9} /> Add
             </button>
           </div>
-
           {prayers.length === 0 ? (
-            <div className="bg-[#111] border border-[#1f1f1f] p-6 text-center text-neutral-700 text-[10px] font-mono uppercase tracking-widest">
-              Start your prayer log
-            </div>
+            <div className="bg-[#111] border border-[#1f1f1f] p-6 text-center text-[#333] text-[10px] font-mono uppercase tracking-widest">Start your prayer log</div>
           ) : (
             <div className="space-y-2">
               {prayers.map(prayer => (
-                <div key={prayer.id} className="bg-[#111] border border-[#1f1f1f] p-4 hover:border-[#282828] transition-colors group">
+                <div key={prayer.id} className="bg-[#111] border border-[#1f1f1f] p-4 hover:border-[#2a2a2a] transition-colors group">
                   <div className="flex items-start justify-between gap-4">
                     <p className="text-sm text-neutral-300 leading-relaxed flex-1 whitespace-pre-wrap">{prayer.content}</p>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[9px] font-mono text-neutral-700">{prayer.date}</span>
-                      <button onClick={() => deletePrayer(prayer.id)} className="text-neutral-800 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
-                        <X size={12} />
-                      </button>
+                      <span className="text-[8px] font-mono text-[#333]">{prayer.date}</span>
+                      <button onClick={() => deletePrayer(prayer.id)} className="text-[#333] hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><X size={11} /></button>
                     </div>
                   </div>
                 </div>
@@ -118,61 +129,49 @@ export default function Soul() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Star size={12} className="text-neutral-700" strokeWidth={1.5} />
-              <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-600">Core Values</span>
+              <Star size={12} className="text-[#555]" strokeWidth={1.5} />
+              <span className="text-[10px] font-mono uppercase tracking-widest text-[#555]">Core Values</span>
             </div>
-            {!addingValue && (
-              <button
-                onClick={() => { setNewValueText(''); setAddingValue(true) }}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-[#2a2a2a] text-neutral-600 text-[10px] uppercase tracking-widest hover:border-neutral-600 hover:text-neutral-300 transition-colors"
-              >
-                <Plus size={10} /> Add
+            {!addingVal && (
+              <button onClick={() => { setNewVal({ value: '', description: '' }); setAddingVal(true) }} className="flex items-center gap-1 px-3 py-1.5 border border-[#2a2a2a] text-[#555] text-[9px] uppercase tracking-widest hover:border-[#555] hover:text-neutral-300 transition-colors">
+                <Plus size={9} /> Add
               </button>
             )}
           </div>
-
           <div className="space-y-1">
-            {values.map((value, idx) => (
-              <div key={idx} className="bg-[#111] border border-[#1f1f1f] px-4 py-3 flex items-center justify-between group hover:border-[#282828] transition-colors">
-                {editingValueIdx === idx ? (
-                  <input
-                    value={editingValueText}
-                    onChange={e => setEditingValueText(e.target.value)}
-                    onBlur={saveEditValue}
-                    onKeyDown={e => { if (e.key === 'Enter') saveEditValue(); if (e.key === 'Escape') setEditingValueIdx(null) }}
-                    autoFocus
-                    className="flex-1 bg-transparent text-sm text-white focus:outline-none"
-                  />
+            {values.map((val, idx) => (
+              <div key={val.id || idx} className="bg-[#111] border border-[#1f1f1f] px-4 py-3 hover:border-[#2a2a2a] transition-colors group">
+                {editingValIdx === idx ? (
+                  <div className="space-y-2">
+                    <input value={editingValText} onChange={e => setEditingValText(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveVal()} autoFocus className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none" />
+                    <input value={editingValDesc} onChange={e => setEditingValDesc(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') saveVal(); if (e.key === 'Escape') setEditingValIdx(null) }} placeholder="One-line description..." className="w-full bg-transparent text-xs text-[#666] focus:outline-none" />
+                    <div className="flex gap-2">
+                      <button onClick={saveVal} className="text-[8px] font-mono uppercase tracking-widest text-[#facc15] border border-[#facc15]/30 px-2 py-1 hover:bg-[#facc15]/10 transition-colors">Save</button>
+                      <button onClick={() => setEditingValIdx(null)} className="text-[8px] font-mono uppercase text-[#444] hover:text-[#666]">Cancel</button>
+                    </div>
+                  </div>
                 ) : (
-                  <span className="text-sm font-medium flex-1">{value}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1">
+                      <span className="text-sm font-semibold">{val.value}</span>
+                      {val.description && <p className="text-xs text-[#555] mt-0.5">{val.description}</p>}
+                    </div>
+                    <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => startEditVal(idx)} className="text-[#444] hover:text-neutral-300 transition-colors"><Pencil size={11} /></button>
+                      <button onClick={() => deleteVal(idx)} className="text-[#333] hover:text-red-500 transition-colors"><Trash2 size={11} /></button>
+                    </div>
+                  </div>
                 )}
-                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => startEditValue(idx)} className="text-neutral-700 hover:text-neutral-300 transition-colors">
-                    <Pencil size={11} />
-                  </button>
-                  <button onClick={() => removeValue(idx)} className="text-neutral-800 hover:text-red-500 transition-colors">
-                    <Trash2 size={11} />
-                  </button>
-                </div>
               </div>
             ))}
-
-            {addingValue && (
-              <div className="bg-[#111] border border-neutral-600 px-4 py-3 flex items-center gap-2">
-                <input
-                  value={newValueText}
-                  onChange={e => setNewValueText(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') addValue(); if (e.key === 'Escape') setAddingValue(false) }}
-                  placeholder="Enter value..."
-                  autoFocus
-                  className="flex-1 bg-transparent text-sm focus:outline-none text-white placeholder-neutral-700"
-                />
-                <button onClick={addValue} className="text-[10px] font-semibold bg-white text-black px-3 py-1 hover:bg-neutral-200 transition-colors uppercase tracking-widest">
-                  Add
-                </button>
-                <button onClick={() => setAddingValue(false)} className="text-neutral-700 hover:text-neutral-400">
-                  <X size={13} />
-                </button>
+            {addingVal && (
+              <div className="bg-[#111] border border-[#facc15]/30 px-4 py-3 space-y-2">
+                <input value={newVal.value} onChange={e => setNewVal({ ...newVal, value: e.target.value })} onKeyDown={e => { if (e.key === 'Escape') setAddingVal(false) }} placeholder="Value name..." autoFocus className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none placeholder-[#444]" />
+                <input value={newVal.description} onChange={e => setNewVal({ ...newVal, description: e.target.value })} onKeyDown={e => { if (e.key === 'Enter') addVal(); if (e.key === 'Escape') setAddingVal(false) }} placeholder="One-line description..." className="w-full bg-transparent text-xs text-[#666] focus:outline-none placeholder-[#333]" />
+                <div className="flex gap-2">
+                  <button onClick={addVal} className="text-[8px] font-mono uppercase tracking-widest bg-[#facc15] text-black px-3 py-1 font-bold hover:bg-yellow-300 transition-colors">Add</button>
+                  <button onClick={() => setAddingVal(false)} className="text-[8px] font-mono uppercase text-[#444] hover:text-[#666]"><X size={11} /></button>
+                </div>
               </div>
             )}
           </div>
@@ -182,45 +181,48 @@ export default function Soul() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <User size={12} className="text-neutral-700" strokeWidth={1.5} />
-              <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-600">Identity Statement</span>
+              <User size={12} className="text-[#555]" strokeWidth={1.5} />
+              <span className="text-[10px] font-mono uppercase tracking-widest text-[#555]">Who I Am Becoming</span>
             </div>
-            {!identityEditing && (
-              <button onClick={startEditIdentity} className="text-neutral-700 hover:text-neutral-400 transition-colors">
-                <Pencil size={13} />
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {(data.identityArchive || []).length > 0 && (
+                <button onClick={() => setShowArchive(!showArchive)} className="flex items-center gap-1 text-[#444] hover:text-[#666] transition-colors text-[9px] font-mono uppercase tracking-widest">
+                  <Archive size={10} /> Archive ({(data.identityArchive || []).length})
+                </button>
+              )}
+              {!editingIdentity && (
+                <button onClick={startEditIdentity} className="text-[#444] hover:text-neutral-300 transition-colors"><Pencil size={13} /></button>
+              )}
+            </div>
           </div>
 
-          {identityEditing ? (
+          {editingIdentity ? (
             <div>
-              <textarea
-                value={identityDraft}
-                onChange={e => setIdentityDraft(e.target.value)}
-                placeholder="I am a man built for greatness. I am becoming..."
-                rows={8}
-                autoFocus
-                className={cls.input + " resize-none text-sm leading-relaxed"}
-              />
+              <textarea value={identityDraft} onChange={e => setIdentityDraft(e.target.value)} placeholder="I am a man of God, built for impact..." rows={8} autoFocus className={cls.input + " resize-none text-sm leading-relaxed"} />
               <div className="flex gap-2 mt-2">
-                <button onClick={saveIdentity} className="px-5 py-2 bg-white text-black text-[10px] font-semibold uppercase tracking-widest hover:bg-neutral-200 transition-colors">
-                  Save
-                </button>
-                <button onClick={() => setIdentityEditing(false)} className="px-5 py-2 border border-[#2a2a2a] text-neutral-600 text-[10px] uppercase tracking-widest hover:border-neutral-600 transition-colors">
-                  Cancel
-                </button>
+                <button onClick={saveIdentity} className="px-5 py-2 bg-[#facc15] text-black text-[10px] font-bold uppercase tracking-widest hover:bg-yellow-300 transition-colors">Save</button>
+                <button onClick={() => setEditingIdentity(false)} className="px-5 py-2 border border-[#2a2a2a] text-[#666] text-[10px] uppercase tracking-widest hover:border-[#555] transition-colors">Cancel</button>
               </div>
             </div>
           ) : (
-            <div
-              onClick={startEditIdentity}
-              className="bg-[#111] border border-[#1f1f1f] p-6 cursor-pointer hover:border-[#282828] transition-colors min-h-[140px]"
-            >
-              {identity ? (
-                <p className="text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap">{identity}</p>
+            <div onClick={startEditIdentity} className="bg-[#111] border border-[#1f1f1f] p-6 cursor-pointer hover:border-[#2a2a2a] transition-colors min-h-[160px]">
+              {data.identity ? (
+                <p className="text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap">{data.identity}</p>
               ) : (
-                <p className="text-neutral-700 text-sm italic">Click to write your identity statement — who you are and who you are becoming.</p>
+                <p className="text-[#333] text-sm italic">Click to write your identity statement — who you are and who you are becoming.</p>
               )}
+            </div>
+          )}
+
+          {showArchive && (data.identityArchive || []).length > 0 && (
+            <div className="mt-4 space-y-2">
+              <div className="text-[9px] font-mono uppercase tracking-widest text-[#444] mb-2">Past Versions — Who I Was</div>
+              {(data.identityArchive || []).map(arch => (
+                <div key={arch.id} className="bg-[#0d0d0d] border border-[#1a1a1a] p-4">
+                  <div className="text-[8px] font-mono text-[#333] mb-2 uppercase tracking-widest">{arch.date}</div>
+                  <p className="text-xs text-[#444] leading-relaxed whitespace-pre-wrap">{arch.content}</p>
+                </div>
+              ))}
             </div>
           )}
         </section>
@@ -229,30 +231,12 @@ export default function Soul() {
       {showPrayerModal && (
         <Modal title="Prayer Entry" onClose={() => setShowPrayerModal(false)}>
           <div className="space-y-4">
-            <div>
-              <label className={cls.label}>Date</label>
-              <input type="date" value={prayerForm.date} onChange={e => setPrayerForm({ ...prayerForm, date: e.target.value })} className={cls.input} />
-            </div>
-            <div>
-              <label className={cls.label}>Prayer / Reflection</label>
-              <textarea
-                value={prayerForm.content}
-                onChange={e => setPrayerForm({ ...prayerForm, content: e.target.value })}
-                placeholder="What are you praying about? What is God saying to you?"
-                rows={6}
-                autoFocus
-                className={cls.input + " resize-none"}
-              />
-            </div>
-            <div className="flex gap-2 pt-1">
-              <button onClick={addPrayer} className={cls.btnPrimary}>Save Prayer</button>
-              <button onClick={() => setShowPrayerModal(false)} className={cls.btnSecondary}>Cancel</button>
-            </div>
+            <div><label className={cls.label}>Date</label><input type="date" value={pf.date} onChange={e => setPf({ ...pf, date: e.target.value })} className={cls.input} /></div>
+            <div><label className={cls.label}>Prayer / Reflection</label><textarea value={pf.content} onChange={e => setPf({ ...pf, content: e.target.value })} placeholder="What are you praying about? What is God saying?" rows={6} autoFocus className={cls.input + " resize-none"} /></div>
+            <div className="flex gap-2 pt-1"><button onClick={addPrayer} className={cls.primary}>Save</button><button onClick={() => setShowPrayerModal(false)} className={cls.secondary}>Cancel</button></div>
           </div>
         </Modal>
       )}
     </div>
   )
 }
-
-function today() { return new Date().toISOString().split('T')[0] }
