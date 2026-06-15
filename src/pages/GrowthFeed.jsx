@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, ChevronDown, ChevronUp, Play } from 'lucide-react'
+import { Plus, ChevronDown, ChevronUp, Play, Zap } from 'lucide-react'
 import Modal from '../components/Modal'
 import { today, fmtShort } from '../utils'
 import feedData from '../data/growthFeedData.json'
@@ -135,6 +135,44 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
   )
 }
 
+const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || localStorage.getItem('anthropic_key') || ''
+
+async function fetchVideoDrop() {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': API_KEY,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      messages: [{
+        role: 'user',
+        content: `You are a growth content curator. Recommend 3 specific, real YouTube videos for a high-performance self-improvement platform covering pillars: Mindset, Business, Social Skills, Style, Health.
+
+Choose well-known creators (Alex Hormozi, Andrew Huberman, Charlie Morgan, Ryan Holiday, GQ, RSD, etc). Pick 3 different pillars.
+
+Return ONLY a valid JSON array with exactly 3 objects, each with:
+- title: exact video title
+- channel: creator/channel name
+- youtube_url: https://www.youtube.com/watch?v=VIDEO_ID
+- video_id: the YouTube video ID only
+- pillar: one of "Mindset", "Business", "Social Skills", "Style", "Health"
+
+Return only the JSON array. No other text.`,
+      }],
+    }),
+  })
+  if (!res.ok) throw new Error(`API error ${res.status}`)
+  const data = await res.json()
+  const text = data.content[0].text.trim()
+  const jsonStr = text.startsWith('[') ? text : text.slice(text.indexOf('['), text.lastIndexOf(']') + 1)
+  return JSON.parse(jsonStr)
+}
+
 export default function GrowthFeed() {
   const [videos, setVideos] = useState(INITIAL_VIDEOS)
   const [filter, setFilter] = useState('ALL')
@@ -142,6 +180,8 @@ export default function GrowthFeed() {
   const [ratingOpen, setRatingOpen] = useState(new Set())
   const [showAddModal, setShowAddModal] = useState(false)
   const [addForm, setAddForm] = useState({ youtube_url: '', title: '', channel: '', pillar: 'Mindset' })
+  const [dropping, setDropping] = useState(false)
+  const [dropError, setDropError] = useState('')
 
   const handleWatch = (id, openTab) => {
     if (openTab) {
@@ -169,6 +209,26 @@ export default function GrowthFeed() {
     setShowAddModal(false)
   }
 
+  const handleDrop = async () => {
+    if (!API_KEY) { setDropError('No API key — set VITE_ANTHROPIC_API_KEY or enter it in Coach'); return }
+    setDropping(true)
+    setDropError('')
+    try {
+      const newVids = await fetchVideoDrop()
+      setVideos(vs => [...vs, ...newVids.map(v => ({
+        ...v,
+        id: Date.now().toString() + Math.random(),
+        date_added: today(),
+        user_rating: null,
+        watched: false,
+      }))])
+    } catch (e) {
+      setDropError('Drop failed — try again')
+    } finally {
+      setDropping(false)
+    }
+  }
+
   const matchesPillar = v => filter === 'ALL' || v.pillar.toUpperCase() === filter
   const unwatched = videos.filter(v => !v.watched && matchesPillar(v))
   const watched = videos.filter(v => v.watched && matchesPillar(v))
@@ -192,12 +252,24 @@ export default function GrowthFeed() {
             <h1 className="font-display text-white" style={{ fontSize: 28 }}>GROWTH FEED</h1>
             <p style={{ fontFamily: 'Inter', fontSize: 13, color: '#888', marginTop: 2 }}>Everything you consume. Rated. Tracked. Building you.</p>
           </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors"
-          >
-            <Plus size={9} /> Add Video
-          </button>
+          <div className="flex items-center gap-2">
+            {dropError && <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#dc2626' }}>{dropError}</span>}
+            <button
+              onClick={handleDrop}
+              disabled={dropping}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[9px] uppercase tracking-widest transition-colors disabled:opacity-40"
+              style={{ background: dropping ? '#1a1a1a' : '#dc2626', color: 'white', border: '1px solid #dc2626' }}
+            >
+              <Zap size={9} fill={dropping ? 'none' : 'white'} />
+              {dropping ? 'Dropping...' : 'Drop 3 Videos'}
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors"
+            >
+              <Plus size={9} /> Add Video
+            </button>
+          </div>
         </div>
       </div>
 
