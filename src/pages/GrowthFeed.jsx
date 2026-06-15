@@ -136,7 +136,7 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
 }
 
 async function fetchVideoDrop() {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY || localStorage.getItem('anthropic_key') || ''
+  const apiKey = localStorage.getItem('anthropic_key') || import.meta.env.VITE_ANTHROPIC_API_KEY || ''
   if (!apiKey) throw new Error('No API key — add your key in the Coach section settings')
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
