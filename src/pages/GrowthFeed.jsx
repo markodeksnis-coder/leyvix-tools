@@ -52,12 +52,18 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
     >
       {/* Thumbnail — 16:9 */}
       <div className="relative group/thumb overflow-hidden" style={{ paddingTop: '56.25%' }}>
-        <img
-          src={`https://img.youtube.com/vi/${video.video_id}/maxresdefault.jpg`}
-          alt={video.title}
-          className="absolute inset-0 w-full h-full object-cover transition-all duration-200 group-hover/thumb:brightness-110"
-          onError={e => { e.target.src = `https://img.youtube.com/vi/${video.video_id}/hqdefault.jpg` }}
-        />
+        {video.video_id ? (
+          <img
+            src={`https://img.youtube.com/vi/${video.video_id}/maxresdefault.jpg`}
+            alt={video.title}
+            className="absolute inset-0 w-full h-full object-cover transition-all duration-200 group-hover/thumb:brightness-110"
+            onError={e => { e.target.src = `https://img.youtube.com/vi/${video.video_id}/hqdefault.jpg` }}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center" style={{ background: color + '22' }}>
+            <Play size={32} color={color} />
+          </div>
+        )}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity bg-black/30">
           <div style={{ background: '#dc2626', borderRadius: '50%', padding: 12 }}>
             <Play size={20} fill="white" color="white" />
@@ -156,10 +162,8 @@ async function fetchVideoDrop() {
 Choose well-known creators (Alex Hormozi, Andrew Huberman, Charlie Morgan, Ryan Holiday, GQ, RSD, etc). Pick 3 different pillars.
 
 Return ONLY a valid JSON array with exactly 3 objects, each with:
-- title: exact video title
+- title: exact video title (as accurate as possible)
 - channel: creator/channel name
-- youtube_url: https://www.youtube.com/watch?v=VIDEO_ID
-- video_id: the YouTube video ID only
 - pillar: one of "Mindset", "Business", "Social Skills", "Style", "Health"
 
 Return only the JSON array. No other text.`,
@@ -173,7 +177,12 @@ Return only the JSON array. No other text.`,
   const data = await res.json()
   const text = data.content[0].text.trim()
   const jsonStr = text.startsWith('[') ? text : text.slice(text.indexOf('['), text.lastIndexOf(']') + 1)
-  return JSON.parse(jsonStr)
+  const videos = JSON.parse(jsonStr)
+  return videos.map(v => ({
+    ...v,
+    video_id: null,
+    youtube_url: `https://www.youtube.com/results?search_query=${encodeURIComponent(v.title + ' ' + v.channel)}`,
+  }))
 }
 
 export default function GrowthFeed() {
