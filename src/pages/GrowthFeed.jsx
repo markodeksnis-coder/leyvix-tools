@@ -213,7 +213,6 @@ export default function GrowthFeed() {
   }
 
   const handleDrop = async () => {
-    if (!API_KEY) { setDropError('No API key — set VITE_ANTHROPIC_API_KEY or enter it in Coach'); return }
     setDropping(true)
     setDropError('')
     try {
