@@ -135,13 +135,13 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
   )
 }
 
-const API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || localStorage.getItem('anthropic_key') || ''
-
 async function fetchVideoDrop() {
+  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY || localStorage.getItem('anthropic_key') || ''
+  if (!apiKey) throw new Error('No API key — add your key in the Coach section settings')
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
-      'x-api-key': API_KEY,
+      'x-api-key': apiKey,
       'anthropic-version': '2023-06-01',
       'content-type': 'application/json',
       'anthropic-dangerous-direct-browser-access': 'true',
@@ -166,7 +166,10 @@ Return only the JSON array. No other text.`,
       }],
     }),
   })
-  if (!res.ok) throw new Error(`API error ${res.status}`)
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}))
+    throw new Error(errBody?.error?.message || `API ${res.status}`)
+  }
   const data = await res.json()
   const text = data.content[0].text.trim()
   const jsonStr = text.startsWith('[') ? text : text.slice(text.indexOf('['), text.lastIndexOf(']') + 1)
@@ -223,7 +226,7 @@ export default function GrowthFeed() {
         watched: false,
       }))])
     } catch (e) {
-      setDropError('Drop failed — try again')
+      setDropError(e.message || 'Drop failed — try again')
     } finally {
       setDropping(false)
     }
