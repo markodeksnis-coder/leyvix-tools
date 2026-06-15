@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Plus, Pencil, X } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import Heatmap from '../components/Heatmap'
 import Modal from '../components/Modal'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
 import { calcStreak, today, fmtShort, daysSinceStart } from '../utils'
 
 const CONTENT_CATS = ['All', 'Sales', 'Psychology', 'Business', 'Theology', 'Fitness', 'Relationships', 'Door-to-Door', 'Other']
@@ -18,20 +18,66 @@ const CAT_COLORS = {
   Other: '#6b7280',
 }
 
-const TROPHY_STYLES = [
-  { bg: 'linear-gradient(135deg, #78350f, #92400e)', border: '#f59e0b', shadow: '0 0 24px rgba(245,158,11,0.4)', numColor: '#facc15', medal: '🥇' },
-  { bg: 'linear-gradient(135deg, #1e293b, #334155)', border: '#94a3b8', shadow: '0 0 16px rgba(148,163,184,0.2)', numColor: '#e2e8f0', medal: '🥈' },
-  { bg: 'linear-gradient(135deg, #431407, #7c2d12)', border: '#f97316', shadow: '0 0 16px rgba(249,115,22,0.2)', numColor: '#fb923c', medal: '🥉' },
+const BAR_PALETTE = ['#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#ef4444', '#ec4899', '#f97316', '#22c55e']
+
+const PODIUM = [
+  { stroke: '#facc15', glow: 'rgba(250,204,21,0.4)', medal: '🥇', size: 160 },
+  { stroke: '#94a3b8', glow: 'rgba(148,163,184,0.3)', medal: '🥈', size: 140 },
+  { stroke: '#f97316', glow: 'rgba(249,115,22,0.3)', medal: '🥉', size: 140 },
 ]
 
+function ProgressRing({ value, max, color }) {
+  const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0
+  const r = 14
+  const circ = 2 * Math.PI * r
+  const dash = (pct / 100) * circ
+  return (
+    <svg width={36} height={36} viewBox="0 0 36 36" style={{ flexShrink: 0 }}>
+      <circle cx={18} cy={18} r={r} fill="none" stroke="#2a2520" strokeWidth={3} />
+      <circle
+        cx={18} cy={18} r={r} fill="none" stroke={color} strokeWidth={3}
+        strokeDasharray={`${dash.toFixed(2)} ${circ.toFixed(2)}`}
+        strokeLinecap="round"
+        transform="rotate(-90 18 18)"
+      />
+      <text x={18} y={18} textAnchor="middle" dominantBaseline="middle"
+        fill="white" fontSize={9} fontFamily="Inter" fontWeight="700">
+        {pct}%
+      </text>
+    </svg>
+  )
+}
+
+function Sparkline({ logs, fails }) {
+  const logSet = new Set(logs)
+  const failSet = new Set(fails || [])
+  const dots = []
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    const ds = d.toISOString().split('T')[0]
+    dots.push(logSet.has(ds) ? 'done' : failSet.has(ds) ? 'failed' : 'missed')
+  }
+  return (
+    <div style={{ display: 'flex', gap: 2, alignItems: 'center', overflow: 'hidden' }}>
+      {dots.map((status, i) => (
+        <div key={i} style={{
+          width: 3, height: 10, borderRadius: 1.5, flexShrink: 0,
+          background: status === 'done' ? '#22c55e' : status === 'failed' ? '#ef4444' : '#2a2520',
+        }} />
+      ))}
+    </div>
+  )
+}
+
 const SectionHeader = ({ children }) => (
-  <div className="font-display text-white" style={{ fontSize: 22, borderLeft: '2px solid #dc2626', paddingLeft: 12 }}>
+  <div className="font-display text-white" style={{ fontSize: 22, borderLeft: '2px solid #f59e0b', paddingLeft: 12 }}>
     {children}
   </div>
 )
 
 const cls = {
-  input: "w-full bg-[#080808] border border-[#2a2a2a] px-3 py-2 text-sm text-white placeholder-[#333] focus:outline-none focus:border-[#dc2626] transition-colors",
+  input: "w-full bg-[#0c0a09] border border-[#2a2520] px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#f59e0b] transition-colors",
   label: "block text-[9px] font-mono uppercase tracking-widest text-[#444] mb-1.5",
 }
 
@@ -39,7 +85,6 @@ export default function Record() {
   const [habits, setHabits] = useLocalStorage('marko_habits', [])
   const [content, setContent] = useLocalStorage('marko_content', [])
   const [contentCat, setContentCat] = useState('All')
-  const [collapsedHeatmaps, setCollapsedHeatmaps] = useState({})
   const [showContentModal, setShowContentModal] = useState(false)
   const [showHabitModal, setShowHabitModal] = useState(false)
   const [editHabit, setEditHabit] = useState(null)
@@ -49,8 +94,8 @@ export default function Record() {
   const todayStr = today()
   const dayNum = daysSinceStart()
   const now = new Date()
-  const dayName = now.toLocaleDateString('en-US', { weekday: 'long' })
-  const dateLabel = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+  const dayName = now.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase()
+  const dateLabel = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }).toUpperCase()
 
   const logHabit = id => setHabits(habits.map(h => h.id !== id ? h : {
     ...h,
@@ -72,8 +117,6 @@ export default function Record() {
     logs: h.logs.filter(l => l !== todayStr),
     fails: (h.fails || []).filter(f => f !== todayStr),
   }))
-
-  const toggleHeatmap = id => setCollapsedHeatmaps(p => ({ ...p, [id]: !p[id] }))
 
   const saveHabit = () => {
     if (!habitForm.name.trim()) return
@@ -97,136 +140,135 @@ export default function Record() {
   const deleteContent = id => setContent(content.filter(c => c.id !== id))
   const filteredContent = content.filter(c => contentCat === 'All' || c.category === contentCat)
 
-  const trophies = habits.map(h => {
+  const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+  const thisWeekStart = (() => { const d = new Date(); d.setDate(d.getDate() - d.getDay()); return d.toISOString().split('T')[0] })()
+
+  const trophies = habits.map((h, i) => {
     const s = calcStreak(h.logs)
-    return { name: h.name, icon: h.icon || '🎯', best: s.longest }
+    return { name: h.name, icon: h.icon || '🎯', best: s.longest, current: s.current, color: BAR_PALETTE[i % BAR_PALETTE.length] }
   }).filter(t => t.best > 0).sort((a, b) => b.best - a.best)
 
-  const thisWeekStart = (() => {
-    const d = new Date(); d.setDate(d.getDate() - d.getDay()); return d.toISOString().split('T')[0]
+  const chartData = trophies.map(t => ({ name: `${t.icon} ${t.name}`, value: t.best, fill: t.color }))
+  const longestEver = trophies[0]?.best || 0
+  const activeStreaks = habits.filter(h => calcStreak(h.logs).current > 0).length
+  const perfectDays = habits.length === 0 ? 0 : (() => {
+    const days = [...new Set(habits.flatMap(h => h.logs.filter(d => d >= thisMonthStart)))]
+    return days.filter(d => habits.every(h => h.logs.includes(d))).length
   })()
-  const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="px-8 py-5 border-b border-[#2a2a2a] shrink-0">
-        <h1 className="font-display text-white" style={{ fontSize: 28 }}>{dayName}, {dateLabel}</h1>
-        <p style={{ fontFamily: 'Inter', fontSize: 13, color: '#dc2626', marginTop: 2 }}>Day {dayNum} of the war.</p>
+    <div className="h-full flex flex-col" style={{ background: '#0c0a09' }}>
+      {/* Header */}
+      <div className="px-6 py-3 shrink-0" style={{ borderBottom: '1px solid #2a2520' }}>
+        <h1 style={{ fontFamily: 'Inter', fontSize: 28, fontWeight: 300, color: 'white', letterSpacing: '-0.01em' }}>
+          {dayName}, {dateLabel}
+        </h1>
+        <p style={{ fontFamily: 'Inter', fontSize: 13, color: '#f59e0b', fontStyle: 'italic', marginTop: 2 }}>
+          Day {dayNum} of the war.
+        </p>
       </div>
 
-      <div className="flex-1 overflow-auto px-8 py-6 space-y-10">
+      <div className="flex-1 overflow-auto px-6 py-4" style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
 
         {/* Active Streaks */}
         <section>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <SectionHeader>Active Streaks</SectionHeader>
             <button
               onClick={() => { setHabitForm({ name: '', icon: '🎯', category: 'Health', target: 'Daily' }); setEditHabit(null); setShowHabitModal(true) }}
-              className="flex items-center gap-1 px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors"
+              style={{ border: '1px solid #2a2520', color: '#444', fontFamily: 'Inter' }}
+              className="flex items-center gap-1 px-3 py-1 text-[9px] uppercase tracking-widest hover:text-white hover:border-[#f59e0b] transition-colors"
             >
               <Plus size={9} /> Add Habit
             </button>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5">
             {habits.map(h => {
               const streak = calcStreak(h.logs)
               const doneToday = h.logs.includes(todayStr)
               const failedToday = (h.fails || []).includes(todayStr)
               const isRecord = streak.current > 0 && streak.current === streak.longest && streak.current > 1
               const numColor = (failedToday || streak.current === 0) ? '#ef4444' : isRecord ? '#facc15' : '#ffffff'
-              const numShadow = isRecord ? '0 0 20px rgba(250,204,21,0.6)' : 'none'
-              const topBorderColor = isRecord ? '#facc15' : failedToday ? '#dc2626' : streak.current > 0 ? '#16a34a' : '#333'
+              const numShadow = isRecord ? '0 0 12px rgba(250,204,21,0.5)' : 'none'
+              const barColor = isRecord ? '#facc15' : failedToday ? '#ef4444' : streak.current > 0 ? '#22c55e' : '#2a2520'
+              const ringColor = isRecord ? '#facc15' : failedToday ? '#ef4444' : '#22c55e'
               const badge = failedToday ? '💀' : isRecord ? '👑' : streak.current > 7 ? '🔥' : ''
-              const expanded = !collapsedHeatmaps[h.id]
-              const lastFail = [...(h.fails || [])].sort().at(-1)
 
               return (
                 <div
                   key={h.id}
-                  style={{ background: '#111111', border: '1px solid #222222', borderTop: `3px solid ${topBorderColor}` }}
-                  className="p-4 transition-all"
+                  style={{
+                    background: 'linear-gradient(135deg, #141210 0%, #1a1510 100%)',
+                    border: '1px solid #2a2520',
+                    borderLeft: `3px solid ${barColor}`,
+                    borderRadius: 12,
+                    padding: 12,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                    boxShadow: isRecord ? '0 0 16px rgba(245,158,11,0.2)' : 'none',
+                  }}
                 >
-                  {/* Name row — click to toggle heatmap */}
-                  <div className="flex items-start justify-between mb-2">
-                    <button
-                      onClick={() => toggleHeatmap(h.id)}
-                      className="text-left flex-1 pr-1 hover:opacity-80 transition-opacity"
-                      style={{ fontFamily: 'Inter', fontSize: 12, color: '#888', lineHeight: 1.3 }}
-                    >
+                  {/* Name + edit */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {h.icon} {h.name}
-                    </button>
+                    </span>
                     <button
                       onClick={() => { setHabitForm({ name: h.name, icon: h.icon || '🎯', category: h.category || 'Health', target: h.target || 'Daily' }); setEditHabit(h); setShowHabitModal(true) }}
-                      className="text-[#333] hover:text-[#666] transition-colors shrink-0"
-                    >
-                      <Pencil size={10} />
-                    </button>
+                      style={{ color: '#444', flexShrink: 0, marginLeft: 4 }}
+                      className="hover:text-[#888] transition-colors"
+                    ><Pencil size={10} /></button>
                   </div>
 
-                  {/* Big streak number */}
-                  <div className="flex items-end gap-1">
-                    <span
-                      className="font-display select-none"
-                      style={{ fontSize: 96, color: numColor, lineHeight: 1, textShadow: numShadow }}
-                    >
+                  {/* Streak number */}
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, lineHeight: 1 }}>
+                    <span className="font-display" style={{ fontSize: 48, color: numColor, lineHeight: 1, textShadow: numShadow }}>
                       {streak.current}
                     </span>
-                    {badge && <span className="text-2xl mb-1 leading-none">{badge}</span>}
+                    {badge && <span style={{ fontSize: 16 }}>{badge}</span>}
                   </div>
 
-                  {/* DAY STREAK label */}
-                  <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#555555', marginTop: -4, marginBottom: 8 }}>
-                    DAY STREAK
+                  {/* Stats line */}
+                  <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#555' }}>
+                    BEST {streak.longest}d · WK {streak.weekCount} / MO {streak.monthCount}
                   </div>
 
-                  {/* BEST + BROKE */}
-                  <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#555555', marginBottom: 10 }} className="space-y-0.5">
-                    <div>BEST <span style={{ color: 'white' }}>{streak.longest}d</span></div>
-                    <div>BROKE {lastFail ? fmtShort(lastFail) : '—'}</div>
+                  {/* Ring + sparkline */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <ProgressRing value={streak.current} max={Math.max(1, streak.longest)} color={ringColor} />
+                    <div style={{ flex: 1, overflow: 'hidden' }}>
+                      <Sparkline logs={h.logs} fails={h.fails || []} />
+                    </div>
                   </div>
 
-                  {/* Action buttons */}
+                  {/* Buttons */}
                   {doneToday ? (
-                    <div className="flex items-center gap-2">
-                      <div
-                        style={{ background: '#166534', fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', padding: '6px 0', flex: 1, textAlign: 'center' }}
-                      >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ flex: 1, height: 28, background: '#166534', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: 'white' }}>
                         ✓ LOGGED
                       </div>
-                      <button onClick={() => undoHabit(h.id)} style={{ fontFamily: 'Inter', fontSize: 10, color: '#333' }} className="hover:text-[#555] transition-colors">UNDO</button>
+                      <button onClick={() => undoHabit(h.id)} style={{ fontFamily: 'Inter', fontSize: 9, color: '#333' }} className="hover:text-[#555] transition-colors">UNDO</button>
                     </div>
                   ) : failedToday ? (
-                    <div className="flex items-center gap-2">
-                      <div
-                        style={{ border: '1px solid #dc2626', fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#dc2626', padding: '6px 0', flex: 1, textAlign: 'center' }}
-                      >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ flex: 1, height: 28, border: '1px solid #ef4444', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: '#ef4444' }}>
                         ✗ FAILED
                       </div>
-                      <button onClick={() => undoHabit(h.id)} style={{ fontFamily: 'Inter', fontSize: 10, color: '#333' }} className="hover:text-[#555] transition-colors">UNDO</button>
+                      <button onClick={() => undoHabit(h.id)} style={{ fontFamily: 'Inter', fontSize: 9, color: '#333' }} className="hover:text-[#555] transition-colors">UNDO</button>
                     </div>
                   ) : (
-                    <div className="flex gap-1.5">
+                    <div style={{ display: 'flex', gap: 6 }}>
                       <button
                         onClick={() => logHabit(h.id)}
-                        style={{ background: '#16a34a', fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white' }}
-                        className="flex-1 py-1.5 hover:opacity-90 transition-opacity"
-                      >
-                        ✓ Done
-                      </button>
+                        style={{ flex: 1, height: 28, background: '#16a34a', borderRadius: 6, fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: 'white', cursor: 'pointer' }}
+                        className="hover:opacity-90 transition-opacity"
+                      >✓ Done</button>
                       <button
                         onClick={() => failHabit(h.id)}
-                        style={{ border: '1px solid #dc2626', color: '#dc2626', fontFamily: 'Inter', fontSize: 12, fontWeight: 700 }}
-                        className="flex-1 py-1.5 hover:bg-[#dc2626]/10 transition-colors"
-                      >
-                        ✗ Fail
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Collapsible heatmap (default expanded) */}
-                  {expanded && (
-                    <div className="mt-3 pt-3 border-t border-[#1a1a1a] overflow-x-auto">
-                      <Heatmap logs={h.logs} fails={h.fails || []} />
+                        style={{ flex: 1, height: 28, border: '1px solid #ef4444', borderRadius: 6, color: '#ef4444', fontFamily: 'Inter', fontSize: 11, fontWeight: 700, cursor: 'pointer', background: 'transparent' }}
+                        className="hover:bg-[#ef4444]/10 transition-colors"
+                      >✗ Fail</button>
                     </div>
                   )}
                 </div>
@@ -239,58 +281,87 @@ export default function Record() {
         <section>
           <div className="flex items-center justify-between mb-3">
             <SectionHeader>Content Library</SectionHeader>
-            <button onClick={() => setShowContentModal(true)} className="flex items-center gap-1 px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors">
+            <button
+              onClick={() => setShowContentModal(true)}
+              style={{ border: '1px solid #2a2520', color: '#444', fontFamily: 'Inter' }}
+              className="flex items-center gap-1 px-3 py-1 text-[9px] uppercase tracking-widest hover:text-white hover:border-[#f59e0b] transition-colors"
+            >
               <Plus size={9} /> Add Entry
             </button>
           </div>
-          <div className="flex gap-4 mb-3 flex-wrap" style={{ fontFamily: 'Inter', fontSize: 11, color: '#444' }}>
+
+          {/* Stats */}
+          <div className="flex gap-4 mb-3" style={{ fontFamily: 'Inter', fontSize: 11, color: '#444' }}>
             <span>Total <span style={{ color: '#666' }}>{content.length}</span></span>
             <span>This week <span style={{ color: '#666' }}>{content.filter(c => c.date >= thisWeekStart).length}</span></span>
             <span>This month <span style={{ color: '#666' }}>{content.filter(c => c.date >= thisMonthStart).length}</span></span>
           </div>
-          <div className="flex gap-1 overflow-x-auto mb-3 pb-1">
-            {CONTENT_CATS.map(cat => (
-              <button key={cat} onClick={() => setContentCat(cat)}
-                className={`px-3 py-1.5 text-[9px] font-mono uppercase tracking-widest whitespace-nowrap shrink-0 transition-all ${contentCat === cat ? 'bg-[#dc2626] text-white' : 'border border-[#2a2a2a] text-[#444] hover:border-[#dc2626] hover:text-white'}`}>
-                {cat}
-              </button>
-            ))}
+
+          {/* Filter pills */}
+          <div className="flex gap-1.5 flex-wrap mb-4">
+            {CONTENT_CATS.map(cat => {
+              const isActive = contentCat === cat
+              const color = cat === 'All' ? '#f59e0b' : (CAT_COLORS[cat] || '#6b7280')
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setContentCat(cat)}
+                  style={{
+                    background: isActive ? color : '#1a1a1a',
+                    color: isActive ? (cat === 'All' ? '#0c0a09' : 'white') : '#555',
+                    fontFamily: 'Inter', fontSize: 11, fontWeight: isActive ? 600 : 400,
+                    padding: '4px 12px', borderRadius: 9999, border: 'none', cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = '#888' }}
+                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = '#555' }}
+                >
+                  {cat}
+                </button>
+              )
+            })}
           </div>
+
+          {/* Masonry card grid */}
           {filteredContent.length === 0 ? (
-            <div className="p-8 text-center" style={{ background: '#111', fontFamily: 'Inter', fontSize: 12, color: '#333' }}>No entries yet</div>
+            <div style={{ background: '#141210', borderRadius: 10, padding: '32px', textAlign: 'center', fontFamily: 'Inter', fontSize: 12, color: '#333' }}>
+              No entries yet
+            </div>
           ) : (
-            <div className="space-y-2">
+            <div style={{ columnCount: 2, columnGap: 12 }}>
               {filteredContent.map(c => {
                 const color = CAT_COLORS[c.category] || '#6b7280'
                 return (
                   <div
                     key={c.id}
-                    style={{ background: '#111111', borderLeft: `3px solid ${color}` }}
-                    className="p-4 group transition-all hover:bg-[#161616] cursor-default"
+                    className="group"
+                    style={{
+                      background: '#141210', borderRadius: 10, borderLeft: `4px solid ${color}`,
+                      padding: '12px 14px', marginBottom: 10, breakInside: 'avoid',
+                      transition: 'box-shadow 0.15s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 0 16px ${color}26` }}
+                    onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none' }}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span style={{ background: color, fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: 'white', padding: '2px 8px', borderRadius: 9999 }}>
-                            {c.category}
-                          </span>
-                        </div>
-                        <div style={{ fontFamily: 'Inter', fontSize: 16, fontWeight: 700, color: 'white', marginBottom: 4 }}>
-                          {c.title}
-                        </div>
-                        {c.takeaway && (
-                          <div style={{ fontFamily: 'Inter', fontSize: 13, color: '#aaaaaa', fontStyle: 'italic' }}>
-                            {c.takeaway}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#444' }}>{fmtShort(c.date)}</span>
-                        <button onClick={() => deleteContent(c.id)} className="text-[#333] hover:text-[#dc2626] opacity-0 group-hover:opacity-100 transition-all">
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span style={{ background: color, fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: 'white', padding: '2px 8px', borderRadius: 9999 }}>
+                        {c.category}
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#444' }}>{fmtShort(c.date)}</span>
+                        <button onClick={() => deleteContent(c.id)} style={{ color: '#333' }} className="hover:text-[#ef4444] opacity-0 group-hover:opacity-100 transition-all">
                           <X size={11} />
                         </button>
                       </div>
                     </div>
+                    <div className="line-clamp-2" style={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 600, color: 'white', marginBottom: 4 }}>
+                      {c.title}
+                    </div>
+                    {c.takeaway && (
+                      <div className="line-clamp-3" style={{ fontFamily: 'Inter', fontSize: 13, color: '#aaa', fontStyle: 'italic' }}>
+                        {c.takeaway}
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -301,44 +372,84 @@ export default function Record() {
         {/* Trophy Wall */}
         {trophies.length > 0 && (
           <section>
-            <div className="mb-4">
+            <div className="mb-6">
               <SectionHeader>Trophy Wall</SectionHeader>
             </div>
 
-            {/* Top 3 — big cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              {trophies.slice(0, 3).map((t, i) => {
-                const ts = TROPHY_STYLES[i]
+            {/* Podium */}
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 24, marginBottom: 32 }}>
+              {[
+                trophies[1] ? { t: trophies[1], p: PODIUM[1] } : null,
+                { t: trophies[0], p: PODIUM[0] },
+                trophies[2] ? { t: trophies[2], p: PODIUM[2] } : null,
+              ].map((item, i) => {
+                if (!item) return <div key={i} style={{ width: 140 }} />
+                const { t, p } = item
                 return (
-                  <div
-                    key={t.name}
-                    style={{ background: ts.bg, border: `1px solid ${ts.border}`, boxShadow: ts.shadow }}
-                    className="p-5 relative overflow-hidden"
-                  >
-                    {/* Shine overlay */}
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 60%)', pointerEvents: 'none' }} />
-                    <div className="text-4xl mb-2">{ts.medal}</div>
-                    <div className="font-display" style={{ fontSize: 18, color: ts.numColor }}>{t.icon} {t.name}</div>
-                    <div className="font-display" style={{ fontSize: 72, color: ts.numColor, lineHeight: 1 }}>{t.best}</div>
-                    <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#888', marginTop: 4 }}>ALL-TIME RECORD</div>
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                    <div style={{
+                      width: p.size, height: p.size, borderRadius: '50%',
+                      border: `8px solid ${p.stroke}`,
+                      boxShadow: `0 0 24px ${p.glow}`,
+                      background: '#141210',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
+                    }}>
+                      <div style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: '#999', textAlign: 'center', padding: '0 12px', maxWidth: p.size - 24, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {t.name.toUpperCase()}
+                      </div>
+                      <div className="font-display" style={{ fontSize: p.size === 160 ? 40 : 36, color: p.stroke, lineHeight: 1 }}>
+                        {t.best}
+                      </div>
+                      <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#666' }}>days</div>
+                    </div>
+                    <div style={{ fontSize: p.size === 160 ? 22 : 18 }}>{p.medal}</div>
                   </div>
                 )
               })}
             </div>
 
-            {/* Rest — smaller grid */}
-            {trophies.length > 3 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {trophies.slice(3).map(t => (
-                  <div key={t.name} style={{ background: '#111111', border: '1px solid #222222' }} className="p-4">
-                    <div className="text-2xl mb-1">🏆</div>
-                    <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#888' }}>{t.icon} {t.name}</div>
-                    <div className="font-display" style={{ fontSize: 48, color: 'white', lineHeight: 1 }}>{t.best}</div>
-                    <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#555', marginTop: 2 }}>ALL-TIME RECORD</div>
-                  </div>
-                ))}
+            {/* Bar chart */}
+            {chartData.length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={chartData} margin={{ top: 16, right: 16, bottom: 52, left: 0 }}>
+                    <XAxis
+                      dataKey="name" angle={-45} textAnchor="end" interval={0}
+                      tick={{ fill: '#666', fontSize: 11, fontFamily: 'Inter' }}
+                      axisLine={{ stroke: '#2a2520' }} tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fill: '#666', fontSize: 11, fontFamily: 'Inter' }}
+                      axisLine={{ stroke: '#2a2520' }} tickLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{ background: '#141210', border: '1px solid #2a2520', borderRadius: 8, fontSize: 12, fontFamily: 'Inter' }}
+                      labelStyle={{ color: '#888' }} itemStyle={{ color: '#fff' }}
+                      cursor={{ fill: 'rgba(255,255,255,0.02)' }}
+                    />
+                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                      {chartData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+                      <LabelList dataKey="value" position="top" style={{ fontSize: 11, fill: '#888', fontFamily: 'Inter' }} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             )}
+
+            {/* Personal bests stat row */}
+            <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+              {[
+                { label: 'Habits Tracked', value: habits.length },
+                { label: 'Longest Streak Ever', value: `${longestEver}d` },
+                { label: 'Active Streaks', value: activeStreaks },
+                { label: 'Perfect Days (Mo)', value: perfectDays },
+              ].map(s => (
+                <div key={s.label}>
+                  <div className="font-display" style={{ fontSize: 28, color: '#f59e0b', lineHeight: 1 }}>{s.value}</div>
+                  <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#666', marginTop: 2 }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
           </section>
         )}
       </div>
@@ -347,7 +458,7 @@ export default function Record() {
         <Modal title={editHabit ? 'Edit Habit' : 'New Habit'} onClose={() => { setShowHabitModal(false); setEditHabit(null) }}>
           <div className="space-y-4">
             <div className="grid grid-cols-[72px_1fr] gap-3">
-              <div><label className={cls.label}>Icon</label><input value={habitForm.icon} onChange={e => setHabitForm({ ...habitForm, icon: e.target.value })} className={cls.input + " text-center text-xl"} maxLength={2} /></div>
+              <div><label className={cls.label}>Icon</label><input value={habitForm.icon} onChange={e => setHabitForm({ ...habitForm, icon: e.target.value })} className={cls.input + ' text-center text-xl'} maxLength={2} /></div>
               <div><label className={cls.label}>Habit Name</label><input value={habitForm.name} onChange={e => setHabitForm({ ...habitForm, name: e.target.value })} onKeyDown={e => e.key === 'Enter' && saveHabit()} autoFocus placeholder="e.g. Cold Shower" className={cls.input} /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -363,8 +474,8 @@ export default function Record() {
               </div>
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={saveHabit} className="flex-1 py-2.5 bg-[#dc2626] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors">Save</button>
-              <button onClick={() => { setShowHabitModal(false); setEditHabit(null) }} className="px-4 py-2.5 border border-[#2a2a2a] text-[#444] text-[10px] uppercase tracking-widest hover:border-[#666] transition-colors">Cancel</button>
+              <button onClick={saveHabit} style={{ background: '#f59e0b', color: '#0c0a09' }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
+              <button onClick={() => { setShowHabitModal(false); setEditHabit(null) }} style={{ border: '1px solid #2a2520', color: '#444' }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#666] transition-colors">Cancel</button>
             </div>
           </div>
         </Modal>
@@ -382,10 +493,10 @@ export default function Record() {
               </div>
               <div><label className={cls.label}>Date</label><input type="date" value={contentForm.date} onChange={e => setContentForm({ ...contentForm, date: e.target.value })} className={cls.input} /></div>
             </div>
-            <div><label className={cls.label}>Key Takeaway</label><textarea value={contentForm.takeaway} onChange={e => setContentForm({ ...contentForm, takeaway: e.target.value })} rows={3} placeholder="Main lesson..." className={cls.input + " resize-none"} /></div>
+            <div><label className={cls.label}>Key Takeaway</label><textarea value={contentForm.takeaway} onChange={e => setContentForm({ ...contentForm, takeaway: e.target.value })} rows={3} placeholder="Main lesson..." className={cls.input + ' resize-none'} /></div>
             <div className="flex gap-2 pt-1">
-              <button onClick={addContent} className="flex-1 py-2.5 bg-[#dc2626] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors">Save</button>
-              <button onClick={() => setShowContentModal(false)} className="px-4 py-2.5 border border-[#2a2a2a] text-[#444] text-[10px] uppercase tracking-widest hover:border-[#666] transition-colors">Cancel</button>
+              <button onClick={addContent} style={{ background: '#f59e0b', color: '#0c0a09' }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
+              <button onClick={() => setShowContentModal(false)} style={{ border: '1px solid #2a2520', color: '#444' }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#666] transition-colors">Cancel</button>
             </div>
           </div>
         </Modal>
