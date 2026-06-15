@@ -1,13 +1,14 @@
-import { ScrollText, Brain, Dumbbell, Users, TrendingUp, Flame, MessageSquare, Settings, Zap, Download } from 'lucide-react'
+import { ScrollText, Brain, Dumbbell, Users, TrendingUp, Flame, MessageSquare, Settings, Zap, Download, PlayCircle } from 'lucide-react'
 
 const NAV = [
-  { id: 'record',    label: 'The Record',  icon: ScrollText },
-  { id: 'mind',      label: 'Mind',        icon: Brain },
-  { id: 'body',      label: 'Body',        icon: Dumbbell },
-  { id: 'relations', label: 'Relations',   icon: Users },
-  { id: 'business',  label: 'Business',    icon: TrendingUp },
-  { id: 'soul',      label: 'Soul',        icon: Flame },
-  { id: 'coach',     label: 'Coach',       icon: MessageSquare },
+  { id: 'record',      label: 'The Record',  icon: ScrollText },
+  { id: 'mind',        label: 'Mind',        icon: Brain },
+  { id: 'body',        label: 'Body',        icon: Dumbbell },
+  { id: 'relations',   label: 'Relations',   icon: Users },
+  { id: 'business',    label: 'Business',    icon: TrendingUp },
+  { id: 'soul',        label: 'Soul',        icon: Flame },
+  { id: 'coach',       label: 'Coach',       icon: MessageSquare },
+  { id: 'growth-feed', label: 'Growth Feed', icon: PlayCircle },
 ]
 
 function exportData() {
