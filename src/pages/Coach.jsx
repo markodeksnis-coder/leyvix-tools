@@ -132,7 +132,7 @@ export default function Coach() {
   const bottomRef = useRef(null)
   const textareaRef = useRef(null)
 
-  const [apiKey, setApiKeyState] = useState(() => localStorage.getItem('anthropic_key') || '')
+  const [apiKey, setApiKeyState] = useState(() => import.meta.env.VITE_ANTHROPIC_API_KEY || localStorage.getItem('anthropic_key') || '')
 
   const saveKey = () => {
     const k = keyDraft.trim()
