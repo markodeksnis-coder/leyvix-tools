@@ -1,5 +1,3 @@
-// ─── Date helpers ───────────────────────────────────────────────────────────
-
 export const today = () => new Date().toISOString().split('T')[0]
 
 export function daysAgo(n) {
@@ -9,21 +7,22 @@ export function daysAgo(n) {
 }
 
 export function dateRange(from, to) {
-  // from = higher daysAgo number (older), to = lower (more recent)
   const arr = []
   for (let i = from; i >= to; i--) arr.push(daysAgo(i))
   return arr
 }
 
-// ─── Streak calculation ─────────────────────────────────────────────────────
+export function daysSinceStart() {
+  const start = localStorage.getItem('marko_app_start')
+  if (!start) return 1
+  return Math.max(1, Math.floor((Date.now() - new Date(start).getTime()) / 86400000) + 1)
+}
 
 export function calcStreak(logs = []) {
   const logSet = new Set(logs)
   const todayStr = today()
-  const ystrdStr = daysAgo(1)
   const isActiveToday = logSet.has(todayStr)
 
-  // Current streak: walk back from today (or yesterday)
   let current = 0
   const anchor = isActiveToday ? new Date() : new Date(Date.now() - 86400000)
   if (logSet.has(anchor.toISOString().split('T')[0])) {
@@ -34,7 +33,6 @@ export function calcStreak(logs = []) {
     }
   }
 
-  // Longest streak + last broken date
   let longest = 0
   let lastBroken = null
   if (logs.length > 0) {
@@ -55,7 +53,6 @@ export function calcStreak(logs = []) {
     }
   }
 
-  // This-week count (Mon → today)
   const now = new Date()
   const dow = now.getDay()
   const mon = new Date(now)
@@ -63,14 +60,11 @@ export function calcStreak(logs = []) {
   mon.setHours(0, 0, 0, 0)
   const weekCount = logs.filter(d => new Date(d + 'T00:00:00') >= mon).length
 
-  // This-month count
   const ms = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
   const monthCount = logs.filter(d => d >= ms).length
 
   return { current, longest, lastBroken, isActiveToday, weekCount, monthCount }
 }
-
-// ─── Formatting ─────────────────────────────────────────────────────────────
 
 export function fmtDate(ds) {
   if (!ds) return '—'

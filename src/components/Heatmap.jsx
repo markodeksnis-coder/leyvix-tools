@@ -1,78 +1,103 @@
-import { today } from '../utils'
+import { useState } from 'react'
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 export default function Heatmap({ logs = [], fails = [] }) {
+  const [tooltip, setTooltip] = useState(null)
   const logSet = new Set(logs)
   const failSet = new Set(fails)
-  const todayStr = today()
+  const now = new Date()
+  now.setHours(0, 0, 0, 0)
+  const todayStr = now.toISOString().split('T')[0]
+  const curMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 
-  // Build 53 weeks ending today, aligned to start on Sunday
-  const end = new Date()
-  end.setHours(23, 59, 59, 999)
-  const start = new Date(end)
-  start.setDate(start.getDate() - 364)
-  const dow = start.getDay()
-  start.setDate(start.getDate() - dow)
+  // Only months with at least one log/fail + current month, newest first
+  const monthSet = new Set([curMonthStr])
+  ;[...logs, ...fails].forEach(d => { if (d) monthSet.add(d.substring(0, 7)) })
+  const sortedMonths = [...monthSet].sort().reverse()
 
-  const weeks = []
-  const cur = new Date(start)
-  let wk = []
-
-  while (cur <= end) {
-    const ds = cur.toISOString().split('T')[0]
-    const isFuture = ds > todayStr
-    wk.push({ ds, isFuture, done: logSet.has(ds) && !isFuture, failed: failSet.has(ds) && !isFuture })
-    if (cur.getDay() === 6) { weeks.push(wk); wk = [] }
-    cur.setDate(cur.getDate() + 1)
+  const getCellColor = (ds) => {
+    if (ds > todayStr) return '#0d0d0d'
+    if (logSet.has(ds)) return '#16a34a'
+    if (failSet.has(ds)) return '#7f1d1d'
+    return '#1c1c1c'
   }
-  if (wk.length) weeks.push(wk)
 
-  // Month labels
-  const monthLabels = []
-  weeks.forEach((wk, wi) => {
-    const first = wk.find(c => !c.isFuture)
-    if (first) {
-      const d = new Date(first.ds + 'T12:00:00')
-      if (d.getDate() <= 7) {
-        monthLabels[wi] = d.toLocaleDateString('en-US', { month: 'short' })
-      }
-    }
-  })
+  const getStatus = (ds, color) => {
+    if (ds > todayStr) return 'future'
+    if (color === '#16a34a') return 'done'
+    if (color === '#7f1d1d') return 'failed'
+    return 'missed'
+  }
 
   return (
-    <div className="overflow-x-auto">
-      <div className="inline-block">
-        {/* Month labels */}
-        <div className="flex gap-[3px] mb-1 pl-0">
-          {weeks.map((_, wi) => (
-            <div key={wi} className="w-[11px] text-[9px] font-mono text-[#444] shrink-0">
-              {monthLabels[wi] || ''}
+    <div>
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'nowrap', overflowX: 'auto', paddingBottom: 4 }}>
+        {sortedMonths.map(monthStr => {
+          const [yearStr, mStr] = monthStr.split('-')
+          const year = parseInt(yearStr)
+          const monthIdx = parseInt(mStr)
+          const month = monthIdx - 1
+          const daysInMonth = new Date(year, monthIdx, 0).getDate()
+          const firstDow = new Date(year, month, 1).getDay()
+
+          const cells = []
+          for (let i = 0; i < firstDow; i++) cells.push(null)
+          for (let d = 1; d <= daysInMonth; d++) {
+            cells.push(`${yearStr}-${mStr}-${String(d).padStart(2, '0')}`)
+          }
+          while (cells.length % 7 !== 0) cells.push(null)
+
+          const weeks = []
+          for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7))
+
+          return (
+            <div key={monthStr} style={{ flexShrink: 0 }}>
+              <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#555', marginBottom: 6 }}>
+                {MONTHS[month]}{year !== now.getFullYear() ? ` ${year}` : ''}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {weeks.map((week, wi) => (
+                  <div key={wi} style={{ display: 'flex', gap: 3 }}>
+                    {week.map((ds, di) => {
+                      if (!ds) return <div key={di} style={{ width: 14, height: 14 }} />
+                      const color = getCellColor(ds)
+                      const isToday = ds === todayStr
+                      return (
+                        <div
+                          key={ds}
+                          style={{
+                            width: 14,
+                            height: 14,
+                            backgroundColor: color,
+                            outline: isToday ? '1px solid #dc2626' : 'none',
+                            outlineOffset: 1,
+                            cursor: 'default',
+                            flexShrink: 0,
+                          }}
+                          onMouseEnter={e => setTooltip({ ds, status: getStatus(ds, color), x: e.clientX, y: e.clientY })}
+                          onMouseLeave={() => setTooltip(null)}
+                        />
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-        {/* Grid */}
-        <div className="flex gap-[3px]">
-          {weeks.map((wk, wi) => (
-            <div key={wi} className="flex flex-col gap-[3px]">
-              {Array.from({ length: 7 }, (_, di) => {
-                const cell = wk[di]
-                if (!cell) return <div key={di} className="w-[11px] h-[11px] shrink-0" />
-                const bg = cell.isFuture ? 'bg-[#0d0d0d]'
-                  : cell.done ? 'bg-green-600'
-                  : cell.failed ? 'bg-red-900/60'
-                  : 'bg-[#1e1e1e]'
-                const ring = cell.ds === todayStr ? 'ring-1 ring-[#facc15]' : ''
-                return (
-                  <div
-                    key={di}
-                    className={`w-[11px] h-[11px] shrink-0 ${bg} ${ring}`}
-                    title={cell.ds}
-                  />
-                )
-              })}
-            </div>
-          ))}
-        </div>
+          )
+        })}
       </div>
+      <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#555', marginTop: 8 }}>
+        {logs.length} days logged
+      </div>
+      {tooltip && (
+        <div
+          className="fixed z-50 bg-[#141414] border border-[#2a2a2a] px-2 py-1 pointer-events-none"
+          style={{ left: tooltip.x + 10, top: tooltip.y - 28, fontFamily: 'Inter', fontSize: 10, color: '#888' }}
+        >
+          {tooltip.ds} · {tooltip.status}
+        </div>
+      )}
     </div>
   )
 }

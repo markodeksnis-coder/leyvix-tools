@@ -1,17 +1,17 @@
 import { useState } from 'react'
-import { Plus, Pencil, X, Check } from 'lucide-react'
+import { Plus, Check } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import Modal from '../components/Modal'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { pct, fmtShort } from '../utils'
 
-const CHART_TT = { contentStyle: { background: '#151515', border: '1px solid #2a2a2a', borderRadius: 0, fontSize: 11, fontFamily: 'monospace' }, labelStyle: { color: '#666' }, itemStyle: { color: '#e8e8e8' } }
+const CHART_TT = { contentStyle: { background: '#141414', border: '1px solid #2a2a2a', borderRadius: 0, fontSize: 11, fontFamily: 'monospace' }, labelStyle: { color: '#444' }, itemStyle: { color: '#fff' } }
 
 const cls = {
-  input: "w-full bg-[#0a0a0a] border border-[#2a2a2a] px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#555] font-mono transition-colors",
-  label: "block text-[10px] font-mono uppercase tracking-widest text-[#555] mb-1.5",
-  primary: "flex-1 py-2.5 bg-[#facc15] text-black text-[10px] font-bold uppercase tracking-widest hover:bg-yellow-300 transition-colors",
-  secondary: "px-4 py-2.5 border border-[#2a2a2a] text-[#666] text-[10px] uppercase tracking-widest hover:border-[#555] hover:text-neutral-300 transition-colors",
+  input: "w-full bg-[#080808] border border-[#2a2a2a] px-3 py-2 text-sm text-white placeholder-[#333] focus:outline-none focus:border-[#dc2626] font-mono transition-colors",
+  label: "block text-[9px] font-mono uppercase tracking-widest text-[#444] mb-1.5",
+  primary: "flex-1 py-2.5 bg-[#dc2626] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors",
+  secondary: "px-4 py-2.5 border border-[#2a2a2a] text-[#444] text-[10px] uppercase tracking-widest hover:border-[#666] hover:text-white transition-colors",
 }
 
 export default function Body() {
@@ -20,15 +20,15 @@ export default function Body() {
   const [diet, setDiet] = useLocalStorage('marko_diet', { targets: { calories: 2800, protein: 220, carbs: 280, fats: 80 }, history: [], supplements: [] })
 
   const [modals, setModals] = useState({})
-  const om = (k) => setModals(m => ({ ...m, [k]: true }))
-  const cm = (k) => setModals(m => ({ ...m, [k]: false }))
-
-  const [wf, setWf] = useState({ date: new Date().toISOString().split('T')[0], name: '', exercises: [{ name: '', sets: '', reps: '', weight: '' }] })
-  const [sf, setSf] = useState({ weight: '' })
-  const [mf, setMf] = useState({ date: new Date().toISOString().split('T')[0], calories: '', protein: '', carbs: '', fats: '' })
-  const [prf, setPrf] = useState({ exercise: '', weight: '', reps: '', date: new Date().toISOString().split('T')[0] })
+  const om = k => setModals(m => ({ ...m, [k]: true }))
+  const cm = k => setModals(m => ({ ...m, [k]: false }))
 
   const today = new Date().toISOString().split('T')[0]
+  const [wf, setWf] = useState({ date: today, name: '', exercises: [{ name: '', sets: '', reps: '', weight: '' }] })
+  const [sf, setSf] = useState({ weight: '', bodyFat: String(body.bodyFat || ''), goalBodyFat: String(body.goalBodyFat || '') })
+  const [mf, setMf] = useState({ date: today, calories: '', protein: '', carbs: '', fats: '' })
+  const [prf, setPrf] = useState({ exercise: '', weight: '', reps: '', date: today })
+
   const todayDiet = diet.history?.find(h => h.date === today) || { calories: 0, protein: 0, carbs: 0, fats: 0 }
 
   const logWorkout = () => {
@@ -41,13 +41,15 @@ export default function Body() {
 
   const updateStats = () => {
     const w = parseFloat(sf.weight)
-    if (!w) return
-    const entry = { date: today, weight: w }
-    setBody(b => ({
-      ...b,
-      currentWeight: w,
-      weightHistory: [...(b.weightHistory || []).filter(h => h.date !== today), entry].sort((a, b) => a.date.localeCompare(b.date))
-    }))
+    const updates = {}
+    if (w) {
+      updates.currentWeight = w
+      const entry = { date: today, weight: w }
+      updates.weightHistory = [...(body.weightHistory || []).filter(h => h.date !== today), entry].sort((a, b) => a.date.localeCompare(b.date))
+    }
+    if (sf.bodyFat) updates.bodyFat = parseFloat(sf.bodyFat)
+    if (sf.goalBodyFat) updates.goalBodyFat = parseFloat(sf.goalBodyFat)
+    setBody(b => ({ ...b, ...updates }))
     cm('stats')
   }
 
@@ -56,7 +58,13 @@ export default function Body() {
     const history = [...(diet.history || [])]
     const idx = history.findIndex(h => h.date === mf.date)
     if (idx >= 0) {
-      history[idx] = { ...history[idx], calories: (history[idx].calories || 0) + parseFloat(mf.calories || 0), protein: (history[idx].protein || 0) + parseFloat(mf.protein || 0), carbs: (history[idx].carbs || 0) + parseFloat(mf.carbs || 0), fats: (history[idx].fats || 0) + parseFloat(mf.fats || 0) }
+      history[idx] = {
+        ...history[idx],
+        calories: (history[idx].calories || 0) + parseFloat(mf.calories || 0),
+        protein: (history[idx].protein || 0) + parseFloat(mf.protein || 0),
+        carbs: (history[idx].carbs || 0) + parseFloat(mf.carbs || 0),
+        fats: (history[idx].fats || 0) + parseFloat(mf.fats || 0),
+      }
     } else {
       history.push({ date: mf.date, calories: parseFloat(mf.calories || 0), protein: parseFloat(mf.protein || 0), carbs: parseFloat(mf.carbs || 0), fats: parseFloat(mf.fats || 0) })
     }
@@ -72,11 +80,11 @@ export default function Body() {
     cm('pr')
   }
 
-  const toggleSupp = (id) => {
+  const toggleSupp = id => {
     const supps = diet.supplements || []
     setDiet(d => ({
       ...d,
-      supplements: supps.map(s => s.id === id ? { ...s, logs: s.logs.includes(today) ? s.logs.filter(l => l !== today) : [...s.logs, today] } : s)
+      supplements: supps.map(s => s.id === id ? { ...s, logs: (s.logs || []).includes(today) ? (s.logs || []).filter(l => l !== today) : [...(s.logs || []), today] } : s)
     }))
   }
 
@@ -89,12 +97,10 @@ export default function Body() {
   })
   const avg30 = (() => {
     const d30 = new Date(); d30.setDate(d30.getDate() - 30)
-    const ds30 = d30.toISOString().split('T')[0]
-    const recent = (diet.history || []).filter(h => h.date >= ds30)
+    const recent = (diet.history || []).filter(h => h.date >= d30.toISOString().split('T')[0])
     return recent.length ? Math.round(recent.reduce((s, h) => s + (h.calories || 0), 0) / recent.length) : 0
   })()
 
-  // Goal date projection for body fat
   const bf = parseFloat(body.bodyFat || 0)
   const goalBf = parseFloat(body.goalBodyFat || 10)
   const bfDiff = bf - goalBf
@@ -103,79 +109,76 @@ export default function Body() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="px-8 py-6 border-b border-[#1f1f1f] flex items-center justify-between shrink-0">
+      <div className="px-8 py-5 border-b border-[#2a2a2a] flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-xl font-bold tracking-tight uppercase">Body</h1>
-          <p className="text-[10px] font-mono text-[#555] mt-0.5 uppercase tracking-widest">Physical optimization system</p>
+          <h1 className="text-xl font-bold uppercase tracking-tight">Body</h1>
+          <p className="text-[10px] font-mono text-[#444] mt-0.5 uppercase tracking-widest">Physical optimization system</p>
         </div>
         <div className="flex gap-2">
           {tab === 'fitness' ? (
             <>
-              <button onClick={() => om('stats')} className="px-3 py-1.5 border border-[#2a2a2a] text-[#666] text-[9px] uppercase tracking-widest hover:border-[#555] hover:text-neutral-300 transition-colors">Update Stats</button>
-              <button onClick={() => om('pr')} className="px-3 py-1.5 border border-[#2a2a2a] text-[#666] text-[9px] uppercase tracking-widest hover:border-[#555] hover:text-neutral-300 transition-colors">Log PR</button>
-              <button onClick={() => om('workout')} className="flex items-center gap-1.5 px-4 py-2 bg-[#facc15] text-black text-[9px] font-bold uppercase tracking-widest hover:bg-yellow-300 transition-colors">
+              <button onClick={() => om('stats')} className="px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors">Update Stats</button>
+              <button onClick={() => om('pr')} className="px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors">Log PR</button>
+              <button onClick={() => om('workout')} className="flex items-center gap-1.5 px-4 py-2 bg-[#dc2626] text-white text-[9px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors">
                 <Plus size={10} strokeWidth={2.5} /> Log Workout
               </button>
             </>
           ) : (
-            <button onClick={() => om('meal')} className="flex items-center gap-1.5 px-4 py-2 bg-[#facc15] text-black text-[9px] font-bold uppercase tracking-widest hover:bg-yellow-300 transition-colors">
+            <button onClick={() => om('meal')} className="flex items-center gap-1.5 px-4 py-2 bg-[#dc2626] text-white text-[9px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors">
               <Plus size={10} strokeWidth={2.5} /> Log Meal
             </button>
           )}
         </div>
       </div>
 
-      <div className="px-8 py-3 border-b border-[#1f1f1f] flex gap-1 shrink-0">
+      <div className="px-8 py-3 border-b border-[#2a2a2a] flex gap-1 shrink-0">
         {['fitness', 'diet'].map(t => (
-          <button key={t} onClick={() => setTab(t)} className={`px-4 py-1.5 text-[9px] font-mono uppercase tracking-widest transition-all ${tab === t ? 'bg-[#facc15] text-black font-bold' : 'text-[#555] border border-transparent hover:border-[#2a2a2a] hover:text-neutral-300'}`}>{t}</button>
+          <button key={t} onClick={() => setTab(t)} className={`px-4 py-1.5 text-[9px] font-mono uppercase tracking-widest transition-all ${tab === t ? 'bg-[#dc2626] text-white font-bold' : 'text-[#444] border border-transparent hover:border-[#2a2a2a] hover:text-white'}`}>{t}</button>
         ))}
       </div>
 
       <div className="flex-1 overflow-auto px-8 py-6">
         {tab === 'fitness' ? (
           <div className="space-y-6">
-            {/* Stats row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <StatCard label="Weight" value={body.currentWeight ? `${body.currentWeight}` : '—'} unit={body.currentWeight ? 'lbs' : ''} />
               <StatCard label="Body Fat" value={body.bodyFat ? `${body.bodyFat}` : '—'} unit={body.bodyFat ? '%' : ''} />
-              <StatCard label="Goal BF%" value={body.goalBodyFat || '10'} unit="%" sub={projDate ? `~${projDate}` : ''} />
-              <StatCard label="Projected" value={projDays ? `${projDays}` : '—'} unit={projDays ? 'days' : ''} sub={projDate || ''} />
+              <StatCard label="Goal BF%" value={body.goalBodyFat || '10'} unit="%" />
+              <StatCard label="Days to Goal" value={projDays ? `${projDays}` : '—'} unit={projDays ? 'days' : ''} sub={projDate || ''} />
             </div>
 
-            {/* Weight chart */}
             {weightChart.length > 1 && (
               <div>
-                <div className="text-[10px] font-mono uppercase tracking-widest text-[#555] mb-3">Weight Trend</div>
-                <div className="bg-[#111] border border-[#1f1f1f] p-4">
+                <div className="text-[9px] font-mono uppercase tracking-widest text-[#444] mb-3">Weight Trend (Last 30 Days)</div>
+                <div className="bg-[#0f0f0f] border border-[#2a2a2a] p-4">
                   <ResponsiveContainer width="100%" height={140}>
                     <LineChart data={weightChart}>
-                      <XAxis dataKey="date" tick={{ fill: '#444', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
-                      <YAxis domain={['auto', 'auto']} tick={{ fill: '#444', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} width={30} />
+                      <XAxis dataKey="date" tick={{ fill: '#333', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
+                      <YAxis domain={['auto', 'auto']} tick={{ fill: '#333', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} width={30} />
                       <Tooltip {...CHART_TT} formatter={v => [`${v} lbs`, '']} />
-                      <Line type="monotone" dataKey="weight" stroke="#facc15" strokeWidth={1.5} dot={false} />
+                      <Line type="monotone" dataKey="weight" stroke="#dc2626" strokeWidth={1.5} dot={false} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
               </div>
             )}
 
-            {/* Recent workouts */}
             <div>
-              <div className="text-[10px] font-mono uppercase tracking-widest text-[#555] mb-3">Last 10 Workouts</div>
+              <div className="text-[9px] font-mono uppercase tracking-widest text-[#444] mb-3">Last 10 Workouts</div>
               {(!body.workouts || body.workouts.length === 0) ? (
-                <div className="bg-[#111] border border-[#1f1f1f] p-6 text-center text-[#444] text-xs font-mono">No workouts logged yet</div>
+                <div className="bg-[#0f0f0f] border border-[#2a2a2a] p-6 text-center text-[#333] text-xs font-mono">No workouts logged yet</div>
               ) : (
                 <div className="space-y-1">
                   {(body.workouts || []).slice(0, 10).map(w => (
-                    <div key={w.id} className="bg-[#111] border border-[#1f1f1f] p-3 hover:border-[#2a2a2a] transition-colors">
+                    <div key={w.id} className="bg-[#0f0f0f] border border-[#2a2a2a] p-3 hover:border-[#dc2626]/30 transition-colors">
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-sm font-semibold">{w.name}</span>
-                        <span className="text-[9px] font-mono text-[#444]">{fmtShort(w.date)}</span>
+                        <span className="text-[9px] font-mono text-[#333]">{fmtShort(w.date)}</span>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {(w.exercises || []).map((ex, i) => (
-                          <span key={i} className="text-[9px] font-mono text-[#666] border border-[#1a1a1a] px-1.5 py-0.5">
-                            {ex.name} {ex.sets}×{ex.reps} @ {ex.weight}lbs
+                          <span key={i} className="text-[9px] font-mono text-[#555] border border-[#1a1a1a] px-1.5 py-0.5">
+                            {ex.name} {ex.sets}×{ex.reps}{ex.weight ? ` @ ${ex.weight}lbs` : ''}
                           </span>
                         ))}
                       </div>
@@ -185,16 +188,15 @@ export default function Body() {
               )}
             </div>
 
-            {/* PRs */}
             {body.prs && Object.keys(body.prs).length > 0 && (
               <div>
-                <div className="text-[10px] font-mono uppercase tracking-widest text-[#555] mb-3">Personal Records</div>
+                <div className="text-[9px] font-mono uppercase tracking-widest text-[#444] mb-3">Personal Records</div>
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2">
                   {Object.entries(body.prs).map(([ex, pr]) => (
-                    <div key={ex} className="bg-[#111] border border-[#1f1f1f] p-3">
-                      <div className="text-[9px] font-mono text-[#555] uppercase tracking-widest mb-1">{ex}</div>
-                      <div className="text-xl font-mono font-black text-[#facc15]">{pr.weight}<span className="text-xs text-[#555]">lbs</span></div>
-                      <div className="text-[9px] font-mono text-[#444]">{pr.reps} rep{pr.reps > 1 ? 's' : ''} · {fmtShort(pr.date)}</div>
+                    <div key={ex} className="bg-[#0f0f0f] border border-[#2a2a2a] p-3 hover:border-[#dc2626]/30 transition-colors">
+                      <div className="text-[9px] font-mono text-[#444] uppercase tracking-widest mb-1">{ex}</div>
+                      <div className="text-xl font-mono font-black text-[#dc2626]">{pr.weight}<span className="text-xs text-[#444]">lbs</span></div>
+                      <div className="text-[9px] font-mono text-[#333]">{pr.reps} rep{pr.reps > 1 ? 's' : ''} · {fmtShort(pr.date)}</div>
                     </div>
                   ))}
                 </div>
@@ -209,52 +211,56 @@ export default function Body() {
                 { label: 'Protein', current: todayDiet.protein, target: diet.targets?.protein, unit: 'g' },
                 { label: 'Carbs', current: todayDiet.carbs, target: diet.targets?.carbs, unit: 'g' },
                 { label: 'Fats', current: todayDiet.fats, target: diet.targets?.fats, unit: 'g' },
-              ].map(m => (
-                <div key={m.label} className="bg-[#111] border border-[#1f1f1f] p-4">
-                  <div className="text-[9px] font-mono uppercase tracking-widest text-[#555] mb-2">{m.label}</div>
-                  <div className="font-mono mb-2">
-                    <span className="text-2xl font-bold text-white">{m.current || 0}</span>
-                    <span className="text-xs text-[#555] ml-1">/ {m.target} {m.unit}</span>
+              ].map(m => {
+                const p = pct(m.current || 0, m.target)
+                const over = p >= 100
+                return (
+                  <div key={m.label} className="bg-[#0f0f0f] border border-[#2a2a2a] p-4">
+                    <div className="text-[9px] font-mono uppercase tracking-widest text-[#444] mb-2">{m.label}</div>
+                    <div className="font-mono mb-2">
+                      <span className="text-2xl font-bold text-white">{m.current || 0}</span>
+                      <span className="text-xs text-[#444] ml-1">/ {m.target} {m.unit}</span>
+                    </div>
+                    <div className="h-0.5 bg-[#1a1a1a]">
+                      <div className={`h-0.5 transition-all ${over ? 'bg-[#dc2626]' : 'bg-[#16a34a]'}`} style={{ width: `${Math.min(100, p)}%` }} />
+                    </div>
+                    <div className={`text-[9px] font-mono mt-1 ${over ? 'text-[#dc2626]' : 'text-[#333]'}`}>{p}%</div>
                   </div>
-                  <div className="h-px bg-[#1a1a1a]">
-                    <div className="h-px bg-[#facc15] transition-all" style={{ width: `${pct(m.current || 0, m.target)}%` }} />
-                  </div>
-                  <div className="text-[9px] font-mono text-[#444] mt-1">{pct(m.current || 0, m.target)}%</div>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#555]">7-Day Calories</span>
-                  <span className="text-[9px] font-mono text-[#444]">30d avg: {avg30} kcal</span>
+                  <span className="text-[9px] font-mono uppercase tracking-widest text-[#444]">7-Day Calories</span>
+                  <span className="text-[9px] font-mono text-[#333]">30d avg: {avg30} kcal</span>
                 </div>
-                <div className="bg-[#111] border border-[#1f1f1f] p-4">
+                <div className="bg-[#0f0f0f] border border-[#2a2a2a] p-4">
                   <ResponsiveContainer width="100%" height={120}>
                     <BarChart data={last7Cal}>
-                      <XAxis dataKey="date" tick={{ fill: '#444', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: '#444', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} width={32} />
+                      <XAxis dataKey="date" tick={{ fill: '#333', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: '#333', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} tickLine={false} width={32} />
                       <Tooltip {...CHART_TT} formatter={v => [`${v} kcal`, '']} />
-                      <Bar dataKey="calories" fill="#facc15" opacity={0.6} radius={0} />
+                      <Bar dataKey="calories" fill="#dc2626" opacity={0.7} radius={0} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
               <div>
-                <div className="text-[10px] font-mono uppercase tracking-widest text-[#555] mb-3">Supplements Today</div>
+                <div className="text-[9px] font-mono uppercase tracking-widest text-[#444] mb-3">Supplements Today</div>
                 <div className="space-y-1">
                   {(diet.supplements || []).map(s => {
-                    const done = s.logs.includes(today)
+                    const done = (s.logs || []).includes(today)
                     return (
                       <button key={s.id} onClick={() => toggleSupp(s.id)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 border transition-colors ${done ? 'border-green-900/50 bg-green-950/20' : 'border-[#1f1f1f] bg-[#111] hover:border-[#2a2a2a]'}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 border transition-colors ${done ? 'border-[#16a34a]/30 bg-[#16a34a]/10' : 'border-[#2a2a2a] bg-[#0f0f0f] hover:border-[#444]'}`}
                       >
-                        <div className={`w-4 h-4 border flex items-center justify-center shrink-0 ${done ? 'bg-green-600 border-green-600' : 'border-[#333]'}`}>
+                        <div className={`w-4 h-4 border flex items-center justify-center shrink-0 ${done ? 'bg-[#16a34a] border-[#16a34a]' : 'border-[#333]'}`}>
                           {done && <Check size={10} strokeWidth={3} className="text-white" />}
                         </div>
-                        <span className={`text-xs font-mono ${done ? 'text-green-500' : 'text-[#666]'}`}>{s.name}</span>
+                        <span className={`text-xs font-mono ${done ? 'text-[#16a34a]' : 'text-[#555]'}`}>{s.name}</span>
                       </button>
                     )
                   })}
@@ -283,25 +289,27 @@ export default function Body() {
                     <input value={ex.weight} onChange={e => setWf(w => ({ ...w, exercises: w.exercises.map((x, j) => j === i ? { ...x, weight: e.target.value } : x) }))} placeholder="lbs" className={cls.input} />
                   </div>
                 ))}
-                <button onClick={() => setWf(w => ({ ...w, exercises: [...w.exercises, { name: '', sets: '', reps: '', weight: '' }] }))} className="text-[9px] font-mono text-[#555] uppercase tracking-widest hover:text-[#888] transition-colors">+ Add Exercise</button>
+                <button onClick={() => setWf(w => ({ ...w, exercises: [...w.exercises, { name: '', sets: '', reps: '', weight: '' }] }))} className="text-[9px] font-mono text-[#444] uppercase tracking-widest hover:text-[#888] transition-colors">+ Add Exercise</button>
               </div>
             </div>
             <div className="flex gap-2 pt-1"><button onClick={logWorkout} className={cls.primary}>Save</button><button onClick={() => cm('workout')} className={cls.secondary}>Cancel</button></div>
           </div>
         </Modal>
       )}
+
       {modals.stats && (
         <Modal title="Update Stats" onClose={() => cm('stats')}>
           <div className="space-y-4">
-            <div><label className={cls.label}>Current Weight (lbs)</label><input type="number" value={sf.weight} onChange={e => setSf({ weight: e.target.value })} placeholder={body.currentWeight || '185'} className={cls.input} autoFocus /></div>
+            <div><label className={cls.label}>Current Weight (lbs)</label><input type="number" value={sf.weight} onChange={e => setSf(s => ({ ...s, weight: e.target.value }))} placeholder={String(body.currentWeight || '185')} className={cls.input} autoFocus /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><label className={cls.label}>Body Fat %</label><input type="number" value={body.bodyFat || ''} onChange={e => setBody(b => ({ ...b, bodyFat: e.target.value }))} className={cls.input} /></div>
-              <div><label className={cls.label}>Goal BF %</label><input type="number" value={body.goalBodyFat || ''} onChange={e => setBody(b => ({ ...b, goalBodyFat: e.target.value }))} className={cls.input} /></div>
+              <div><label className={cls.label}>Body Fat %</label><input type="number" value={sf.bodyFat} onChange={e => setSf(s => ({ ...s, bodyFat: e.target.value }))} className={cls.input} /></div>
+              <div><label className={cls.label}>Goal BF %</label><input type="number" value={sf.goalBodyFat} onChange={e => setSf(s => ({ ...s, goalBodyFat: e.target.value }))} className={cls.input} /></div>
             </div>
             <div className="flex gap-2 pt-1"><button onClick={updateStats} className={cls.primary}>Update</button><button onClick={() => cm('stats')} className={cls.secondary}>Cancel</button></div>
           </div>
         </Modal>
       )}
+
       {modals.meal && (
         <Modal title="Log Meal" onClose={() => cm('meal')}>
           <div className="space-y-4">
@@ -312,11 +320,12 @@ export default function Body() {
               <div><label className={cls.label}>Carbs (g)</label><input type="number" value={mf.carbs} onChange={e => setMf({ ...mf, carbs: e.target.value })} placeholder="60" className={cls.input} /></div>
               <div><label className={cls.label}>Fats (g)</label><input type="number" value={mf.fats} onChange={e => setMf({ ...mf, fats: e.target.value })} placeholder="15" className={cls.input} /></div>
             </div>
-            <p className="text-[9px] font-mono text-[#444]">Adds to existing totals for that day.</p>
+            <p className="text-[9px] font-mono text-[#333]">Adds to existing totals for that day.</p>
             <div className="flex gap-2 pt-1"><button onClick={logMeal} className={cls.primary}>Save</button><button onClick={() => cm('meal')} className={cls.secondary}>Cancel</button></div>
           </div>
         </Modal>
       )}
+
       {modals.pr && (
         <Modal title="Log Personal Record" onClose={() => cm('pr')}>
           <div className="space-y-4">
@@ -336,13 +345,13 @@ export default function Body() {
 
 function StatCard({ label, value, unit, sub }) {
   return (
-    <div className="bg-[#111] border border-[#1f1f1f] p-4">
-      <div className="text-[9px] font-mono uppercase tracking-widest text-[#555] mb-2">{label}</div>
+    <div className="bg-[#0f0f0f] border border-[#2a2a2a] p-4">
+      <div className="text-[9px] font-mono uppercase tracking-widest text-[#444] mb-2">{label}</div>
       <div className="font-mono">
         <span className="text-3xl font-black text-white">{value}</span>
-        {unit && <span className="text-sm text-[#555] ml-1">{unit}</span>}
+        {unit && <span className="text-sm text-[#444] ml-1">{unit}</span>}
       </div>
-      {sub && <div className="text-[9px] font-mono text-[#facc15] mt-1">{sub}</div>}
+      {sub && <div className="text-[9px] font-mono text-[#dc2626] mt-1">{sub}</div>}
     </div>
   )
 }

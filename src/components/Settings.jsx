@@ -1,44 +1,38 @@
 import { useState } from 'react'
-import { X, Download, Upload } from 'lucide-react'
+import { X, Upload } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 
 const LS_KEYS = ['marko_habits','marko_content','marko_mind','marko_body','marko_diet','marko_relations','marko_business','marko_soul','marko_settings','marko_coach_messages']
 
+const cls = {
+  input: "w-full bg-[#080808] border border-[#2a2a2a] px-3 py-2 text-sm text-white focus:outline-none focus:border-[#dc2626] transition-colors",
+  label: "block text-[9px] font-mono uppercase tracking-widest text-[#444] mb-1.5",
+  section: "text-[9px] font-mono uppercase tracking-widest text-[#dc2626] mb-3",
+}
+
 export default function Settings({ onClose }) {
-  const [settings, setSettings] = useLocalStorage('marko_settings', { name: 'Marko', apiKey: '' })
-  const [draft, setDraft] = useState({ name: settings.name || 'Marko', apiKey: settings.apiKey || '' })
+  const [settings, setSettings] = useLocalStorage('marko_settings', { name: 'Marko' })
+  const [apiKey, setApiKey] = useState(localStorage.getItem('anthropic_key') || '')
+  const [name, setName] = useState(settings.name || 'Marko')
   const [saved, setSaved] = useState(false)
+  const appStart = localStorage.getItem('marko_app_start') || new Date().toISOString().split('T')[0]
+  const dayNum = Math.max(1, Math.floor((Date.now() - new Date(appStart).getTime()) / 86400000) + 1)
 
   const save = () => {
-    setSettings({ ...settings, ...draft })
+    setSettings({ ...settings, name })
+    localStorage.setItem('anthropic_key', apiKey.trim())
     setSaved(true)
     setTimeout(() => setSaved(false), 1500)
   }
 
-  const exportData = () => {
-    const data = {}
-    LS_KEYS.forEach(k => {
-      try { data[k] = JSON.parse(localStorage.getItem(k)) } catch {}
-    })
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `marko-os-backup-${new Date().toISOString().split('T')[0]}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  const importData = (e) => {
+  const importData = e => {
     const file = e.target.files[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = (ev) => {
+    reader.onload = ev => {
       try {
         const data = JSON.parse(ev.target.result)
-        LS_KEYS.forEach(k => {
-          if (data[k] !== undefined) localStorage.setItem(k, JSON.stringify(data[k]))
-        })
+        LS_KEYS.forEach(k => { if (data[k] !== undefined) localStorage.setItem(k, JSON.stringify(data[k])) })
         window.location.reload()
       } catch { alert('Invalid backup file.') }
     }
@@ -47,88 +41,72 @@ export default function Settings({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-end">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative z-10 bg-[#111] border-l border-[#1f1f1f] w-80 h-full flex flex-col shadow-2xl">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1f1f1f]">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-400">Settings</span>
-          <button onClick={onClose} className="text-neutral-700 hover:text-neutral-300 transition-colors">
-            <X size={15} />
-          </button>
+      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
+      <div className="relative z-10 bg-[#0f0f0f] border-l border-[#2a2a2a] w-80 h-full flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#2a2a2a]">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[#555]">Settings</span>
+          <button onClick={onClose} className="text-[#444] hover:text-white transition-colors"><X size={15} /></button>
         </div>
 
         <div className="flex-1 overflow-auto px-6 py-5 space-y-6">
           <div>
-            <div className="text-[10px] font-mono uppercase tracking-widest text-neutral-600 mb-3">Profile</div>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[10px] font-mono uppercase tracking-widest text-neutral-600 mb-1">Name</label>
-                <input
-                  value={draft.name}
-                  onChange={e => setDraft({ ...draft, name: e.target.value })}
-                  className="w-full bg-[#0a0a0a] border border-[#2a2a2a] px-3 py-2 text-sm text-white focus:outline-none focus:border-neutral-600"
-                />
-              </div>
+            <div className={cls.section}>App</div>
+            <div className="bg-[#141414] border border-[#2a2a2a] p-3">
+              <div className="text-[9px] font-mono text-[#444] uppercase tracking-widest">Day of the war</div>
+              <div className="text-3xl font-mono font-black text-[#dc2626] mt-1">Day {dayNum}</div>
+              <div className="text-[9px] font-mono text-[#333] mt-0.5">Since {appStart}</div>
             </div>
           </div>
 
           <div>
-            <div className="text-[10px] font-mono uppercase tracking-widest text-neutral-600 mb-3">AI Coach</div>
+            <div className={cls.section}>Profile</div>
+            <div><label className={cls.label}>Your Name</label>
+              <input value={name} onChange={e => setName(e.target.value)} className={cls.input} />
+            </div>
+          </div>
+
+          <div>
+            <div className={cls.section}>AI Coach</div>
             <div>
-              <label className="block text-[10px] font-mono uppercase tracking-widest text-neutral-600 mb-1">
-                Anthropic API Key
-              </label>
-              <input
-                type="password"
-                value={draft.apiKey}
-                onChange={e => setDraft({ ...draft, apiKey: e.target.value })}
-                placeholder="sk-ant-..."
-                className="w-full bg-[#0a0a0a] border border-[#2a2a2a] px-3 py-2 text-sm text-white font-mono placeholder-neutral-800 focus:outline-none focus:border-neutral-600"
-              />
-              <p className="text-[10px] font-mono text-neutral-700 mt-1.5">Stored in localStorage only. Never sent anywhere except Anthropic.</p>
+              <label className={cls.label}>Anthropic API Key</label>
+              <input type="password" value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="sk-ant-..." className={cls.input + " font-mono"} />
+              <p className="text-[9px] font-mono text-[#333] mt-1.5">Stored locally. Never sent anywhere except Anthropic.</p>
             </div>
           </div>
 
           <div>
-            <div className="text-[10px] font-mono uppercase tracking-widest text-neutral-600 mb-3">Data</div>
-            <div className="space-y-2">
-              <button
-                onClick={exportData}
-                className="w-full flex items-center gap-2 px-4 py-2.5 border border-[#2a2a2a] text-neutral-400 text-xs hover:border-neutral-600 hover:text-neutral-200 transition-colors"
-              >
-                <Download size={13} />
-                Export All Data (JSON)
-              </button>
-              <label className="w-full flex items-center gap-2 px-4 py-2.5 border border-[#2a2a2a] text-neutral-400 text-xs hover:border-neutral-600 hover:text-neutral-200 transition-colors cursor-pointer">
-                <Upload size={13} />
-                Import Backup (JSON)
-                <input type="file" accept=".json" onChange={importData} className="hidden" />
-              </label>
-            </div>
+            <div className={cls.section}>Data</div>
+            <label className="w-full flex items-center gap-2 px-4 py-2.5 border border-[#2a2a2a] text-[#555] text-[10px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors cursor-pointer">
+              <Upload size={11} /> Import Backup
+              <input type="file" accept=".json" onChange={importData} className="hidden" />
+            </label>
           </div>
 
           <div>
-            <div className="text-[10px] font-mono uppercase tracking-widest text-neutral-600 mb-3">Danger Zone</div>
+            <div className={cls.section}>Danger Zone</div>
             <button
               onClick={() => {
-                if (window.confirm('Reset all data to defaults? This cannot be undone.')) {
+                if (window.confirm('Reset ALL data? This cannot be undone.')) {
                   LS_KEYS.forEach(k => localStorage.removeItem(k))
                   localStorage.removeItem('marko_initialized')
+                  localStorage.removeItem('anthropic_key')
+                  localStorage.removeItem('marko_app_start')
                   window.location.reload()
                 }
               }}
-              className="w-full px-4 py-2.5 border border-red-900/50 text-red-500/70 text-xs hover:border-red-700 hover:text-red-400 transition-colors"
+              className="w-full px-4 py-2.5 border border-red-900/50 text-red-600/70 text-[10px] uppercase tracking-widest hover:border-[#dc2626] hover:text-[#dc2626] transition-colors"
             >
-              Reset to Default Data
+              Reset All Data
             </button>
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-[#1f1f1f]">
+        <div className="px-6 py-4 border-t border-[#2a2a2a]">
           <button
             onClick={save}
-            className="w-full py-2.5 bg-[#facc15] text-black text-[10px] font-bold uppercase tracking-widest hover:bg-yellow-300 transition-colors"
+            className="w-full py-2.5 bg-[#dc2626] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors"
           >
-            {saved ? '✓ Saved' : 'Save Settings'}
+            {saved ? '✓ SAVED' : 'SAVE SETTINGS'}
           </button>
         </div>
       </div>
