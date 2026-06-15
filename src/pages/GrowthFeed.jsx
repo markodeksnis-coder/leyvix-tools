@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Plus, ChevronDown, ChevronUp, Play } from 'lucide-react'
 import Modal from '../components/Modal'
 import { today, fmtShort } from '../utils'
+import feedData from '../data/growthFeedData.json'
 
 const PILLAR_COLORS = {
   Mindset: '#8b5cf6',
@@ -14,12 +15,12 @@ const PILLAR_COLORS = {
 const PILLARS = ['Mindset', 'Business', 'Social Skills', 'Style', 'Health']
 const FILTER_LABELS = ['ALL', 'MINDSET', 'BUSINESS', 'SOCIAL SKILLS', 'STYLE', 'HEALTH']
 
-const INITIAL_VIDEOS = [
-  { id: '1', title: 'Why Ambitious People Stay Mediocre', channel: 'Alex Hormozi', pillar: 'Mindset', youtube_url: 'https://www.youtube.com/watch?v=A248pGXTSoY', video_id: 'A248pGXTSoY', date_added: today(), user_rating: null, watched: false },
-  { id: '2', title: 'Peace or Power', channel: 'Alex Hormozi on George Janko', pillar: 'Mindset', youtube_url: 'https://www.youtube.com/watch?v=KdKMgjTLaxQ', video_id: 'KdKMgjTLaxQ', date_added: today(), user_rating: null, watched: false },
-  { id: '3', title: 'Tired of Wasting Your Time', channel: 'Sam Ovens', pillar: 'Business', youtube_url: 'https://www.youtube.com/watch?v=xm2cA5Y5Ru4', video_id: 'xm2cA5Y5Ru4', date_added: today(), user_rating: null, watched: false },
-  { id: '4', title: 'Imperium Mastermind 2025 Productivity Crash Course', channel: 'Charlie Morgan', pillar: 'Business', youtube_url: 'https://www.youtube.com/watch?v=jr-dLh36hDg', video_id: 'jr-dLh36hDg', date_added: today(), user_rating: null, watched: false },
-]
+const INITIAL_VIDEOS = feedData.map(v => ({
+  ...v,
+  date_added: v.date_added || today(),
+  user_rating: null,
+  watched: false,
+}))
 
 function extractVideoId(url) {
   const patterns = [/[?&]v=([^&\s]+)/, /youtu\.be\/([^?&\s]+)/, /embed\/([^?&\s]+)/]
