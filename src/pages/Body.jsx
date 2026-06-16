@@ -5,18 +5,18 @@ import Modal from '../components/Modal'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { pct, fmtShort } from '../utils'
 
-const CARD = { background: '#111018', border: '1px solid #1e1b2e', borderRadius: 12, padding: 20 }
+const CARD = { background: '#0d0d0d', border: '1px solid #262626', borderRadius: 12, padding: 20 }
 const CHART_TT = {
-  contentStyle: { background: '#111018', border: '1px solid #1e1b2e', borderRadius: 8, fontSize: 11, fontFamily: 'Inter' },
+  contentStyle: { background: '#0d0d0d', border: '1px solid #262626', borderRadius: 8, fontSize: 11, fontFamily: 'Inter' },
   labelStyle: { color: '#6b7280' },
   itemStyle: { color: '#fff' },
 }
 
 const cls = {
-  input: "w-full bg-[#0a0a0f] border border-[#1e1b2e] px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#7c3aed] transition-colors rounded-lg",
+  input: "w-full bg-[#0a0a0a] border border-[#262626] px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#f59e0b] transition-colors rounded-lg",
   label: "block text-[9px] font-mono uppercase tracking-widest text-[#555] mb-1.5",
   primary: "flex-1 py-2.5 text-white text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity rounded-lg",
-  secondary: "px-4 py-2.5 border border-[#1e1b2e] text-[#555] text-[10px] uppercase tracking-widest hover:border-[#444] hover:text-white transition-colors rounded-lg",
+  secondary: "px-4 py-2.5 border border-[#262626] text-[#555] text-[10px] uppercase tracking-widest hover:border-[#444] hover:text-white transition-colors rounded-lg",
 }
 
 export default function Body() {
@@ -115,9 +115,9 @@ export default function Body() {
   const LABEL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#0a0a0f' }}>
+    <div className="h-full flex flex-col" style={{ background: '#0a0a0a' }}>
       {/* Header */}
-      <div className="px-6 py-4 shrink-0 flex items-center justify-between" style={{ borderBottom: '1px solid #1e1b2e' }}>
+      <div className="px-6 py-4 shrink-0 flex items-center justify-between" style={{ borderBottom: '1px solid #262626' }}>
         <div>
           <h1 style={{ fontFamily: 'Inter', fontSize: 20, fontWeight: 700, color: 'white', letterSpacing: '0.06em' }}>BODY</h1>
           <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#6b7280', marginTop: 2 }}>Physical optimization system</p>
@@ -125,20 +125,20 @@ export default function Body() {
         <div className="flex gap-2">
           {tab === 'fitness' ? (
             <>
-              <button onClick={() => om('stats')} style={{ background: 'transparent', color: '#6b7280', border: '1px solid #1e1b2e', borderRadius: 8, padding: '6px 12px', fontFamily: 'Inter', fontSize: 11, cursor: 'pointer' }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = '#7c3aed'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = '#1e1b2e'}
+              <button onClick={() => om('stats')} style={{ background: 'transparent', color: '#6b7280', border: '1px solid #262626', borderRadius: 8, padding: '6px 12px', fontFamily: 'Inter', fontSize: 11, cursor: 'pointer' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#f59e0b'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#262626'}
               >Update Stats</button>
-              <button onClick={() => om('pr')} style={{ background: 'transparent', color: '#6b7280', border: '1px solid #1e1b2e', borderRadius: 8, padding: '6px 12px', fontFamily: 'Inter', fontSize: 11, cursor: 'pointer' }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = '#7c3aed'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = '#1e1b2e'}
+              <button onClick={() => om('pr')} style={{ background: 'transparent', color: '#6b7280', border: '1px solid #262626', borderRadius: 8, padding: '6px 12px', fontFamily: 'Inter', fontSize: 11, cursor: 'pointer' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#f59e0b'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#262626'}
               >Log PR</button>
-              <button onClick={() => om('workout')} style={{ background: '#7c3aed', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button onClick={() => om('workout')} style={{ background: '#f59e0b', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Plus size={12} strokeWidth={2.5} /> Log Workout
               </button>
             </>
           ) : (
-            <button onClick={() => om('meal')} style={{ background: '#7c3aed', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button onClick={() => om('meal')} style={{ background: '#f59e0b', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Plus size={12} strokeWidth={2.5} /> Log Meal
             </button>
           )}
@@ -146,12 +146,12 @@ export default function Body() {
       </div>
 
       {/* Tabs */}
-      <div className="px-6 py-3 flex gap-1 shrink-0" style={{ borderBottom: '1px solid #1e1b2e' }}>
+      <div className="px-6 py-3 flex gap-1 shrink-0" style={{ borderBottom: '1px solid #262626' }}>
         {['fitness', 'diet'].map(t => (
           <button key={t} onClick={() => setTab(t)}
             style={{
               padding: '5px 14px', borderRadius: 8, fontFamily: 'Inter', fontSize: 12, fontWeight: tab === t ? 600 : 400,
-              background: tab === t ? '#7c3aed' : 'transparent',
+              background: tab === t ? '#f59e0b' : 'transparent',
               color: tab === t ? 'white' : '#6b7280',
               border: 'none', cursor: 'pointer', textTransform: 'capitalize', transition: 'all 0.15s',
             }}
@@ -176,7 +176,7 @@ export default function Body() {
                     <span style={{ fontSize: 28, fontWeight: 800, color: 'white', lineHeight: 1 }}>{s.value}</span>
                     {s.unit && <span style={{ fontSize: 12, color: '#6b7280' }}>{s.unit}</span>}
                   </div>
-                  {s.sub && <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#8b5cf6', marginTop: 4 }}>{s.sub}</div>}
+                  {s.sub && <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#facc15', marginTop: 4 }}>{s.sub}</div>}
                 </div>
               ))}
             </div>
@@ -190,7 +190,7 @@ export default function Body() {
                     <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} interval={Math.floor(weightChart.length / 6)} />
                     <YAxis domain={['auto', 'auto']} tick={{ fill: '#6b7280', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} width={32} />
                     <Tooltip {...CHART_TT} formatter={v => [`${v} lbs`, '']} />
-                    <Line type="monotone" dataKey="weight" stroke="#7c3aed" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="weight" stroke="#f59e0b" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -202,7 +202,7 @@ export default function Body() {
                 <div style={LABEL}>Personal Records</div>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid #1e1b2e' }}>
+                    <tr style={{ borderBottom: '1px solid #262626' }}>
                       {['EXERCISE', 'WEIGHT', 'REPS', 'DATE'].map(h => (
                         <th key={h} style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'left', padding: '0 12px 10px' }}>{h}</th>
                       ))}
@@ -210,9 +210,9 @@ export default function Body() {
                   </thead>
                   <tbody>
                     {Object.entries(body.prs).map(([ex, pr]) => (
-                      <tr key={ex} style={{ borderBottom: '1px solid #1e1b2e' }}>
+                      <tr key={ex} style={{ borderBottom: '1px solid #262626' }}>
                         <td style={{ padding: '10px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', fontWeight: 600 }}>{ex}</td>
-                        <td style={{ padding: '10px 12px', fontFamily: 'Inter', fontSize: 18, fontWeight: 800, color: '#8b5cf6' }}>
+                        <td style={{ padding: '10px 12px', fontFamily: 'Inter', fontSize: 18, fontWeight: 800, color: '#facc15' }}>
                           {pr.weight}<span style={{ fontSize: 11, color: '#6b7280', marginLeft: 2 }}>lbs</span>
                         </td>
                         <td style={{ padding: '10px 12px', fontFamily: 'Inter', fontSize: 13, color: '#d1d5db' }}>{pr.reps} rep{pr.reps > 1 ? 's' : ''}</td>
@@ -232,14 +232,14 @@ export default function Body() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {(body.workouts || []).slice(0, 8).map(w => (
-                    <div key={w.id} style={{ background: '#0a0a0f', border: '1px solid #1e1b2e', borderRadius: 8, padding: '10px 14px' }}>
+                    <div key={w.id} style={{ background: '#0a0a0a', border: '1px solid #262626', borderRadius: 8, padding: '10px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                         <span style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 600, color: 'white' }}>{w.name}</span>
                         <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#6b7280' }}>{fmtShort(w.date)}</span>
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                         {(w.exercises || []).map((ex, i) => (
-                          <span key={i} style={{ fontFamily: 'Inter', fontSize: 11, color: '#8b5cf6', border: '1px solid #1e1b2e', borderRadius: 4, padding: '2px 8px' }}>
+                          <span key={i} style={{ fontFamily: 'Inter', fontSize: 11, color: '#facc15', border: '1px solid #262626', borderRadius: 4, padding: '2px 8px' }}>
                             {ex.name} {ex.sets}×{ex.reps}{ex.weight ? ` @ ${ex.weight}lbs` : ''}
                           </span>
                         ))}
@@ -269,8 +269,8 @@ export default function Body() {
                       <span style={{ fontSize: 24, fontWeight: 800, color: 'white' }}>{m.current || 0}</span>
                       <span style={{ fontSize: 11, color: '#6b7280', marginLeft: 4 }}>/ {m.target} {m.unit}</span>
                     </div>
-                    <div style={{ height: 4, background: '#1e1b2e', borderRadius: 2 }}>
-                      <div style={{ height: 4, background: over ? '#ef4444' : '#7c3aed', borderRadius: 2, width: `${Math.min(100, p)}%`, transition: 'width 0.3s' }} />
+                    <div style={{ height: 4, background: '#262626', borderRadius: 2 }}>
+                      <div style={{ height: 4, background: over ? '#ef4444' : '#f59e0b', borderRadius: 2, width: `${Math.min(100, p)}%`, transition: 'width 0.3s' }} />
                     </div>
                     <div style={{ fontFamily: 'Inter', fontSize: 10, color: over ? '#ef4444' : '#6b7280', marginTop: 4 }}>{p}%</div>
                   </div>
@@ -283,14 +283,14 @@ export default function Body() {
               <div style={CARD}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                   <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>7-Day Calories</span>
-                  <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#6b7280' }}>30d avg: <span style={{ color: '#8b5cf6' }}>{avg30}</span> kcal</span>
+                  <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#6b7280' }}>30d avg: <span style={{ color: '#facc15' }}>{avg30}</span> kcal</span>
                 </div>
                 <ResponsiveContainer width="100%" height={120}>
                   <BarChart data={last7Cal}>
                     <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fill: '#6b7280', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} width={32} />
                     <Tooltip {...CHART_TT} formatter={v => [`${v} kcal`, '']} />
-                    <Bar dataKey="calories" fill="#7c3aed" opacity={0.8} radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="calories" fill="#f59e0b" opacity={0.8} radius={[3, 3, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -308,8 +308,8 @@ export default function Body() {
                         <button key={s.id} onClick={() => toggleSupp(s.id)}
                           style={{
                             width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px',
-                            background: done ? 'rgba(34,197,94,0.08)' : '#0a0a0f',
-                            border: `1px solid ${done ? 'rgba(34,197,94,0.3)' : '#1e1b2e'}`,
+                            background: done ? 'rgba(34,197,94,0.08)' : '#0a0a0a',
+                            border: `1px solid ${done ? 'rgba(34,197,94,0.3)' : '#262626'}`,
                             borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s',
                           }}
                         >
@@ -346,11 +346,11 @@ export default function Body() {
                     <input value={ex.weight} onChange={e => setWf(w => ({ ...w, exercises: w.exercises.map((x, j) => j === i ? { ...x, weight: e.target.value } : x) }))} placeholder="lbs" className={cls.input} />
                   </div>
                 ))}
-                <button onClick={() => setWf(w => ({ ...w, exercises: [...w.exercises, { name: '', sets: '', reps: '', weight: '' }] }))} style={{ fontFamily: 'Inter', fontSize: 11, color: '#7c3aed', background: 'none', border: 'none', cursor: 'pointer' }}>+ Add Exercise</button>
+                <button onClick={() => setWf(w => ({ ...w, exercises: [...w.exercises, { name: '', sets: '', reps: '', weight: '' }] }))} style={{ fontFamily: 'Inter', fontSize: 11, color: '#f59e0b', background: 'none', border: 'none', cursor: 'pointer' }}>+ Add Exercise</button>
               </div>
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={logWorkout} className={cls.primary} style={{ background: '#7c3aed' }}>Save</button>
+              <button onClick={logWorkout} className={cls.primary} style={{ background: '#f59e0b' }}>Save</button>
               <button onClick={() => cm('workout')} className={cls.secondary}>Cancel</button>
             </div>
           </div>
@@ -366,7 +366,7 @@ export default function Body() {
               <div><label className={cls.label}>Goal BF %</label><input type="number" value={sf.goalBodyFat} onChange={e => setSf(s => ({ ...s, goalBodyFat: e.target.value }))} className={cls.input} /></div>
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={updateStats} className={cls.primary} style={{ background: '#7c3aed' }}>Update</button>
+              <button onClick={updateStats} className={cls.primary} style={{ background: '#f59e0b' }}>Update</button>
               <button onClick={() => cm('stats')} className={cls.secondary}>Cancel</button>
             </div>
           </div>
@@ -385,7 +385,7 @@ export default function Body() {
             </div>
             <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#444' }}>Adds to existing totals for that day.</p>
             <div className="flex gap-2 pt-1">
-              <button onClick={logMeal} className={cls.primary} style={{ background: '#7c3aed' }}>Save</button>
+              <button onClick={logMeal} className={cls.primary} style={{ background: '#f59e0b' }}>Save</button>
               <button onClick={() => cm('meal')} className={cls.secondary}>Cancel</button>
             </div>
           </div>
@@ -402,7 +402,7 @@ export default function Body() {
               <div><label className={cls.label}>Date</label><input type="date" value={prf.date} onChange={e => setPrf({ ...prf, date: e.target.value })} className={cls.input} /></div>
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={addPR} className={cls.primary} style={{ background: '#7c3aed' }}>Save PR</button>
+              <button onClick={addPR} className={cls.primary} style={{ background: '#f59e0b' }}>Save PR</button>
               <button onClick={() => cm('pr')} className={cls.secondary}>Cancel</button>
             </div>
           </div>
