@@ -16,7 +16,7 @@ export default function TopNav({ active, onSelect, onSettings }) {
   const day = daysSinceStart()
   return (
     <header
-      style={{ background: '#0a0a0f', borderBottom: '1px solid #1e1b2e', height: 56 }}
+      style={{ background: '#0a0a0a', borderBottom: '1px solid #1f1f1f', height: 56 }}
       className="shrink-0 flex items-center px-5 gap-5"
     >
       {/* Logo */}
@@ -38,9 +38,9 @@ export default function TopNav({ active, onSelect, onSettings }) {
               style={{
                 fontFamily: 'Inter',
                 fontSize: 13,
-                fontWeight: isActive ? 600 : 400,
-                color: isActive ? 'white' : '#6b7280',
-                background: isActive ? '#7c3aed' : 'transparent',
+                fontWeight: isActive ? 700 : 400,
+                color: isActive ? '#0a0a0a' : '#6b7280',
+                background: isActive ? '#f5f5f5' : 'transparent',
                 padding: '5px 11px',
                 borderRadius: 6,
                 border: 'none',
@@ -63,19 +63,19 @@ export default function TopNav({ active, onSelect, onSettings }) {
           <Settings size={15} />
         </button>
         <div style={{
-          background: '#1a1625',
-          border: '1px solid #7c3aed',
+          background: '#1a1505',
+          border: '1px solid #f59e0b',
           borderRadius: 6,
           padding: '4px 10px',
           fontFamily: 'Inter',
           fontSize: 11,
           fontWeight: 600,
-          color: '#8b5cf6',
+          color: '#facc15',
           display: 'flex',
           alignItems: 'center',
           gap: 6,
         }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#7c3aed', flexShrink: 0 }} />
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', flexShrink: 0 }} />
           DAY {String(day).padStart(3, '0')} OF THE WAR
         </div>
       </div>

@@ -1,11 +1,14 @@
 import { useState } from 'react'
-import { Plus, Pencil, X } from 'lucide-react'
+import { Plus, Pencil, X, Sparkles, Trophy, Search } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import Modal from '../components/Modal'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { calcStreak, today, fmtShort, daysSinceStart } from '../utils'
 
-const CARD = { background: '#111018', border: '1px solid #1e1b2e', borderRadius: 12, padding: 20 }
+const CARD = { background: '#0d0d0d', border: '1px solid #262626', borderRadius: 10, padding: 20 }
+const LABEL = { fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', letterSpacing: '0.04em' }
+const SUBLABEL = { fontFamily: 'Inter', fontSize: 9, color: '#555', letterSpacing: '0.08em', marginTop: 2 }
+
 const CONTENT_CATS = ['All', 'Sales', 'Psychology', 'Business', 'Theology', 'Fitness', 'Relationships', 'Door-to-Door', 'Other']
 const CAT_COLORS = {
   Sales: '#3b82f6', Psychology: '#8b5cf6', Business: '#f59e0b', Theology: '#10b981',
@@ -13,7 +16,7 @@ const CAT_COLORS = {
 }
 
 const cls = {
-  input: "w-full bg-[#0a0a0f] border border-[#1e1b2e] px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#7c3aed] transition-colors rounded-lg",
+  input: "w-full bg-[#0a0a0a] border border-[#262626] px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#f59e0b] transition-colors rounded-lg",
   label: "block text-[9px] font-mono uppercase tracking-widest text-[#555] mb-1.5",
 }
 
@@ -21,6 +24,7 @@ export default function Record() {
   const [habits, setHabits] = useLocalStorage('marko_habits', [])
   const [content, setContent] = useLocalStorage('marko_content', [])
   const [contentCat, setContentCat] = useState('All')
+  const [habitSearch, setHabitSearch] = useState('')
   const [showContentModal, setShowContentModal] = useState(false)
   const [showHabitModal, setShowHabitModal] = useState(false)
   const [editHabit, setEditHabit] = useState(null)
@@ -31,7 +35,7 @@ export default function Record() {
   const dayNum = daysSinceStart()
   const now = new Date()
   const dayName = now.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase()
-  const dateLabel = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }).toUpperCase()
+  const dateLabel = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()
 
   const logHabit = id => setHabits(habits.map(h => h.id !== id ? h : {
     ...h,
@@ -79,231 +83,314 @@ export default function Record() {
   const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
   const thisWeekStart = (() => { const d = new Date(); d.setDate(d.getDate() - d.getDay()); return d.toISOString().split('T')[0] })()
 
-  const habitStats = habits.map((h, i) => {
+  const habitStats = habits.map(h => {
     const s = calcStreak(h.logs)
     return { ...h, best: s.longest, current: s.current, streak: s }
   })
 
   const topHabits = [...habitStats].sort((a, b) => b.best - a.best).filter(h => h.best > 0)
-  const longestEver = topHabits[0]?.best || 0
+  const bestEver = topHabits[0]?.best || 0
   const activeStreaks = habits.filter(h => calcStreak(h.logs).current > 0).length
+  const doneCount = habits.filter(h => h.logs.includes(todayStr)).length
+  const failedCount = habits.filter(h => (h.fails || []).includes(todayStr)).length
   const perfectDays = habits.length === 0 ? 0 : (() => {
     const days = [...new Set(habits.flatMap(h => h.logs.filter(d => d >= thisMonthStart)))]
     return days.filter(d => habits.every(h => h.logs.includes(d))).length
   })()
 
+  const missionPct = habits.length ? Math.round((doneCount / habits.length) * 100) : 0
+  const activePct = habits.length ? Math.round((activeStreaks / habits.length) * 100) : 0
+  const failedPct = habits.length ? Math.round((failedCount / habits.length) * 100) : 0
+
   const streakChartData = habitStats.map(h => ({
-    name: (h.icon ? `${h.icon} ` : '') + h.name.substring(0, 8),
-    Record: h.best,
+    name: (h.icon ? `${h.icon} ` : '') + h.name.substring(0, 7).toUpperCase(),
     Current: h.current,
+    Best: h.best,
   }))
 
-  const LABEL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }
-  const BUBBLE_COLORS = ['#7c3aed', '#8b5cf6', '#6d28d9', '#a78bfa', '#4c1d95']
+  const filteredHabits = habits.filter(h => !habitSearch || h.name.toLowerCase().includes(habitSearch.toLowerCase()))
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#0a0a0f' }}>
-      {/* Header */}
-      <div className="px-6 py-4 shrink-0 flex items-center justify-between" style={{ borderBottom: '1px solid #1e1b2e' }}>
-        <div>
-          <h1 style={{ fontFamily: 'Inter', fontSize: 20, fontWeight: 700, color: 'white', letterSpacing: '0.06em' }}>THE RECORD</h1>
-          <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#6b7280', marginTop: 2 }}>{dayName}, {dateLabel}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#22c55e', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
-            LIVE · LOCAL SAVE
-          </div>
-          <button
-            onClick={() => { setHabitForm({ name: '', icon: '🎯', category: 'Health', target: 'Daily' }); setEditHabit(null); setShowHabitModal(true) }}
-            style={{ background: '#7c3aed', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
-          >
-            <Plus size={12} /> Add Habit
-          </button>
-        </div>
-      </div>
+    <div className="h-full flex flex-col overflow-auto" style={{ background: '#0a0a0a' }}>
+      <div className="px-8 py-7" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-      <div className="flex-1 overflow-auto px-6 py-5" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* Header */}
+        <div className="flex items-start justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="font-display" style={{ fontSize: 46, color: '#f59e0b', lineHeight: 1, letterSpacing: '0.02em' }}>THE RECORD</h1>
+            <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#555', letterSpacing: '0.1em', marginTop: 6 }}>
+              PERSONAL HABIT &amp; STREAK OPERATING SYSTEM // WAR-ROOM LEDGER
+            </p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, fontWeight: 600 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b' }} />
+              LIVE TRANSMISSION
+            </div>
+            <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#444', marginTop: 4, letterSpacing: '0.05em' }}>LOCAL SAVE · ENGRAVED</div>
+          </div>
+        </div>
 
         {/* 3-Panel Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-          {/* Panel 1: Streak Overview */}
+          {/* Panel 1: Today's Status */}
           <div style={CARD}>
-            <div style={LABEL}>Streak Overview</div>
-            {habits.length === 0 ? (
-              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#333', textAlign: 'center', padding: '32px 0' }}>Add habits to see chart</div>
-            ) : (
-              <ResponsiveContainer width="100%" height={160}>
-                <BarChart data={streakChartData} barGap={2} barCategoryGap="35%">
-                  <XAxis dataKey="name" tick={{ fill: '#6b7280', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: '#6b7280', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} width={20} />
-                  <Tooltip
-                    contentStyle={{ background: '#111018', border: '1px solid #1e1b2e', borderRadius: 8, fontFamily: 'Inter', fontSize: 11 }}
-                    labelStyle={{ color: '#8b5cf6' }} itemStyle={{ color: '#fff' }}
-                    cursor={{ fill: 'rgba(124,58,237,0.05)' }}
-                  />
-                  <Legend iconSize={8} wrapperStyle={{ fontSize: 10, fontFamily: 'Inter', color: '#6b7280' }} />
-                  <Bar dataKey="Record" fill="#7c3aed" radius={[3, 3, 0, 0]} />
-                  <Bar dataKey="Current" fill="#22c55e" radius={[3, 3, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-
-          {/* Panel 2: All-Time Records */}
-          <div style={CARD}>
-            <div style={LABEL}>All-Time Records</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'center', minHeight: 140 }}>
-              {topHabits.length === 0 ? (
-                <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#333', textAlign: 'center' }}>No records yet</div>
-              ) : topHabits.slice(0, 5).map((h, i) => {
-                const sizes = [76, 66, 58, 50, 44]
-                const sz = sizes[i] || 44
-                const col = BUBBLE_COLORS[i]
-                return (
-                  <div key={h.id} style={{
-                    width: sz, height: sz, borderRadius: '50%',
-                    border: `2px solid ${col}`,
-                    background: `${col}22`,
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0,
-                  }}>
-                    <div style={{ fontFamily: 'Inter', fontSize: sz > 58 ? 18 : sz > 48 ? 14 : 12, fontWeight: 800, color: 'white', lineHeight: 1 }}>{h.best}</div>
-                    <div style={{ fontFamily: 'Inter', fontSize: 7, color: '#6b7280', textAlign: 'center', padding: '1px 4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: sz - 8 }}>{h.name}</div>
-                  </div>
-                )
-              })}
+            <div className="flex items-center justify-between">
+              <div style={LABEL}>TODAY'S STATUS</div>
+              <Sparkles size={14} color="#f59e0b" />
             </div>
-          </div>
+            <div style={SUBLABEL}>{dayName}, {dateLabel}</div>
 
-          {/* Panel 3: Today's Status */}
-          <div style={CARD}>
-            <div style={LABEL}>Today's Status</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {habits.length === 0 ? (
-                <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#333' }}>No habits yet</div>
-              ) : habits.slice(0, 5).map(h => {
-                const done = h.logs.includes(todayStr)
-                const failed = (h.fails || []).includes(todayStr)
-                const barColor = done ? '#22c55e' : failed ? '#ef4444' : '#7c3aed'
-                return (
-                  <div key={h.id}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'Inter', fontSize: 12, color: done ? 'white' : '#6b7280', marginBottom: 5 }}>
-                      <span>{h.icon} {h.name}</span>
-                      <span style={{ color: done ? '#22c55e' : failed ? '#ef4444' : '#555', fontSize: 11, fontWeight: 700 }}>
-                        {done ? '✓' : failed ? '✗' : '—'}
-                      </span>
-                    </div>
-                    <div style={{ height: 4, background: '#1e1b2e', borderRadius: 2 }}>
-                      <div style={{ width: done ? '100%' : '0%', height: 4, background: barColor, borderRadius: 2, transition: 'width 0.4s ease' }} />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-            <div style={{ display: 'flex', gap: 20, marginTop: 18, paddingTop: 14, borderTop: '1px solid #1e1b2e' }}>
+            <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
               {[
-                { label: 'Active', value: activeStreaks },
-                { label: 'Longest', value: `${longestEver}d` },
-                { label: 'Perfect Mo', value: perfectDays },
+                { label: 'MISSION DONE', value: `${doneCount}/${habits.length}`, pct: missionPct, color: '#f59e0b' },
+                { label: 'ACTIVE STREAKS', value: `${activeStreaks}/${habits.length}`, pct: activePct, color: '#f59e0b' },
+                { label: 'FAILED TODAY', value: `${failedCount}/${habits.length}`, pct: failedPct, color: '#ef4444' },
+              ].map(row => (
+                <div key={row.label}>
+                  <div className="flex items-center justify-between" style={{ fontFamily: 'Inter', fontSize: 10, color: '#888', letterSpacing: '0.05em', marginBottom: 6 }}>
+                    <span>{row.label}</span>
+                    <span style={{ color: 'white', fontWeight: 700 }}>{row.value}</span>
+                  </div>
+                  <div style={{ height: 4, background: '#1a1a1a', borderRadius: 2 }}>
+                    <div style={{ width: `${row.pct}%`, height: 4, background: row.color, borderRadius: 2, transition: 'width 0.3s' }} />
+                  </div>
+                </div>
+              ))}
+              {habits.length === 0 && <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#333' }}>No habits yet</div>}
+            </div>
+
+            <div style={{ display: 'flex', gap: 24, marginTop: 24, paddingTop: 16, borderTop: '1px solid #1a1a1a' }}>
+              {[
+                { label: 'BEST EVER', value: bestEver },
+                { label: 'PERFECT DAYS', value: perfectDays },
+                { label: 'HABITS', value: habits.length },
               ].map(s => (
                 <div key={s.label}>
-                  <div style={{ fontFamily: 'Inter', fontSize: 20, fontWeight: 800, color: 'white', lineHeight: 1 }}>{s.value}</div>
-                  <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#6b7280', marginTop: 3 }}>{s.label}</div>
+                  <div className="font-display" style={{ fontSize: 26, color: '#f59e0b', lineHeight: 1 }}>{s.value}</div>
+                  <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#555', marginTop: 4, letterSpacing: '0.05em' }}>{s.label}</div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
 
-        {/* Streak Table */}
-        {habits.length > 0 && (
+          {/* Panel 2: All-Time Records */}
           <div style={CARD}>
-            <div style={LABEL}>Streak Table</div>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #1e1b2e' }}>
-                    {['HABIT', 'STREAK', 'PROGRESS VS BEST', 'BEST EVER', 'STATUS', 'ACTIONS'].map(h => (
-                      <th key={h} style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'left', padding: '0 12px 10px', whiteSpace: 'nowrap' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {habits.map(h => {
-                    const streak = calcStreak(h.logs)
-                    const pctVal = streak.longest > 0 ? Math.min(100, Math.round((streak.current / streak.longest) * 100)) : 0
-                    const done = h.logs.includes(todayStr)
-                    const failed = (h.fails || []).includes(todayStr)
+            <div className="flex items-center justify-between">
+              <div style={LABEL}>ALL-TIME RECORDS</div>
+              <Trophy size={14} color="#f59e0b" />
+            </div>
+            <div style={SUBLABEL}>PERSONAL BESTS / PERPETUAL</div>
+
+            {topHabits.length === 0 ? (
+              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#333', textAlign: 'center', padding: '48px 0' }}>No records yet</div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 16 }}>
+                {/* Bubble cluster */}
+                <div style={{ position: 'relative', width: 150, height: 150, flexShrink: 0 }}>
+                  <div style={{
+                    position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+                    width: 92, height: 92, borderRadius: '50%',
+                    border: '3px solid #f59e0b', boxShadow: '0 0 24px rgba(245,158,11,0.35)',
+                    background: '#0d0d0d',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <div className="font-display" style={{ fontSize: 30, color: '#f59e0b', lineHeight: 1 }}>{topHabits[0].best}</div>
+                    <div style={{ fontFamily: 'Inter', fontSize: 7, color: '#888', textTransform: 'uppercase', textAlign: 'center', padding: '0 6px' }}>{topHabits[0].name}</div>
+                  </div>
+                  {[
+                    { top: 0, left: 0 }, { top: 0, right: 0 },
+                    { bottom: 0, left: 0 }, { bottom: 0, right: 0 },
+                  ].map((pos, i) => {
+                    const h = topHabits[i + 1]
+                    if (!h) return null
                     return (
-                      <tr key={h.id} style={{ borderBottom: '1px solid #1e1b2e' }}>
-                        <td style={{ padding: '11px 12px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'Inter', fontSize: 13, color: 'white' }}>
-                            <span>{h.icon}</span>
-                            <span>{h.name}</span>
-                            <button
-                              onClick={() => { setHabitForm({ name: h.name, icon: h.icon || '🎯', category: h.category || 'Health', target: h.target || 'Daily' }); setEditHabit(h); setShowHabitModal(true) }}
-                              style={{ color: '#444', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
-                            ><Pencil size={10} /></button>
-                          </div>
-                        </td>
-                        <td style={{ padding: '11px 12px' }}>
-                          <span style={{ fontFamily: 'Inter', fontSize: 22, fontWeight: 800, color: streak.current > 0 ? '#8b5cf6' : '#444', lineHeight: 1 }}>{streak.current}</span>
-                        </td>
-                        <td style={{ padding: '11px 12px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <div style={{ width: 80, height: 4, background: '#1e1b2e', borderRadius: 2, flexShrink: 0 }}>
-                              <div style={{ width: `${pctVal}%`, height: 4, background: '#7c3aed', borderRadius: 2 }} />
-                            </div>
-                            <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#6b7280' }}>{pctVal}%</span>
-                          </div>
-                        </td>
-                        <td style={{ padding: '11px 12px', fontFamily: 'Inter', fontSize: 14, fontWeight: 700, color: '#8b5cf6' }}>{streak.longest}</td>
-                        <td style={{ padding: '11px 12px' }}>
-                          <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 600, color: done ? '#22c55e' : failed ? '#ef4444' : '#6b7280' }}>
-                            {done ? '✓ Done' : failed ? '✗ Failed' : '⏳ Pending'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '11px 12px' }}>
-                          {done || failed ? (
-                            <button
-                              onClick={() => undoHabit(h.id)}
-                              style={{ fontFamily: 'Inter', fontSize: 11, color: '#6b7280', border: '1px solid #1e1b2e', borderRadius: 6, padding: '4px 10px', background: 'transparent', cursor: 'pointer' }}
-                            >Undo</button>
-                          ) : (
-                            <div style={{ display: 'flex', gap: 6 }}>
-                              <button
-                                onClick={() => logHabit(h.id)}
-                                style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 600, color: 'white', background: '#16a34a', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}
-                              >Done</button>
-                              <button
-                                onClick={() => failHabit(h.id)}
-                                style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 600, color: '#ef4444', background: 'transparent', border: '1px solid #ef4444', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}
-                              >Fail</button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
+                      <div key={h.id} style={{
+                        position: 'absolute', ...pos,
+                        width: 52, height: 52, borderRadius: '50%',
+                        border: '2px solid #3a3a3a', background: '#0d0d0d',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <span className="font-display" style={{ fontSize: 17, color: '#d4d4d4' }}>{h.best}</span>
+                      </div>
                     )
                   })}
-                </tbody>
-              </table>
+                </div>
+
+                {/* Ranked list */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 11, minWidth: 0 }}>
+                  {topHabits.slice(0, 5).map((h, i) => (
+                    <div key={h.id} className="flex items-center justify-between gap-2">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, overflow: 'hidden' }}>
+                        <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#555', flexShrink: 0 }}>#{String(i + 1).padStart(2, '0')}</span>
+                        <span style={{ flexShrink: 0 }}>{h.icon}</span>
+                        <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 600, color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{h.name.toUpperCase()}</span>
+                      </div>
+                      <span style={{ fontFamily: 'Inter', fontSize: 12, color: '#f59e0b', fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                        {h.best} <span style={{ color: '#555', fontWeight: 400, fontSize: 9 }}>DAYS</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Panel 3: Streak Overview */}
+          <div style={CARD}>
+            <div className="flex items-center justify-between">
+              <div style={LABEL}>STREAK OVERVIEW</div>
+              <div style={{ display: 'flex', gap: 10, fontFamily: 'Inter', fontSize: 9, color: '#888' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 7, height: 7, background: '#f59e0b', borderRadius: 2 }} /> CURRENT</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 7, height: 7, background: '#92580a', borderRadius: 2 }} /> BEST</span>
+              </div>
+            </div>
+            <div style={SUBLABEL}>CURRENT VS BEST / ALL HABITS</div>
+            {habits.length === 0 ? (
+              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#333', textAlign: 'center', padding: '48px 0' }}>Add habits to see chart</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart data={streakChartData} margin={{ top: 16, right: 0, bottom: 0, left: 0 }} barGap={2} barCategoryGap="30%">
+                  <XAxis dataKey="name" tick={{ fill: '#666', fontSize: 8, fontFamily: 'Inter' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#444', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} width={22} />
+                  <Tooltip
+                    contentStyle={{ background: '#0d0d0d', border: '1px solid #262626', borderRadius: 8, fontFamily: 'Inter', fontSize: 11 }}
+                    labelStyle={{ color: '#f59e0b' }} itemStyle={{ color: '#fff' }}
+                    cursor={{ fill: 'rgba(245,158,11,0.04)' }}
+                  />
+                  <Bar dataKey="Current" fill="#f59e0b" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="Best" fill="#7a4d0a" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+
+        {/* Streak Ledger */}
+        <div style={CARD}>
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <div style={LABEL}>STREAK LEDGER</div>
+              <div style={SUBLABEL}>LIVE STATUS · {habits.length} HABITS ENGRAVED</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div style={{ position: 'relative' }}>
+                <Search size={12} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#444' }} />
+                <input
+                  value={habitSearch}
+                  onChange={e => setHabitSearch(e.target.value)}
+                  placeholder="SEARCH HABITS..."
+                  style={{ background: '#0a0a0a', border: '1px solid #262626', borderRadius: 6, padding: '7px 10px 7px 30px', fontFamily: 'Inter', fontSize: 11, color: 'white', width: 170, outline: 'none' }}
+                />
+              </div>
+              <button
+                onClick={() => { setHabitForm({ name: '', icon: '🎯', category: 'Health', target: 'Daily' }); setEditHabit(null); setShowHabitModal(true) }}
+                style={{ background: '#f59e0b', color: '#0a0a0a', border: 'none', borderRadius: 6, padding: '7px 12px', fontFamily: 'Inter', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
+              >
+                <Plus size={11} /> REGISTER NEW HABIT
+              </button>
             </div>
           </div>
-        )}
+
+          {habits.length === 0 ? (
+            <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#333', textAlign: 'center', padding: '32px 0' }}>No habits registered yet</div>
+          ) : (
+            <>
+              <div style={{ overflowX: 'auto', marginTop: 16 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #262626' }}>
+                      {['HABIT IDENTITY', 'CURRENT', 'EFFICIENCY', 'BEST EVER', 'STATUS', 'COMMAND'].map(h => (
+                        <th key={h} style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'left', padding: '0 12px 10px', whiteSpace: 'nowrap' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredHabits.map((h, i) => {
+                      const streak = calcStreak(h.logs)
+                      const failedToday = (h.fails || []).includes(todayStr)
+                      const doneToday = h.logs.includes(todayStr)
+                      const isRecord = streak.current > 0 && streak.current === streak.longest
+                      const status = (failedToday || streak.current === 0) ? 'DOWN' : isRecord ? 'RECORD' : 'OPERATIONAL'
+                      const effPct = streak.longest > 0 ? Math.min(100, Math.round((streak.current / streak.longest) * 100)) : 0
+                      return (
+                        <tr key={h.id} style={{ borderBottom: '1px solid #1a1a1a' }}>
+                          <td style={{ padding: '12px 12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#444' }}>{String(i + 1).padStart(2, '0')}</span>
+                              <span>{h.icon}</span>
+                              <span style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 600, color: 'white' }}>{h.name.toUpperCase()}</span>
+                              <button
+                                onClick={() => { setHabitForm({ name: h.name, icon: h.icon || '🎯', category: h.category || 'Health', target: h.target || 'Daily' }); setEditHabit(h); setShowHabitModal(true) }}
+                                style={{ color: '#444', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+                              ><Pencil size={10} /></button>
+                            </div>
+                          </td>
+                          <td style={{ padding: '12px' }}>
+                            <span className="font-display" style={{ fontSize: 20, color: '#f59e0b' }}>{String(streak.current).padStart(2, '0')}</span>
+                            <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#555' }}> D</span>
+                          </td>
+                          <td style={{ padding: '12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <div style={{ width: 80, height: 4, background: '#1a1a1a', borderRadius: 2, flexShrink: 0 }}>
+                                <div style={{ width: `${effPct}%`, height: 4, background: '#f59e0b', borderRadius: 2 }} />
+                              </div>
+                              <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#888' }}>{effPct}%</span>
+                            </div>
+                          </td>
+                          <td style={{ padding: '12px', fontFamily: 'Inter', fontSize: 13, color: '#d4d4d4' }}>{streak.longest} D</td>
+                          <td style={{ padding: '12px' }}>
+                            {status === 'DOWN' && (
+                              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: '#ef4444', border: '1px solid #ef444450', borderRadius: 4, padding: '3px 8px' }}>DOWN</span>
+                            )}
+                            {status === 'RECORD' && (
+                              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: '#0a0a0a', background: '#f59e0b', borderRadius: 4, padding: '3px 8px' }}>🏆 RECORD</span>
+                            )}
+                            {status === 'OPERATIONAL' && (
+                              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#888', border: '1px solid #333', borderRadius: 4, padding: '3px 8px' }}>OPERATIONAL</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '12px' }}>
+                            {doneToday || failedToday ? (
+                              <button onClick={() => undoHabit(h.id)} style={{ fontFamily: 'Inter', fontSize: 11, color: '#888', border: '1px solid #333', borderRadius: 6, padding: '4px 10px', background: 'transparent', cursor: 'pointer' }}>UNDO</button>
+                            ) : (
+                              <div style={{ display: 'flex', gap: 6 }}>
+                                <button onClick={() => logHabit(h.id)} style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: '#0a0a0a', background: '#f59e0b', border: 'none', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>DONE</button>
+                                <button onClick={() => failHabit(h.id)} style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 600, color: '#ef4444', background: 'transparent', border: '1px solid #ef444450', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>FAIL</button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex items-center justify-between flex-wrap gap-2" style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid #1a1a1a' }}>
+                <div style={{ display: 'flex', gap: 16, fontFamily: 'Inter', fontSize: 10, color: '#555' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: '#f59e0b' }} />RECORD</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: '#555' }} />ACTIVE</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: 2, background: '#ef4444' }} />FAILED</span>
+                </div>
+                <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#555' }}>{filteredHabits.length} / {habits.length} SHOWN</span>
+              </div>
+            </>
+          )}
+        </div>
 
         {/* Content Library */}
         <div style={CARD}>
-          <div className="flex items-center justify-between mb-4">
-            <div style={LABEL}>Content Library</div>
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <div style={LABEL}>CONTENT LIBRARY</div>
             <div className="flex items-center gap-3">
-              <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#6b7280' }}>
-                <span style={{ color: '#8b5cf6' }}>{content.length}</span> total · <span style={{ color: '#8b5cf6' }}>{content.filter(c => c.date >= thisWeekStart).length}</span> this week
+              <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#555' }}>
+                <span style={{ color: '#f59e0b' }}>{content.length}</span> total · <span style={{ color: '#f59e0b' }}>{content.filter(c => c.date >= thisWeekStart).length}</span> this week
               </div>
               <button
                 onClick={() => setShowContentModal(true)}
-                style={{ background: 'transparent', color: '#7c3aed', border: '1px solid #7c3aed', borderRadius: 8, padding: '4px 12px', fontFamily: 'Inter', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+                style={{ background: 'transparent', color: '#f59e0b', border: '1px solid #f59e0b', borderRadius: 6, padding: '5px 12px', fontFamily: 'Inter', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
               >
                 <Plus size={11} /> Add Entry
               </button>
@@ -313,14 +400,14 @@ export default function Record() {
           <div className="flex gap-1.5 flex-wrap mb-4">
             {CONTENT_CATS.map(cat => {
               const isActive = contentCat === cat
-              const color = cat === 'All' ? '#7c3aed' : (CAT_COLORS[cat] || '#6b7280')
+              const color = cat === 'All' ? '#f59e0b' : (CAT_COLORS[cat] || '#6b7280')
               return (
                 <button
                   key={cat}
                   onClick={() => setContentCat(cat)}
                   style={{
-                    background: isActive ? color : '#1e1b2e',
-                    color: isActive ? 'white' : '#6b7280',
+                    background: isActive ? color : '#1a1a1a',
+                    color: isActive ? (cat === 'All' ? '#0a0a0a' : 'white') : '#666',
                     fontFamily: 'Inter', fontSize: 11, fontWeight: isActive ? 600 : 400,
                     padding: '4px 12px', borderRadius: 9999, border: 'none', cursor: 'pointer', transition: 'all 0.15s',
                   }}
@@ -332,7 +419,7 @@ export default function Record() {
           </div>
 
           {filteredContent.length === 0 ? (
-            <div style={{ background: '#0a0a0f', borderRadius: 8, padding: '28px', textAlign: 'center', fontFamily: 'Inter', fontSize: 12, color: '#333' }}>
+            <div style={{ background: '#0a0a0a', borderRadius: 8, padding: '28px', textAlign: 'center', fontFamily: 'Inter', fontSize: 12, color: '#333' }}>
               No entries yet
             </div>
           ) : (
@@ -344,11 +431,9 @@ export default function Record() {
                     key={c.id}
                     className="group"
                     style={{
-                      background: '#0a0a0f', borderRadius: 10, borderLeft: `3px solid ${color}`,
+                      background: '#0a0a0a', borderRadius: 10, borderLeft: `3px solid ${color}`,
                       padding: '12px 14px', marginBottom: 10, breakInside: 'avoid',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 0 12px ${color}26` }}
-                    onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
                       <span style={{ background: color, fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: 'white', padding: '2px 8px', borderRadius: 9999 }}>
@@ -393,8 +478,8 @@ export default function Record() {
               </div>
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={saveHabit} style={{ background: '#7c3aed', color: 'white', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
-              <button onClick={() => { setShowHabitModal(false); setEditHabit(null) }} style={{ border: '1px solid #1e1b2e', color: '#555', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
+              <button onClick={saveHabit} style={{ background: '#f59e0b', color: '#0a0a0a', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
+              <button onClick={() => { setShowHabitModal(false); setEditHabit(null) }} style={{ border: '1px solid #262626', color: '#555', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
             </div>
           </div>
         </Modal>
@@ -414,8 +499,8 @@ export default function Record() {
             </div>
             <div><label className={cls.label}>Key Takeaway</label><textarea value={contentForm.takeaway} onChange={e => setContentForm({ ...contentForm, takeaway: e.target.value })} rows={3} placeholder="Main lesson..." className={cls.input + ' resize-none'} /></div>
             <div className="flex gap-2 pt-1">
-              <button onClick={addContent} style={{ background: '#7c3aed', color: 'white', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
-              <button onClick={() => setShowContentModal(false)} style={{ border: '1px solid #1e1b2e', color: '#555', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
+              <button onClick={addContent} style={{ background: '#f59e0b', color: '#0a0a0a', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
+              <button onClick={() => setShowContentModal(false)} style={{ border: '1px solid #262626', color: '#555', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
             </div>
           </div>
         </Modal>
