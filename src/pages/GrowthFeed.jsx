@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, ChevronDown, ChevronUp, Play, Zap, Key } from 'lucide-react'
 import Modal from '../components/Modal'
+import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today, fmtShort } from '../utils'
 import feedData from '../data/growthFeedData.json'
 import curatedVideos from '../data/curatedVideos.json'
@@ -175,7 +176,7 @@ No other text.`,
 }
 
 export default function GrowthFeed() {
-  const [videos, setVideos] = useState(INITIAL_VIDEOS)
+  const [videos, setVideos] = useLocalStorage('marko_growth_feed', INITIAL_VIDEOS)
   const [filter, setFilter] = useState('ALL')
   const [showWatched, setShowWatched] = useState(false)
   const [ratingOpen, setRatingOpen] = useState(new Set())
@@ -226,7 +227,6 @@ export default function GrowthFeed() {
       const newVids = await fetchVideoDrop(videos.map(v => v.id))
       setVideos(vs => [...vs, ...newVids.map(v => ({
         ...v,
-        id: Date.now().toString() + Math.random(),
         date_added: today(),
         user_rating: null,
         watched: false,
