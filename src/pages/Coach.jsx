@@ -202,14 +202,14 @@ export default function Coach() {
   }
 
   const KeyModal = () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
-      <div className="bg-[#0f0f0f] border border-[#2a2a2a] w-full max-w-md mx-4 p-8">
-        <div className="text-center mb-6">
-          <div className="text-[#dc2626] text-2xl font-black mb-2">⚡</div>
-          <h2 className="text-lg font-black uppercase tracking-widest mb-2">Anthropic API Key Required</h2>
-          <p className="text-xs text-[#444] font-mono">Stored locally. Never sent anywhere except Anthropic.</p>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.92)' }}>
+      <div style={{ background: '#0b0b16', border: '1px solid #1a1a2e', width: '100%', maxWidth: 448, margin: '0 16px', padding: 32, borderRadius: 12 }}>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <div style={{ color: '#f59e0b', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>⚡</div>
+          <h2 style={{ fontFamily: 'Inter', fontSize: 18, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#fff', marginBottom: 8 }}>Anthropic API Key Required</h2>
+          <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#4b5563' }}>Stored locally. Never sent anywhere except Anthropic.</p>
         </div>
-        <div className="space-y-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <input
             type="password"
             value={keyDraft}
@@ -217,9 +217,11 @@ export default function Coach() {
             onKeyDown={e => e.key === 'Enter' && saveKey()}
             placeholder="sk-ant-..."
             autoFocus
-            className="w-full bg-[#080808] border border-[#2a2a2a] px-3 py-3 text-sm text-white font-mono placeholder-[#333] focus:outline-none focus:border-[#dc2626]"
+            style={{ width: '100%', background: '#06060f', border: '1px solid #1a1a2e', padding: '12px', fontSize: 14, color: '#fff', fontFamily: 'monospace', outline: 'none', boxSizing: 'border-box', borderRadius: 6 }}
+            onFocus={e => e.target.style.borderColor = '#f59e0b'}
+            onBlur={e => e.target.style.borderColor = '#1a1a2e'}
           />
-          <button onClick={saveKey} className="w-full py-3 bg-[#dc2626] text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-500 transition-colors">
+          <button onClick={saveKey} style={{ width: '100%', padding: '12px', background: '#f59e0b', color: '#000', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer', borderRadius: 6 }}>
             Save & Start
           </button>
         </div>
@@ -228,93 +230,125 @@ export default function Coach() {
   )
 
   return (
-    <div className="h-full flex flex-col bg-[#080808]">
+    <div className="h-full flex flex-col" style={{ background: '#06060f' }}>
       {showKeyModal && <KeyModal />}
 
-      <div className="px-8 py-5 border-b border-[#2a2a2a] flex items-center justify-between shrink-0">
-        <div>
-          <h1 className="text-xl font-bold uppercase tracking-tight">Coach</h1>
-          <p className="text-[10px] font-mono text-[#444] mt-0.5 uppercase tracking-widest">Demanding mentor · {MODEL}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {messages.length > 0 && (
-            <button onClick={() => { if (window.confirm('Start new session?')) setMessages([]) }} className="flex items-center gap-1.5 px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors">
-              <Plus size={9} /> New Session
+      {/* Page Header */}
+      <div style={{ background: '#06060f', borderBottom: '1px solid #1a1a2e', padding: '20px 32px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
+              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#4b5563', letterSpacing: '0.12em', textTransform: 'uppercase' }}>AI COMMAND LINK ACTIVE</span>
+            </div>
+            <h1 style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(180deg,#facc15 0%,#f59e0b 60%,#f97316 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>
+              COACH
+            </h1>
+            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>OPERATOR AI // STRATEGIC ADVISOR</p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {messages.length > 0 && (
+              <button
+                onClick={() => { if (window.confirm('Start new session?')) setMessages([]) }}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', border: '1px solid #1a1a2e', color: '#4b5563', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
+              >
+                <Plus size={9} /> New Session
+              </button>
+            )}
+            <button
+              onClick={() => { setKeyDraft(apiKey); setShowKeyModal(true) }}
+              style={{ color: '#4b5563', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 6 }}
+              onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+              onMouseLeave={e => e.currentTarget.style.color = '#4b5563'}
+            >
+              <Settings size={14} strokeWidth={1.5} />
             </button>
-          )}
-          <button onClick={() => { setKeyDraft(apiKey); setShowKeyModal(true) }} className="text-[#333] hover:text-white transition-colors p-1.5">
-            <Settings size={14} strokeWidth={1.5} />
-          </button>
-          {apiKey ? (
-            <span className="text-[9px] font-mono text-[#16a34a]/70 border border-[#16a34a]/20 px-2 py-1 uppercase tracking-widest">Key ✓</span>
-          ) : (
-            <span className="text-[9px] font-mono text-[#dc2626]/70 border border-[#dc2626]/20 px-2 py-1 uppercase tracking-widest">No Key</span>
-          )}
+            {apiKey ? (
+              <span style={{ fontSize: 9, fontFamily: 'Inter', color: 'rgba(34,197,94,0.7)', border: '1px solid rgba(34,197,94,0.2)', padding: '4px 8px', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Key ✓</span>
+            ) : (
+              <span style={{ fontSize: 9, fontFamily: 'Inter', color: 'rgba(245,158,11,0.7)', border: '1px solid rgba(245,158,11,0.2)', padding: '4px 8px', textTransform: 'uppercase', letterSpacing: '0.12em' }}>No Key</span>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto px-8 py-6">
+      {/* Messages area */}
+      <div className="flex-1 overflow-auto" style={{ padding: '24px 32px' }}>
         {messages.length === 0 && !loading ? (
-          <div className="flex flex-col items-center justify-center h-full gap-6 text-center max-w-md mx-auto">
-            <Bot size={28} className="text-[#222]" strokeWidth={1} />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 24, textAlign: 'center', maxWidth: 448, margin: '0 auto' }}>
+            <Bot size={28} style={{ color: '#1a1a2e' }} strokeWidth={1} />
             <div>
-              <p className="text-[#888] text-sm font-medium">Your coach is ready</p>
-              <p className="text-[#333] text-xs mt-1 font-mono">
+              <p style={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 500, color: '#888' }}>Your coach is ready</p>
+              <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#4b5563', marginTop: 4 }}>
                 {apiKey ? 'Full context loaded from all your data.' : 'Set your API key to start.'}
               </p>
             </div>
-            <div className="w-full space-y-1.5">
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 6 }}>
               {STARTERS.map(p => (
-                <button key={p} onClick={() => { setInput(p); textareaRef.current?.focus() }}
-                  className="w-full text-left px-4 py-3 border border-[#2a2a2a] text-xs text-[#444] hover:border-[#dc2626] hover:text-white transition-colors bg-[#0f0f0f]">
+                <button
+                  key={p}
+                  onClick={() => { setInput(p); textareaRef.current?.focus() }}
+                  style={{ width: '100%', textAlign: 'left', padding: '12px 16px', border: '1px solid #1a1a2e', fontSize: 12, color: '#4b5563', background: '#0b0b16', cursor: 'pointer', borderRadius: 8, fontFamily: 'Inter', transition: 'all 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.color = '#fff' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#1a1a2e'; e.currentTarget.style.color = '#4b5563' }}
+                >
                   {p}
                 </button>
               ))}
             </div>
           </div>
         ) : (
-          <div className="max-w-3xl mx-auto space-y-4">
+          <div style={{ maxWidth: 768, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
             {messages.map(msg => (
-              <div key={msg.id} className={`flex items-start gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                <div className={`w-6 h-6 flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-mono font-black border ${
-                  msg.role === 'user' ? 'bg-white text-black border-white' : 'bg-[#141414] border-[#2a2a2a] text-[#444]'
-                }`}>
+              <div key={msg.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flexDirection: msg.role === 'user' ? 'row-reverse' : 'row' }}>
+                <div style={{
+                  width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2,
+                  fontSize: 10, fontFamily: 'monospace', fontWeight: 900,
+                  background: msg.role === 'user' ? '#fff' : '#0b0b16',
+                  color: msg.role === 'user' ? '#000' : '#4b5563',
+                  border: msg.role === 'user' ? '1px solid #fff' : '1px solid #1a1a2e',
+                  borderRadius: 4,
+                }}>
                   {msg.role === 'user' ? 'M' : <Bot size={11} />}
                 </div>
-                <div className={`max-w-[85%] px-4 py-3 text-sm leading-relaxed ${
-                  msg.role === 'user'
-                    ? 'bg-[#141414] border border-[#2a2a2a] text-white'
-                    : 'bg-[#0f0f0f] border border-[#2a2a2a] border-l-[#dc2626] border-l-2 text-[#999]'
-                }`}>
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                <div style={{
+                  maxWidth: '85%', padding: '12px 16px', fontSize: 14, lineHeight: 1.6,
+                  background: msg.role === 'user' ? 'rgba(245,158,11,0.12)' : '#0b0b16',
+                  border: msg.role === 'user' ? '1px solid rgba(245,158,11,0.2)' : '1px solid #1a1a2e',
+                  borderLeft: msg.role === 'assistant' ? '2px solid #f59e0b' : undefined,
+                  color: msg.role === 'user' ? '#fff' : '#999',
+                  borderRadius: 8,
+                }}>
+                  <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{msg.content}</p>
                 </div>
               </div>
             ))}
             {loading && (
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 border border-[#2a2a2a] bg-[#141414] flex items-center justify-center shrink-0 mt-0.5">
-                  <Bot size={11} className="text-[#444]" />
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                <div style={{ width: 24, height: 24, border: '1px solid #1a1a2e', background: '#0b0b16', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2, borderRadius: 4 }}>
+                  <Bot size={11} style={{ color: '#4b5563' }} />
                 </div>
-                <div className="bg-[#0f0f0f] border border-[#2a2a2a] border-l-[#dc2626] border-l-2 px-4 py-3">
-                  <div className="flex gap-1">
-                    <div className="w-1 h-1 bg-[#444] animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-1 h-1 bg-[#444] animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-1 h-1 bg-[#444] animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div style={{ background: '#0b0b16', border: '1px solid #1a1a2e', borderLeft: '2px solid #f59e0b', padding: '12px 16px', borderRadius: 8 }}>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <div className="w-1 h-1 animate-bounce" style={{ width: 4, height: 4, background: '#4b5563', animationDelay: '0ms' }} />
+                    <div className="w-1 h-1 animate-bounce" style={{ width: 4, height: 4, background: '#4b5563', animationDelay: '150ms' }} />
+                    <div className="w-1 h-1 animate-bounce" style={{ width: 4, height: 4, background: '#4b5563', animationDelay: '300ms' }} />
                   </div>
                 </div>
               </div>
             )}
             {error && (
-              <div className="bg-red-950/20 border border-red-900/40 px-4 py-3 text-xs text-red-400 font-mono">{error}</div>
+              <div style={{ background: 'rgba(127,29,29,0.2)', border: '1px solid rgba(127,29,29,0.4)', padding: '12px 16px', fontSize: 12, color: '#f87171', fontFamily: 'monospace', borderRadius: 8 }}>{error}</div>
             )}
           </div>
         )}
         <div ref={bottomRef} />
       </div>
 
-      <div className="px-8 py-4 border-t border-[#2a2a2a] shrink-0 bg-[#080808]">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex gap-3 items-end">
+      {/* Chat input area */}
+      <div style={{ padding: '16px 32px', borderTop: '1px solid #1a1a2e', flexShrink: 0, background: '#0b0b16' }}>
+        <div style={{ maxWidth: 768, margin: '0 auto' }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
             <textarea
               ref={textareaRef}
               value={input}
@@ -323,17 +357,19 @@ export default function Coach() {
               placeholder={apiKey ? 'Ask your coach...' : 'Set API key first...'}
               rows={1}
               disabled={!apiKey}
-              className="flex-1 bg-[#0f0f0f] border border-[#2a2a2a] px-4 py-3 text-sm text-white placeholder-[#333] focus:outline-none focus:border-[#dc2626] resize-none transition-colors overflow-hidden disabled:opacity-30"
+              style={{ flex: 1, background: '#06060f', border: '1px solid #1a1a2e', padding: '12px 16px', fontSize: 14, color: '#fff', resize: 'none', outline: 'none', overflow: 'hidden', fontFamily: 'Inter', opacity: apiKey ? 1 : 0.3, borderRadius: 8, transition: 'border-color 0.15s' }}
+              onFocus={e => e.target.style.borderColor = '#f59e0b'}
+              onBlur={e => e.target.style.borderColor = '#1a1a2e'}
             />
             <button
               onClick={sendMessage}
               disabled={loading || !input.trim() || !apiKey}
-              className="px-5 py-3 bg-[#dc2626] text-white hover:bg-red-500 disabled:opacity-20 disabled:cursor-not-allowed transition-all flex items-center shrink-0"
+              style={{ padding: '12px 20px', background: '#f59e0b', color: '#000', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0, borderRadius: 8, opacity: (loading || !input.trim() || !apiKey) ? 0.2 : 1, transition: 'opacity 0.15s' }}
             >
               <Send size={14} />
             </button>
           </div>
-          <div className="text-[9px] font-mono text-[#222] mt-2 flex items-center justify-between">
+          <div style={{ fontSize: 9, fontFamily: 'Inter', color: '#1a1a2e', marginTop: 8, display: 'flex', justifyContent: 'space-between' }}>
             <span>Context built from all sections in real-time</span>
             <span>{messages.length} messages</span>
           </div>
