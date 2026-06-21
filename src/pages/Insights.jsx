@@ -6,28 +6,28 @@ import {
   BarChart, Bar, Cell, ReferenceLine
 } from 'recharts'
 
-const BG = '#06060f'
-const CARD = { background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 12, padding: 20 }
-const LBL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }
+const BG = '#000000'
+const CARD = { background: '#0d1427', border: '1px solid #1a2440', borderRadius: 12, padding: 20 }
+const LBL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }
 const CHART_TT = {
-  contentStyle: { background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 8, fontSize: 11, fontFamily: 'Inter' },
-  labelStyle: { color: '#6b7280' }, itemStyle: { color: '#fff' },
+  contentStyle: { background: '#0d1427', border: '1px solid #1a2440', borderRadius: 8, fontSize: 11, fontFamily: 'Inter' },
+  labelStyle: { color: '#a0aec0' }, itemStyle: { color: '#fff' },
 }
 
-function CircleGauge({ value, max = 10, size = 110, label, color = '#f59e0b', delta }) {
+function CircleGauge({ value, max = 10, size = 110, label, color = '#c9a84c', delta }) {
   const r = 38, cx = size / 2, cy = size / 2
   const circ = 2 * Math.PI * r
   const pct = Math.min(1, (isNaN(value) ? 0 : value) / max)
   const offset = circ * (1 - pct)
   const stateMap = max === 100
-    ? (value >= 85 ? ['PRIMED', '#22c55e'] : value >= 70 ? ['CHARGED', '#f59e0b'] : value >= 50 ? ['STABLE', '#f97316'] : ['DEGRADED', '#ef4444'])
-    : (value >= 7 ? ['OPERATIONAL', '#22c55e'] : value >= 5 ? ['STABLE', '#f59e0b'] : ['DEGRADED', '#ef4444'])
+    ? (value >= 85 ? ['PRIMED', '#22c55e'] : value >= 70 ? ['CHARGED', '#c9a84c'] : value >= 50 ? ['STABLE', '#c9a84c'] : ['DEGRADED', '#ef4444'])
+    : (value >= 7 ? ['OPERATIONAL', '#22c55e'] : value >= 5 ? ['STABLE', '#c9a84c'] : ['DEGRADED', '#ef4444'])
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-      <div style={{ background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 12, padding: '16px 20px', textAlign: 'center', minWidth: 130 }}>
+      <div style={{ background: '#0d1427', border: '1px solid #1a2440', borderRadius: 12, padding: '16px 20px', textAlign: 'center', minWidth: 130 }}>
         <div style={{ position: 'relative', width: size, height: size, margin: '0 auto 8px' }}>
           <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-            <circle cx={cx} cy={cy} r={r} fill="none" stroke="#1a1a2e" strokeWidth={7} />
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="#1a2440" strokeWidth={7} />
             <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={7}
               strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" />
           </svg>
@@ -35,7 +35,7 @@ function CircleGauge({ value, max = 10, size = 110, label, color = '#f59e0b', de
             <span style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 30, color: 'white', lineHeight: 1 }}>
               {isNaN(value) || value === 0 ? '—' : max === 100 ? Math.round(value) : value.toFixed(1)}
             </span>
-            <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase' }}>{max === 100 ? 'pts' : '/10'}</span>
+            <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textTransform: 'uppercase' }}>{max === 100 ? 'pts' : '/10'}</span>
           </div>
         </div>
         <div style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
@@ -52,14 +52,14 @@ function CircleGauge({ value, max = 10, size = 110, label, color = '#f59e0b', de
   )
 }
 
-function SectionTitle({ dot = '#f59e0b', children, right }) {
+function SectionTitle({ dot = '#c9a84c', children, right }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <div style={{ width: 8, height: 8, borderRadius: '50%', background: dot }} />
         <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{children}</span>
       </div>
-      {right && <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{right}</span>}
+      {right && <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{right}</span>}
     </div>
   )
 }
@@ -164,7 +164,7 @@ export default function Insights() {
       .filter(x => !isNaN(x.s) && !isNaN(x.e))
     if (sleepEnergy.length >= 4) {
       const r = pearson(sleepEnergy.map(x => x.s), sleepEnergy.map(x => x.e))
-      if (r !== null) pairs.push({ title: 'SLEEP QUALITY → ENERGY', subtitle: `Each +1pt sleep quality shifts energy +${(r * 0.8).toFixed(1)} pts. ${r > 0.6 ? 'Strong link.' : 'Moderate link.'}`, r, confidence: Math.round(Math.abs(r) * 100), n: sleepEnergy.length, color: '#f59e0b' })
+      if (r !== null) pairs.push({ title: 'SLEEP QUALITY → ENERGY', subtitle: `Each +1pt sleep quality shifts energy +${(r * 0.8).toFixed(1)} pts. ${r > 0.6 ? 'Strong link.' : 'Moderate link.'}`, r, confidence: Math.round(Math.abs(r) * 100), n: sleepEnergy.length, color: '#c9a84c' })
     }
     // Sleep → Mood
     const sleepMood = Object.entries(checkLogs)
@@ -172,7 +172,7 @@ export default function Insights() {
       .filter(x => !isNaN(x.s) && !isNaN(x.m))
     if (sleepMood.length >= 4) {
       const r = pearson(sleepMood.map(x => x.s), sleepMood.map(x => x.m))
-      if (r !== null) pairs.push({ title: 'SLEEP QUALITY → MOOD', subtitle: `Each +1pt sleep quality shifts mood +${(r * 0.9).toFixed(1)} pts.`, r, confidence: Math.round(Math.abs(r) * 100), n: sleepMood.length, color: '#8b5cf6' })
+      if (r !== null) pairs.push({ title: 'SLEEP QUALITY → MOOD', subtitle: `Each +1pt sleep quality shifts mood +${(r * 0.9).toFixed(1)} pts.`, r, confidence: Math.round(Math.abs(r) * 100), n: sleepMood.length, color: '#3b82f6' })
     }
     // Stress → Mood (inverse)
     const stressMood = Object.entries(checkLogs)
@@ -197,24 +197,24 @@ export default function Insights() {
   }, [diet])
 
   const hasLogs = Object.keys(checkLogs).length > 0
-  const FLAME_COLORS = ['#facc15', '#f59e0b', '#f97316', '#ea580c', '#dc2626', '#b91c1c', '#991b1b']
+  const FLAME_COLORS = ['#c9a84c', '#c9a84c', '#c9a84c', '#c9a84c', '#dc2626', '#b91c1c', '#991b1b']
 
   return (
     <div style={{ background: BG, minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div style={{ background: BG, borderBottom: '1px solid #1a1a2e', padding: '20px 32px', flexShrink: 0 }}>
+      <div style={{ background: BG, borderBottom: '1px solid #1a2440', padding: '20px 32px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#8b5cf6' }} />
-              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#4b5563', letterSpacing: '0.12em', textTransform: 'uppercase' }}>PATTERN DETECTION ONLINE</span>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#3b82f6' }} />
+              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#a0aec0', letterSpacing: '0.12em', textTransform: 'uppercase' }}>PATTERN DETECTION ONLINE</span>
             </div>
-            <h1 style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, letterSpacing: '0.02em', background: 'linear-gradient(180deg,#facc15 0%,#f59e0b 60%,#f97316 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0, fontStyle: 'italic' }}>INSIGHTS</h1>
-            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>THE WAR ROOM // TRENDS · CORRELATIONS · FORECAST</p>
+            <h1 style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, letterSpacing: '0.02em', background: 'linear-gradient(180deg,#c9a84c 0%,#c9a84c 60%,#c9a84c 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0, fontStyle: 'italic' }}>INSIGHTS</h1>
+            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>THE WAR ROOM // TRENDS · CORRELATIONS · FORECAST</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <div style={{ background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 11, fontWeight: 600, color: '#4b5563', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ color: '#facc15' }}>{dayCount}</span> DAYS ENGRAVED
+            <div style={{ background: '#0d1427', border: '1px solid #1a2440', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 11, fontWeight: 600, color: '#a0aec0', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ color: '#c9a84c' }}>{dayCount}</span> DAYS ENGRAVED
             </div>
           </div>
         </div>
@@ -223,8 +223,8 @@ export default function Insights() {
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
         {!hasLogs && (
           <div style={{ ...CARD, textAlign: 'center', padding: '40px 20px' }}>
-            <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 36, color: '#4b5563', letterSpacing: '0.04em', marginBottom: 8 }}>NO DATA YET</div>
-            <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#4b5563' }}>Log your morning check-ins in The Record → War Room Ledger to unlock pattern detection.</p>
+            <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 36, color: '#a0aec0', letterSpacing: '0.04em', marginBottom: 8 }}>NO DATA YET</div>
+            <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0aec0' }}>Log your morning check-ins in The Record → War Room Ledger to unlock pattern detection.</p>
           </div>
         )}
 
@@ -232,14 +232,14 @@ export default function Insights() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>⚡ 7-DAY PULSE</span>
+              <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: '#c9a84c', textTransform: 'uppercase', letterSpacing: '0.1em' }}>⚡ 7-DAY PULSE</span>
             </div>
-            <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em' }}>CURRENT VS PRIOR 7-DAY BASELINE</span>
+            <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>CURRENT VS PRIOR 7-DAY BASELINE</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-            <CircleGauge value={pulse7.energy} label="ENERGY" color="#f59e0b" delta={pulse7.deltas.energy} />
-            <CircleGauge value={pulse7.mood} label="MOOD" color="#8b5cf6" delta={pulse7.deltas.mood} />
-            <CircleGauge value={pulse7.sleep} label="SLEEP" color="#60a5fa" delta={pulse7.deltas.sleep} />
+            <CircleGauge value={pulse7.energy} label="ENERGY" color="#c9a84c" delta={pulse7.deltas.energy} />
+            <CircleGauge value={pulse7.mood} label="MOOD" color="#3b82f6" delta={pulse7.deltas.mood} />
+            <CircleGauge value={pulse7.sleep} label="SLEEP" color="#3b82f6" delta={pulse7.deltas.sleep} />
             <CircleGauge value={pulse7.recovery} max={100} label="RECOVERY" color="#22c55e" />
           </div>
         </div>
@@ -249,33 +249,33 @@ export default function Insights() {
           <div style={CARD}>
             <SectionTitle right="ENERGY · MOOD · SLEEP · STRESS">30-DAY TRENDS</SectionTitle>
             {trend30.length < 3 ? (
-              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#4b5563', textAlign: 'center', padding: '40px 0' }}>Log more days to see trends.</div>
+              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0aec0', textAlign: 'center', padding: '40px 0' }}>Log more days to see trends.</div>
             ) : (
               <>
                 <ResponsiveContainer width="100%" height={200}>
                   <AreaChart data={trend30} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
                     <defs>
-                      {[['gE','#f59e0b'],['gM','#8b5cf6'],['gS','#60a5fa'],['gSt','#ef4444']].map(([id,c]) => (
+                      {[['gE','#c9a84c'],['gM','#3b82f6'],['gS','#3b82f6'],['gSt','#ef4444']].map(([id,c]) => (
                         <linearGradient key={id} id={id} x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor={c} stopOpacity={0.25} />
                           <stop offset="95%" stopColor={c} stopOpacity={0} />
                         </linearGradient>
                       ))}
                     </defs>
-                    <XAxis dataKey="date" tick={{ fill: '#4b5563', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} interval={4} />
-                    <YAxis domain={[0, 10]} tick={{ fill: '#4b5563', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} width={20} />
+                    <XAxis dataKey="date" tick={{ fill: '#a0aec0', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} interval={4} />
+                    <YAxis domain={[0, 10]} tick={{ fill: '#a0aec0', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} width={20} />
                     <Tooltip {...CHART_TT} />
-                    <Area type="monotone" dataKey="energy" stroke="#f59e0b" fill="url(#gE)" strokeWidth={2} dot={false} connectNulls />
-                    <Area type="monotone" dataKey="mood" stroke="#8b5cf6" fill="url(#gM)" strokeWidth={2} dot={false} connectNulls />
-                    <Area type="monotone" dataKey="sleep" stroke="#60a5fa" fill="url(#gS)" strokeWidth={2} dot={false} connectNulls />
+                    <Area type="monotone" dataKey="energy" stroke="#c9a84c" fill="url(#gE)" strokeWidth={2} dot={false} connectNulls />
+                    <Area type="monotone" dataKey="mood" stroke="#3b82f6" fill="url(#gM)" strokeWidth={2} dot={false} connectNulls />
+                    <Area type="monotone" dataKey="sleep" stroke="#3b82f6" fill="url(#gS)" strokeWidth={2} dot={false} connectNulls />
                     <Area type="monotone" dataKey="stress" stroke="#ef4444" fill="url(#gSt)" strokeWidth={2} dot={false} connectNulls />
                   </AreaChart>
                 </ResponsiveContainer>
                 <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
-                  {[['ENERGY','#f59e0b'],['MOOD','#8b5cf6'],['SLEEP','#60a5fa'],['STRESS','#ef4444']].map(([l,c]) => (
+                  {[['ENERGY','#c9a84c'],['MOOD','#3b82f6'],['SLEEP','#3b82f6'],['STRESS','#ef4444']].map(([l,c]) => (
                     <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <div style={{ width: 20, height: 2, background: c, borderRadius: 1 }} />
-                      <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{l}</span>
+                      <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{l}</span>
                     </div>
                   ))}
                 </div>
@@ -284,21 +284,21 @@ export default function Insights() {
           </div>
 
           <div style={CARD}>
-            <SectionTitle dot="#f97316">STREAK LEDGER</SectionTitle>
-            <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>KING OF FIRE</div>
+            <SectionTitle dot="#c9a84c">STREAK LEDGER</SectionTitle>
+            <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>KING OF FIRE</div>
             {streakRanking.length === 0 ? (
-              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#4b5563', textAlign: 'center', padding: '24px 0' }}>No habits yet</div>
+              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0aec0', textAlign: 'center', padding: '24px 0' }}>No habits yet</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {streakRanking.map((h, i) => (
-                  <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#06060f', borderRadius: 8, border: '1px solid #1a1a2e' }}>
-                    <span style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 14, color: FLAME_COLORS[i] || '#4b5563', width: 20, textAlign: 'center' }}>#{i + 1}</span>
+                  <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#000000', borderRadius: 8, border: '1px solid #1a2440' }}>
+                    <span style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 14, color: FLAME_COLORS[i] || '#a0aec0', width: 20, textAlign: 'center' }}>#{i + 1}</span>
                     <span style={{ fontFamily: 'Inter', fontSize: 12, color: 'white', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h.name}</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 18, color: FLAME_COLORS[i] || '#4b5563' }}>{h.streak.current}</span>
-                      <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563' }}>🔥</span>
+                      <span style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 18, color: FLAME_COLORS[i] || '#a0aec0' }}>{h.streak.current}</span>
+                      <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0' }}>🔥</span>
                     </div>
-                    <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563' }}>best {h.streak.longest}d</span>
+                    <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0' }}>best {h.streak.longest}d</span>
                   </div>
                 ))}
               </div>
@@ -309,25 +309,25 @@ export default function Insights() {
         {/* Correlations */}
         {correlations.length > 0 && (
           <div style={CARD}>
-            <SectionTitle dot="#8b5cf6" right="AUTO-MINED FROM YOUR DAILY LOGS">CORRELATIONS DETECTED</SectionTitle>
+            <SectionTitle dot="#3b82f6" right="AUTO-MINED FROM YOUR DAILY LOGS">CORRELATIONS DETECTED</SectionTitle>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 12 }}>
               {correlations.map((c, i) => (
-                <div key={i} style={{ background: '#06060f', border: `1px solid ${c.color}20`, borderRadius: 10, padding: 16 }}>
+                <div key={i} style={{ background: '#000000', border: `1px solid ${c.color}20`, borderRadius: 10, padding: 16 }}>
                   <div style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{c.title}</div>
-                  <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#6b7280', marginBottom: 12 }}>{c.subtitle}</p>
+                  <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#a0aec0', marginBottom: 12 }}>{c.subtitle}</p>
                   <div style={{ display: 'flex', gap: 16 }}>
                     {[
                       { label: 'EFFECT', value: `r = ${c.r.toFixed(2)}`, color: c.color },
                       { label: 'CONFIDENCE', value: `${c.confidence}%`, color: 'white' },
-                      { label: 'SAMPLE', value: `n=${c.n}`, color: '#4b5563' },
+                      { label: 'SAMPLE', value: `n=${c.n}`, color: '#a0aec0' },
                     ].map(m => (
                       <div key={m.label}>
-                        <div style={{ fontFamily: 'Inter', fontSize: 8, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>{m.label}</div>
+                        <div style={{ fontFamily: 'Inter', fontSize: 8, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>{m.label}</div>
                         <div style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 700, color: m.color }}>{m.value}</div>
                       </div>
                     ))}
                   </div>
-                  <div style={{ marginTop: 10, height: 3, background: '#1a1a2e', borderRadius: 2 }}>
+                  <div style={{ marginTop: 10, height: 3, background: '#1a2440', borderRadius: 2 }}>
                     <div style={{ height: 3, background: c.color, borderRadius: 2, width: `${c.confidence}%` }} />
                   </div>
                 </div>
@@ -342,18 +342,18 @@ export default function Insights() {
             <SectionTitle dot="#22c55e" right="LAST 14 DAYS">NUTRITION COMPLIANCE</SectionTitle>
             <ResponsiveContainer width="100%" height={100}>
               <BarChart data={dietTrend} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                <XAxis dataKey="date" tick={{ fill: '#4b5563', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} interval={2} />
+                <XAxis dataKey="date" tick={{ fill: '#a0aec0', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} interval={2} />
                 <YAxis domain={[0, 120]} hide />
                 <Tooltip {...CHART_TT} formatter={v => [`${v}%`, 'Calories']} />
-                <ReferenceLine y={100} stroke="#f59e0b" strokeDasharray="3 3" strokeWidth={1} />
+                <ReferenceLine y={100} stroke="#c9a84c" strokeDasharray="3 3" strokeWidth={1} />
                 <Bar dataKey="pct" radius={[3, 3, 0, 0]}>
                   {dietTrend.map((d, i) => (
-                    <Cell key={i} fill={d.pct >= 90 && d.pct <= 110 ? '#22c55e' : d.pct > 110 ? '#ef4444' : '#4b5563'} />
+                    <Cell key={i} fill={d.pct >= 90 && d.pct <= 110 ? '#22c55e' : d.pct > 110 ? '#ef4444' : '#a0aec0'} />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-            <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textAlign: 'right', marginTop: 6, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Target: {diet.targets?.calories || 2800} kcal/day</div>
+            <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textAlign: 'right', marginTop: 6, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Target: {diet.targets?.calories || 2800} kcal/day</div>
           </div>
         )}
       </div>

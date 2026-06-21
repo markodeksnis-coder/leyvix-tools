@@ -7,10 +7,10 @@ import feedData from '../data/growthFeedData.json'
 import curatedVideos from '../data/curatedVideos.json'
 
 const PILLAR_COLORS = {
-  Mindset: '#8b5cf6',
-  Business: '#f59e0b',
+  Mindset: '#3b82f6',
+  Business: '#c9a84c',
   'Social Skills': '#3b82f6',
-  Style: '#ec4899',
+  Style: '#c9a84c',
   Health: '#16a34a',
 }
 
@@ -34,20 +34,20 @@ function extractVideoId(url) {
 }
 
 const cls = {
-  input: "w-full bg-[#06060f] border border-[#1a1a2e] px-3 py-2 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:border-[#f59e0b] transition-colors",
-  label: "block text-[9px] font-mono uppercase tracking-widest text-[#4b5563] mb-1.5",
+  input: "w-full bg-[#000000] border border-[#1a2440] px-3 py-2 text-sm text-white placeholder-[#a0aec0] focus:outline-none focus:border-[#c9a84c] transition-colors",
+  label: "block text-[9px] font-mono uppercase tracking-widest text-[#a0aec0] mb-1.5",
 }
 
 function VideoCard({ video, onWatch, onRate, ratingOpen, whyRecommended }) {
-  const color = PILLAR_COLORS[video.pillar] || '#6b7280'
+  const color = PILLAR_COLORS[video.pillar] || '#a0aec0'
 
   return (
     <div
-      style={{ background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 12 }}
+      style={{ background: '#0d1427', border: '1px solid #1a2440', borderRadius: 12 }}
       className="flex flex-col overflow-hidden transition-all"
     >
       {/* Thumbnail — 16:9 */}
-      <div className="relative group/thumb overflow-hidden" style={{ paddingTop: '56.25%', borderBottom: '1px solid #1a1a2e' }}>
+      <div className="relative group/thumb overflow-hidden" style={{ paddingTop: '56.25%', borderBottom: '1px solid #1a2440' }}>
         <img
           src={`https://img.youtube.com/vi/${video.video_id}/maxresdefault.jpg`}
           alt={video.title}
@@ -55,7 +55,7 @@ function VideoCard({ video, onWatch, onRate, ratingOpen, whyRecommended }) {
           onError={e => { e.target.src = `https://img.youtube.com/vi/${video.video_id}/hqdefault.jpg` }}
         />
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity bg-black/30">
-          <div style={{ background: '#f59e0b', borderRadius: '50%', padding: 12 }}>
+          <div style={{ background: '#c9a84c', borderRadius: '50%', padding: 12 }}>
             <Play size={20} fill="#000" color="#000" />
           </div>
         </div>
@@ -64,7 +64,7 @@ function VideoCard({ video, onWatch, onRate, ratingOpen, whyRecommended }) {
       <div className="p-3 flex flex-col gap-2 flex-1">
         {/* Pillar badge */}
         <div>
-          <span style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: '#f59e0b', padding: '2px 8px', borderRadius: 9999 }}>
+          <span style={{ background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)', fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: '#c9a84c', padding: '2px 8px', borderRadius: 9999 }}>
             {video.pillar}
           </span>
         </div>
@@ -77,40 +77,40 @@ function VideoCard({ video, onWatch, onRate, ratingOpen, whyRecommended }) {
           >
             {video.title}
           </div>
-          <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#4b5563', whiteSpace: 'nowrap', flexShrink: 0 }}>
+          <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#a0aec0', whiteSpace: 'nowrap', flexShrink: 0 }}>
             {fmtShort(video.date_added)}
           </div>
         </div>
 
         {/* Channel */}
-        <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#4b5563' }}>{video.channel}</div>
+        <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0aec0' }}>{video.channel}</div>
 
         {/* Why recommended */}
         {(whyRecommended || video.whyRecommended) && (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '6px 10px', background: 'rgba(245,158,11,0.06)', borderRadius: 6, border: '1px solid rgba(245,158,11,0.15)' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '6px 10px', background: 'rgba(201,168,76,0.1)', borderRadius: 6, border: '1px solid rgba(201,168,76,0.15)' }}>
             <span style={{ fontSize: 11, flexShrink: 0 }}>🎯</span>
-            <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#f59e0b', fontStyle: 'italic', lineHeight: 1.4 }}>{whyRecommended || video.whyRecommended}</span>
+            <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#c9a84c', fontStyle: 'italic', lineHeight: 1.4 }}>{whyRecommended || video.whyRecommended}</span>
           </div>
         )}
 
         {/* Action area */}
         <div className="mt-auto pt-1 flex flex-col gap-2">
           {video.watched ? (
-            <div style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#f59e0b', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', padding: '4px 8px', borderRadius: 4 }}>
+            <div style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#c9a84c', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', padding: '4px 8px', borderRadius: 4 }}>
               ✓ WATCHED — {video.user_rating}/10
             </div>
           ) : ratingOpen ? (
             <div>
-              <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563', marginBottom: 6 }}>Rate it:</div>
+              <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0', marginBottom: 6 }}>Rate it:</div>
               <div className="flex gap-1 flex-wrap">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                   <button
                     key={n}
                     onClick={() => onRate(video.id, n)}
-                    style={{ width: 26, height: 26, border: '1px solid #1a1a2e', fontFamily: 'Inter', fontSize: 11, color: '#4b5563', background: 'transparent', cursor: 'pointer' }}
+                    style={{ width: 26, height: 26, border: '1px solid #1a2440', fontFamily: 'Inter', fontSize: 11, color: '#a0aec0', background: 'transparent', cursor: 'pointer' }}
                     className="flex items-center justify-center transition-colors"
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.color = '#f59e0b'; e.currentTarget.style.background = 'rgba(245,158,11,0.1)' }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#1a1a2e'; e.currentTarget.style.color = '#4b5563'; e.currentTarget.style.background = 'transparent' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#c9a84c'; e.currentTarget.style.color = '#c9a84c'; e.currentTarget.style.background = 'rgba(201,168,76,0.1)' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#1a2440'; e.currentTarget.style.color = '#a0aec0'; e.currentTarget.style.background = 'transparent' }}
                   >
                     {n}
                   </button>
@@ -121,17 +121,17 @@ function VideoCard({ video, onWatch, onRate, ratingOpen, whyRecommended }) {
             <div className="flex flex-col gap-1.5">
               <button
                 onClick={() => onWatch(video.id, true)}
-                style={{ background: '#f59e0b', fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#000', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: 6 }}
+                style={{ background: '#c9a84c', fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#000', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: 6 }}
                 className="w-full hover:opacity-90 transition-opacity"
               >
                 ▶ WATCH
               </button>
               <button
                 onClick={() => onWatch(video.id, false)}
-                style={{ border: '1px solid #1a1a2e', fontFamily: 'Inter', fontSize: 11, color: '#4b5563', background: 'transparent', cursor: 'pointer', padding: '6px', borderRadius: 6 }}
+                style={{ border: '1px solid #1a2440', fontFamily: 'Inter', fontSize: 11, color: '#a0aec0', background: 'transparent', cursor: 'pointer', padding: '6px', borderRadius: 6 }}
                 className="w-full transition-colors"
-                onMouseEnter={e => { e.currentTarget.style.borderColor = '#4b5563'; e.currentTarget.style.color = '#888' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#1a1a2e'; e.currentTarget.style.color = '#4b5563' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#a0aec0'; e.currentTarget.style.color = '#a0aec0' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#1a2440'; e.currentTarget.style.color = '#a0aec0' }}
               >
                 Rate It
               </button>
@@ -342,39 +342,39 @@ export default function GrowthFeed() {
   const thisWeek = videos.filter(v => new Date(v.date_added + 'T00:00:00') >= weekStart).length
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#06060f' }}>
+    <div className="h-full flex flex-col" style={{ background: '#000000' }}>
       {/* Page Header */}
-      <div style={{ background: '#06060f', borderBottom: '1px solid #1a1a2e', padding: '20px 32px', flexShrink: 0 }}>
+      <div style={{ background: '#000000', borderBottom: '1px solid #1a2440', padding: '20px 32px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
-              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#4b5563', letterSpacing: '0.12em', textTransform: 'uppercase' }}>INTELLIGENCE FEED STREAMING</span>
+              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#a0aec0', letterSpacing: '0.12em', textTransform: 'uppercase' }}>INTELLIGENCE FEED STREAMING</span>
             </div>
-            <h1 style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(180deg,#facc15 0%,#f59e0b 60%,#f97316 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>
+            <h1 style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(180deg,#c9a84c 0%,#c9a84c 60%,#c9a84c 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>
               GROWTH FEED
             </h1>
-            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>MEDIA INTELLIGENCE // CURATED FOR ELITE OPERATORS</p>
+            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>MEDIA INTELLIGENCE // CURATED FOR ELITE OPERATORS</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-            {dropError && <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#f59e0b' }}>{dropError}</span>}
+            {dropError && <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#c9a84c' }}>{dropError}</span>}
             <button
               onClick={handleDrop}
               disabled={dropping}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: dropping ? '#1a1a2e' : '#f59e0b', color: dropping ? '#4b5563' : '#000', border: '1px solid #f59e0b', cursor: dropping ? 'not-allowed' : 'pointer', opacity: dropping ? 0.4 : 1, fontWeight: 700 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: dropping ? '#1a2440' : '#c9a84c', color: dropping ? '#a0aec0' : '#000', border: '1px solid #c9a84c', cursor: dropping ? 'not-allowed' : 'pointer', opacity: dropping ? 0.4 : 1, fontWeight: 700 }}
             >
               <Zap size={9} fill={dropping ? 'none' : '#000'} />
               {dropping ? 'Dropping...' : 'Drop 3 Videos'}
             </button>
             <button
               onClick={() => { setKeyInput(localStorage.getItem('anthropic_key') || ''); setShowKeyModal(true) }}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #1a1a2e', color: '#4b5563', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #1a2440', color: '#a0aec0', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
             >
               <Key size={9} /> API Key
             </button>
             <button
               onClick={() => setShowAddModal(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #1a1a2e', color: '#4b5563', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #1a2440', color: '#a0aec0', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
             >
               <Plus size={9} /> Add Video
             </button>
@@ -386,53 +386,53 @@ export default function GrowthFeed() {
         <div className="space-y-6">
 
           {/* Taste Signals Panel */}
-          <div style={{ background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 12 }}>
+          <div style={{ background: '#0d1427', border: '1px solid #1a2440', borderRadius: 12 }}>
             <button onClick={() => setShowSeedPanel(!showSeedPanel)}
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer' }}>
               <span style={{ fontSize: 14 }}>🎯</span>
-              <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Taste Signals</span>
-              <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563', marginLeft: 4 }}>{(tasteProfile.seedVideos || []).length} seed videos saved</span>
-              <span style={{ marginLeft: 'auto', fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: '#c9a84c', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Taste Signals</span>
+              <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0', marginLeft: 4 }}>{(tasteProfile.seedVideos || []).length} seed videos saved</span>
+              <span style={{ marginLeft: 'auto', fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                 {showSeedPanel ? '▲ collapse' : '▼ expand — teach the feed your taste'}
               </span>
             </button>
 
             {showSeedPanel && (
               <div style={{ padding: '0 20px 20px' }}>
-                <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#4b5563', marginBottom: 16 }}>
+                <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#a0aec0', marginBottom: 16 }}>
                   Paste a YouTube video you liked. The feed learns your taste and recommends similar content.
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
                   <input value={seedUrl} onChange={e => setSeedUrl(e.target.value)} placeholder="YouTube URL (youtube.com/watch?v=...)"
-                    style={{ width: '100%', background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', background: '#000000', border: '1px solid #1a2440', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }} />
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                     <input value={seedTitle} onChange={e => setSeedTitle(e.target.value)} placeholder="Video title"
-                      style={{ background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none' }} />
+                      style={{ background: '#000000', border: '1px solid #1a2440', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none' }} />
                     <input value={seedChannel} onChange={e => setSeedChannel(e.target.value)} placeholder="Channel name"
-                      style={{ background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none' }} />
+                      style={{ background: '#000000', border: '1px solid #1a2440', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none' }} />
                   </div>
                   {seedError && <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#ef4444', margin: 0 }}>{seedError}</p>}
                   <button onClick={handleSeedVideo} disabled={seedLoading || !seedUrl.trim() || !seedTitle.trim()}
-                    style={{ padding: '9px 20px', background: seedLoading ? '#1a1a2e' : '#f59e0b', color: seedLoading ? '#4b5563' : '#000', border: 'none', cursor: seedLoading ? 'not-allowed' : 'pointer', fontFamily: 'Inter', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: 6 }}>
+                    style={{ padding: '9px 20px', background: seedLoading ? '#1a2440' : '#c9a84c', color: seedLoading ? '#a0aec0' : '#000', border: 'none', cursor: seedLoading ? 'not-allowed' : 'pointer', fontFamily: 'Inter', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: 6 }}>
                     {seedLoading ? 'Saving...' : '+ Add Taste Signal'}
                   </button>
                 </div>
 
                 {(tasteProfile.seedVideos || []).length > 0 && (
                   <div>
-                    <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Saved Taste Signals</div>
+                    <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Saved Taste Signals</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {(tasteProfile.seedVideos || []).slice(0, 10).map(sv => (
-                        <div key={sv.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 8 }}>
+                        <div key={sv.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#000000', border: '1px solid #1a2440', borderRadius: 8 }}>
                           <img src={`https://img.youtube.com/vi/${sv.video_id}/default.jpg`} alt="" style={{ width: 40, height: 30, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontFamily: 'Inter', fontSize: 12, color: 'white', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sv.title}</div>
-                            <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563' }}>{sv.channel}{sv.topic ? ` · ${sv.topic}` : ''}</div>
+                            <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0' }}>{sv.channel}{sv.topic ? ` · ${sv.topic}` : ''}</div>
                           </div>
                           {sv.tags && sv.tags.length > 0 && (
                             <div style={{ display: 'flex', gap: 4 }}>
                               {sv.tags.slice(0, 2).map(tag => (
-                                <span key={tag} style={{ fontFamily: 'Inter', fontSize: 9, color: '#f59e0b', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 4, padding: '2px 6px' }}>{tag}</span>
+                                <span key={tag} style={{ fontFamily: 'Inter', fontSize: 9, color: '#c9a84c', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 4, padding: '2px 6px' }}>{tag}</span>
                               ))}
                             </div>
                           )}
@@ -440,13 +440,13 @@ export default function GrowthFeed() {
                       ))}
                     </div>
                     {Object.keys(tasteProfile.channelAffinities || {}).length > 0 && (
-                      <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(245,158,11,0.04)', border: '1px solid rgba(245,158,11,0.1)', borderRadius: 8 }}>
-                        <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Your Taste Profile</div>
+                      <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.1)', borderRadius: 8 }}>
+                        <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Your Taste Profile</div>
                         <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#d1d5db' }}>
-                          Top channels: <span style={{ color: '#f59e0b' }}>{Object.entries(tasteProfile.channelAffinities || {}).sort((a,b) => b[1]-a[1]).slice(0,3).map(([k]) => k).join(', ') || '—'}</span>
+                          Top channels: <span style={{ color: '#c9a84c' }}>{Object.entries(tasteProfile.channelAffinities || {}).sort((a,b) => b[1]-a[1]).slice(0,3).map(([k]) => k).join(', ') || '—'}</span>
                         </div>
                         <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#d1d5db', marginTop: 3 }}>
-                          Top topics: <span style={{ color: '#f59e0b' }}>{Object.entries(tasteProfile.topicAffinities || {}).sort((a,b) => b[1]-a[1]).slice(0,4).map(([k]) => k).join(', ') || '—'}</span>
+                          Top topics: <span style={{ color: '#c9a84c' }}>{Object.entries(tasteProfile.topicAffinities || {}).sort((a,b) => b[1]-a[1]).slice(0,4).map(([k]) => k).join(', ') || '—'}</span>
                         </div>
                       </div>
                     )}
@@ -457,7 +457,7 @@ export default function GrowthFeed() {
           </div>
 
           {/* Stats bar */}
-          <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', paddingBottom: 20, borderBottom: '1px solid #1a1a2e' }}>
+          <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', paddingBottom: 20, borderBottom: '1px solid #1a2440' }}>
             {[
               { label: 'Total Watched', value: totalWatched },
               { label: 'Avg Rating', value: avgRating },
@@ -465,8 +465,8 @@ export default function GrowthFeed() {
               { label: 'This Week', value: thisWeek },
             ].map(s => (
               <div key={s.label}>
-                <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 32, lineHeight: 1, color: '#f59e0b' }}>{s.value}</div>
-                <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#4b5563', marginTop: 3 }}>{s.label}</div>
+                <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 32, lineHeight: 1, color: '#c9a84c' }}>{s.value}</div>
+                <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#a0aec0', marginTop: 3 }}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -478,11 +478,11 @@ export default function GrowthFeed() {
                 key={f}
                 onClick={() => setFilter(f)}
                 style={filter === f
-                  ? { background: '#f59e0b', color: '#000', fontFamily: 'Inter', fontSize: 10, fontWeight: 700, padding: '5px 12px', border: '1px solid #f59e0b', cursor: 'pointer', borderRadius: 4 }
-                  : { background: '#0b0b16', border: '1px solid #1a1a2e', color: '#4b5563', fontFamily: 'Inter', fontSize: 10, padding: '5px 12px', cursor: 'pointer', borderRadius: 4 }
+                  ? { background: '#c9a84c', color: '#000', fontFamily: 'Inter', fontSize: 10, fontWeight: 700, padding: '5px 12px', border: '1px solid #c9a84c', cursor: 'pointer', borderRadius: 4 }
+                  : { background: '#0d1427', border: '1px solid #1a2440', color: '#a0aec0', fontFamily: 'Inter', fontSize: 10, padding: '5px 12px', cursor: 'pointer', borderRadius: 4 }
                 }
-                onMouseEnter={e => { if (filter !== f) { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.color = '#fff' } }}
-                onMouseLeave={e => { if (filter !== f) { e.currentTarget.style.borderColor = '#1a1a2e'; e.currentTarget.style.color = '#4b5563' } }}
+                onMouseEnter={e => { if (filter !== f) { e.currentTarget.style.borderColor = '#c9a84c'; e.currentTarget.style.color = '#fff' } }}
+                onMouseLeave={e => { if (filter !== f) { e.currentTarget.style.borderColor = '#1a2440'; e.currentTarget.style.color = '#a0aec0' } }}
               >
                 {f}
               </button>
@@ -491,11 +491,11 @@ export default function GrowthFeed() {
 
           {/* Current Drop */}
           <section>
-            <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 20, color: '#fff', borderLeft: '2px solid #f59e0b', paddingLeft: 12, marginBottom: 16 }}>
+            <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 20, color: '#fff', borderLeft: '2px solid #c9a84c', paddingLeft: 12, marginBottom: 16 }}>
               Current Drop
             </div>
             {unwatched.length === 0 ? (
-              <div style={{ background: 'rgba(245,158,11,0.03)', border: '2px dashed rgba(245,158,11,0.18)', fontFamily: 'Inter', fontSize: 12, color: '#4b5563', padding: '32px', textAlign: 'center', borderRadius: 12 }}>
+              <div style={{ background: 'rgba(201,168,76,0.08)', border: '2px dashed rgba(201,168,76,0.18)', fontFamily: 'Inter', fontSize: 12, color: '#a0aec0', padding: '32px', textAlign: 'center', borderRadius: 12 }}>
                 {filter !== 'ALL' ? `No unwatched videos in ${filter.toLowerCase()}` : 'All caught up — add more videos above'}
               </div>
             ) : (
@@ -508,26 +508,26 @@ export default function GrowthFeed() {
           </section>
 
           {/* Divider */}
-          <div style={{ height: 1, background: '#1a1a2e' }} />
+          <div style={{ height: 1, background: '#1a2440' }} />
 
           {/* Watched */}
           <section>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 20, color: '#fff', borderLeft: '2px solid #f59e0b', paddingLeft: 12 }}>
+              <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 20, color: '#fff', borderLeft: '2px solid #c9a84c', paddingLeft: 12 }}>
                 Watched ({videos.filter(v => v.watched).length})
               </div>
               <button
                 onClick={() => setShowWatched(!showWatched)}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'Inter', fontSize: 11, color: '#4b5563', background: 'none', border: 'none', cursor: 'pointer' }}
-                onMouseEnter={e => e.currentTarget.style.color = '#888'}
-                onMouseLeave={e => e.currentTarget.style.color = '#4b5563'}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'Inter', fontSize: 11, color: '#a0aec0', background: 'none', border: 'none', cursor: 'pointer' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#a0aec0'}
+                onMouseLeave={e => e.currentTarget.style.color = '#a0aec0'}
               >
                 {showWatched ? <><ChevronUp size={13} /> Collapse</> : <><ChevronDown size={13} /> Expand</>}
               </button>
             </div>
             {showWatched && (
               watched.length === 0 ? (
-                <div style={{ background: '#0b0b16', border: '1px solid #1a1a2e', fontFamily: 'Inter', fontSize: 12, color: '#4b5563', padding: '32px', textAlign: 'center', borderRadius: 12 }}>
+                <div style={{ background: '#0d1427', border: '1px solid #1a2440', fontFamily: 'Inter', fontSize: 12, color: '#a0aec0', padding: '32px', textAlign: 'center', borderRadius: 12 }}>
                   No watched videos{filter !== 'ALL' ? ' in this category' : ''} yet
                 </div>
               ) : (
@@ -566,8 +566,8 @@ export default function GrowthFeed() {
               </select>
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={handleAddVideo} style={{ flex: 1, padding: '10px', background: '#f59e0b', color: '#000', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer' }}>Add to Feed</button>
-              <button onClick={() => setShowAddModal(false)} style={{ padding: '10px 16px', border: '1px solid #1a1a2e', color: '#4b5563', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleAddVideo} style={{ flex: 1, padding: '10px', background: '#c9a84c', color: '#000', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer' }}>Add to Feed</button>
+              <button onClick={() => setShowAddModal(false)} style={{ padding: '10px 16px', border: '1px solid #1a2440', color: '#a0aec0', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
             </div>
           </div>
         </Modal>
@@ -577,8 +577,8 @@ export default function GrowthFeed() {
       {showKeyModal && (
         <Modal title="Set Anthropic API Key" onClose={() => setShowKeyModal(false)}>
           <div className="space-y-4">
-            <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#6b7280' }}>
-              Paste your key from <span style={{ color: '#f59e0b' }}>console.anthropic.com</span>. Saved to your browser only.
+            <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0aec0' }}>
+              Paste your key from <span style={{ color: '#c9a84c' }}>console.anthropic.com</span>. Saved to your browser only.
             </p>
             <div>
               <label className={cls.label}>API Key</label>
@@ -592,8 +592,8 @@ export default function GrowthFeed() {
               />
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={handleSaveKey} style={{ flex: 1, padding: '10px', background: '#f59e0b', color: '#000', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer' }}>Save Key</button>
-              <button onClick={() => setShowKeyModal(false)} style={{ padding: '10px 16px', border: '1px solid #1a1a2e', color: '#4b5563', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleSaveKey} style={{ flex: 1, padding: '10px', background: '#c9a84c', color: '#000', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer' }}>Save Key</button>
+              <button onClick={() => setShowKeyModal(false)} style={{ padding: '10px 16px', border: '1px solid #1a2440', color: '#a0aec0', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
             </div>
           </div>
         </Modal>
