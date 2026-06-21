@@ -5,19 +5,26 @@ import Modal from '../components/Modal'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { pct, fmtShort } from '../utils'
 
-const CARD = { background: '#0d0d0d', border: '1px solid #262626', borderRadius: 12, padding: 20 }
+const CARD = { background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 12, padding: 20 }
 const CHART_TT = {
-  contentStyle: { background: '#0d0d0d', border: '1px solid #262626', borderRadius: 8, fontSize: 11, fontFamily: 'Inter' },
+  contentStyle: { background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 8, fontSize: 11, fontFamily: 'Inter' },
   labelStyle: { color: '#6b7280' },
   itemStyle: { color: '#fff' },
 }
 
 const cls = {
-  input: "w-full bg-[#0a0a0a] border border-[#262626] px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#f59e0b] transition-colors rounded-lg",
+  input: "w-full bg-[#06060f] border border-[#1a1a2e] px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#f59e0b] transition-colors rounded-lg",
   label: "block text-[9px] font-mono uppercase tracking-widest text-[#555] mb-1.5",
   primary: "flex-1 py-2.5 text-white text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity rounded-lg",
-  secondary: "px-4 py-2.5 border border-[#262626] text-[#555] text-[10px] uppercase tracking-widest hover:border-[#444] hover:text-white transition-colors rounded-lg",
+  secondary: "px-4 py-2.5 border border-[#1a1a2e] text-[#555] text-[10px] uppercase tracking-widest hover:border-[#444] hover:text-white transition-colors rounded-lg",
 }
+
+const SectionLabel = ({ children }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b' }} />
+    <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{children}</span>
+  </div>
+)
 
 export default function Body() {
   const [tab, setTab] = useState('fitness')
@@ -112,33 +119,40 @@ export default function Body() {
   const projDays = bfDiff > 0 ? Math.round(bfDiff / 0.5 * 7) : null
   const projDate = projDays ? new Date(Date.now() + projDays * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null
 
-  const LABEL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 14 }
-
   return (
-    <div className="h-full flex flex-col" style={{ background: '#0a0a0a' }}>
+    <div className="h-full flex flex-col" style={{ background: '#06060f' }}>
       {/* Header */}
-      <div className="px-6 py-4 shrink-0 flex items-center justify-between" style={{ borderBottom: '1px solid #262626' }}>
-        <div>
-          <h1 style={{ fontFamily: 'Inter', fontSize: 20, fontWeight: 700, color: 'white', letterSpacing: '0.06em' }}>BODY</h1>
-          <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#6b7280', marginTop: 2 }}>Physical optimization system</p>
+      <div style={{ background: '#06060f', borderBottom: '1px solid #1a1a2e', padding: '20px 32px', flexShrink: 0, position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+          <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
+          <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#4b5563', letterSpacing: '0.12em', textTransform: 'uppercase' }}>BIOMETRICS ONLINE</span>
         </div>
-        <div className="flex gap-2">
+        <h1 style={{
+          fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em',
+          background: 'linear-gradient(180deg,#facc15 0%,#f59e0b 60%,#f97316 100%)',
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0
+        }}>
+          BODY
+        </h1>
+        <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>PHYSICAL OPTIMIZATION // PERFORMANCE COMMAND</p>
+        {/* Action buttons */}
+        <div style={{ position: 'absolute', right: 32, top: '50%', transform: 'translateY(-50%)', display: 'flex', gap: 8, alignItems: 'center' }}>
           {tab === 'fitness' ? (
             <>
-              <button onClick={() => om('stats')} style={{ background: 'transparent', color: '#6b7280', border: '1px solid #262626', borderRadius: 8, padding: '6px 12px', fontFamily: 'Inter', fontSize: 11, cursor: 'pointer' }}
+              <button onClick={() => om('stats')} style={{ background: 'transparent', color: '#6b7280', border: '1px solid #1a1a2e', borderRadius: 8, padding: '6px 12px', fontFamily: 'Inter', fontSize: 11, cursor: 'pointer' }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = '#f59e0b'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = '#262626'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#1a1a2e'}
               >Update Stats</button>
-              <button onClick={() => om('pr')} style={{ background: 'transparent', color: '#6b7280', border: '1px solid #262626', borderRadius: 8, padding: '6px 12px', fontFamily: 'Inter', fontSize: 11, cursor: 'pointer' }}
+              <button onClick={() => om('pr')} style={{ background: 'transparent', color: '#6b7280', border: '1px solid #1a1a2e', borderRadius: 8, padding: '6px 12px', fontFamily: 'Inter', fontSize: 11, cursor: 'pointer' }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = '#f59e0b'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = '#262626'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#1a1a2e'}
               >Log PR</button>
-              <button onClick={() => om('workout')} style={{ background: '#f59e0b', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button onClick={() => om('workout')} style={{ background: '#f59e0b', color: '#000', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Plus size={12} strokeWidth={2.5} /> Log Workout
               </button>
             </>
           ) : (
-            <button onClick={() => om('meal')} style={{ background: '#f59e0b', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button onClick={() => om('meal')} style={{ background: '#f59e0b', color: '#000', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Plus size={12} strokeWidth={2.5} /> Log Meal
             </button>
           )}
@@ -146,14 +160,15 @@ export default function Body() {
       </div>
 
       {/* Tabs */}
-      <div className="px-6 py-3 flex gap-1 shrink-0" style={{ borderBottom: '1px solid #262626' }}>
+      <div className="px-6 py-3 flex gap-2 shrink-0" style={{ borderBottom: '1px solid #1a1a2e' }}>
         {['fitness', 'diet'].map(t => (
           <button key={t} onClick={() => setTab(t)}
             style={{
-              padding: '5px 14px', borderRadius: 8, fontFamily: 'Inter', fontSize: 12, fontWeight: tab === t ? 600 : 400,
+              padding: '5px 16px', borderRadius: 8, fontFamily: 'Inter', fontSize: 12, fontWeight: tab === t ? 600 : 400,
               background: tab === t ? '#f59e0b' : 'transparent',
-              color: tab === t ? 'white' : '#6b7280',
-              border: 'none', cursor: 'pointer', textTransform: 'capitalize', transition: 'all 0.15s',
+              color: tab === t ? '#000' : '#4b5563',
+              border: tab === t ? 'none' : '1px solid #1a1a2e',
+              cursor: 'pointer', textTransform: 'capitalize', transition: 'all 0.15s',
             }}
           >{t}</button>
         ))}
@@ -171,9 +186,9 @@ export default function Body() {
                 { label: 'Days to Goal', value: projDays ? `${projDays}` : '—', unit: projDays ? 'days' : '', sub: projDate || '' },
               ].map(s => (
                 <div key={s.label} style={CARD}>
-                  <div style={LABEL}>{s.label}</div>
+                  <SectionLabel>{s.label}</SectionLabel>
                   <div style={{ fontFamily: 'Inter', display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                    <span style={{ fontSize: 28, fontWeight: 800, color: 'white', lineHeight: 1 }}>{s.value}</span>
+                    <span style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 36, fontWeight: 400, color: 'white', lineHeight: 1 }}>{s.value}</span>
                     {s.unit && <span style={{ fontSize: 12, color: '#6b7280' }}>{s.unit}</span>}
                   </div>
                   {s.sub && <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#facc15', marginTop: 4 }}>{s.sub}</div>}
@@ -184,7 +199,7 @@ export default function Body() {
             {/* Weight chart */}
             {weightChart.length > 1 && (
               <div style={CARD}>
-                <div style={LABEL}>Weight Trend (Last 90 Days)</div>
+                <SectionLabel>Weight Trend (Last 90 Days)</SectionLabel>
                 <ResponsiveContainer width="100%" height={140}>
                   <LineChart data={weightChart}>
                     <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} interval={Math.floor(weightChart.length / 6)} />
@@ -199,10 +214,10 @@ export default function Body() {
             {/* Personal Records Table */}
             {body.prs && Object.keys(body.prs).length > 0 && (
               <div style={CARD}>
-                <div style={LABEL}>Personal Records</div>
+                <SectionLabel>Personal Records</SectionLabel>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid #262626' }}>
+                    <tr style={{ borderBottom: '1px solid #1a1a2e' }}>
                       {['EXERCISE', 'WEIGHT', 'REPS', 'DATE'].map(h => (
                         <th key={h} style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'left', padding: '0 12px 10px' }}>{h}</th>
                       ))}
@@ -210,7 +225,7 @@ export default function Body() {
                   </thead>
                   <tbody>
                     {Object.entries(body.prs).map(([ex, pr]) => (
-                      <tr key={ex} style={{ borderBottom: '1px solid #262626' }}>
+                      <tr key={ex} style={{ borderBottom: '1px solid #1a1a2e' }}>
                         <td style={{ padding: '10px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', fontWeight: 600 }}>{ex}</td>
                         <td style={{ padding: '10px 12px', fontFamily: 'Inter', fontSize: 18, fontWeight: 800, color: '#facc15' }}>
                           {pr.weight}<span style={{ fontSize: 11, color: '#6b7280', marginLeft: 2 }}>lbs</span>
@@ -226,20 +241,20 @@ export default function Body() {
 
             {/* Workouts */}
             <div style={CARD}>
-              <div style={LABEL}>Recent Workouts</div>
+              <SectionLabel>Recent Workouts</SectionLabel>
               {(!body.workouts || body.workouts.length === 0) ? (
                 <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#333', textAlign: 'center', padding: '24px 0' }}>No workouts logged yet</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {(body.workouts || []).slice(0, 8).map(w => (
-                    <div key={w.id} style={{ background: '#0a0a0a', border: '1px solid #262626', borderRadius: 8, padding: '10px 14px' }}>
+                    <div key={w.id} style={{ background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 8, padding: '10px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                         <span style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 600, color: 'white' }}>{w.name}</span>
                         <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#6b7280' }}>{fmtShort(w.date)}</span>
                       </div>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                         {(w.exercises || []).map((ex, i) => (
-                          <span key={i} style={{ fontFamily: 'Inter', fontSize: 11, color: '#facc15', border: '1px solid #262626', borderRadius: 4, padding: '2px 8px' }}>
+                          <span key={i} style={{ fontFamily: 'Inter', fontSize: 11, color: '#facc15', border: '1px solid #1a1a2e', borderRadius: 4, padding: '2px 8px' }}>
                             {ex.name} {ex.sets}×{ex.reps}{ex.weight ? ` @ ${ex.weight}lbs` : ''}
                           </span>
                         ))}
@@ -264,12 +279,12 @@ export default function Body() {
                 const over = p >= 100
                 return (
                   <div key={m.label} style={CARD}>
-                    <div style={LABEL}>{m.label}</div>
+                    <SectionLabel>{m.label}</SectionLabel>
                     <div style={{ fontFamily: 'Inter', marginBottom: 10 }}>
-                      <span style={{ fontSize: 24, fontWeight: 800, color: 'white' }}>{m.current || 0}</span>
+                      <span style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 36, fontWeight: 400, color: 'white', lineHeight: 1 }}>{m.current || 0}</span>
                       <span style={{ fontSize: 11, color: '#6b7280', marginLeft: 4 }}>/ {m.target} {m.unit}</span>
                     </div>
-                    <div style={{ height: 4, background: '#262626', borderRadius: 2 }}>
+                    <div style={{ height: 4, background: '#1a1a2e', borderRadius: 2 }}>
                       <div style={{ height: 4, background: over ? '#ef4444' : '#f59e0b', borderRadius: 2, width: `${Math.min(100, p)}%`, transition: 'width 0.3s' }} />
                     </div>
                     <div style={{ fontFamily: 'Inter', fontSize: 10, color: over ? '#ef4444' : '#6b7280', marginTop: 4 }}>{p}%</div>
@@ -282,7 +297,10 @@ export default function Body() {
               {/* Calorie chart */}
               <div style={CARD}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                  <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>7-Day Calories</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b' }} />
+                    <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em' }}>7-Day Calories</span>
+                  </div>
                   <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#6b7280' }}>30d avg: <span style={{ color: '#facc15' }}>{avg30}</span> kcal</span>
                 </div>
                 <ResponsiveContainer width="100%" height={120}>
@@ -297,7 +315,7 @@ export default function Body() {
 
               {/* Supplements */}
               <div style={CARD}>
-                <div style={LABEL}>Supplements Today</div>
+                <SectionLabel>Supplements Today</SectionLabel>
                 {(diet.supplements || []).length === 0 ? (
                   <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#333', textAlign: 'center', padding: '24px 0' }}>No supplements added</div>
                 ) : (
@@ -308,8 +326,8 @@ export default function Body() {
                         <button key={s.id} onClick={() => toggleSupp(s.id)}
                           style={{
                             width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px',
-                            background: done ? 'rgba(34,197,94,0.08)' : '#0a0a0a',
-                            border: `1px solid ${done ? 'rgba(34,197,94,0.3)' : '#262626'}`,
+                            background: done ? 'rgba(34,197,94,0.08)' : '#06060f',
+                            border: `1px solid ${done ? 'rgba(34,197,94,0.3)' : '#1a1a2e'}`,
                             borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s',
                           }}
                         >

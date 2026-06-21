@@ -20,7 +20,7 @@ const TYPE_COLORS = {
 const ENERGY_ICON = { builds: '⚡', neutral: '⚪', drains: '🔻' }
 
 const cls = {
-  input: "w-full bg-[#080808] border border-[#2a2a2a] px-3 py-2 text-sm text-white placeholder-[#333] focus:outline-none focus:border-[#dc2626] transition-colors",
+  input: "w-full bg-[#06060f] border border-[#1a1a2e] px-3 py-2 text-sm text-white placeholder-[#333] focus:outline-none focus:border-[#f59e0b] transition-colors",
   label: "block text-[9px] font-mono uppercase tracking-widest text-[#444] mb-1.5",
 }
 
@@ -87,29 +87,38 @@ export default function Relations() {
   }
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="px-8 py-5 border-b border-[#2a2a2a] shrink-0 flex items-center justify-between">
+    <div className="h-full flex flex-col" style={{ background: '#06060f' }}>
+      {/* Header */}
+      <div style={{ background: '#06060f', borderBottom: '1px solid #1a1a2e', padding: '20px 32px', flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
-          <h1 className="text-xl font-bold uppercase tracking-tight">Relations</h1>
-          <p className="text-[10px] font-mono text-[#444] mt-0.5 uppercase tracking-widest">Inner circle management</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
+            <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#4b5563', letterSpacing: '0.12em', textTransform: 'uppercase' }}>NETWORK INTELLIGENCE ACTIVE</span>
+          </div>
+          <h1 style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(180deg,#facc15 0%,#f59e0b 60%,#f97316 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>
+            RELATIONS
+          </h1>
+          <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>PEOPLE · PSYCHOLOGY · NETWORK MAP</p>
         </div>
-        <button onClick={() => setShowPersonModal(true)} className="flex items-center gap-2 px-4 py-2 bg-[#dc2626] text-white text-[9px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors">
-          <Plus size={11} strokeWidth={2.5} /> Add Person
-        </button>
+        <div style={{ marginTop: 16 }}>
+          <button onClick={() => setShowPersonModal(true)} style={{ background: '#f59e0b', color: '#000', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Plus size={11} strokeWidth={2.5} /> Add Person
+          </button>
+        </div>
       </div>
 
       {/* Stats row */}
-      <div className="px-8 py-2 border-b border-[#2a2a2a] flex gap-6 text-[9px] font-mono text-[#333] uppercase tracking-widest shrink-0">
-        <span>People: <span className="text-[#666]">{people.length}</span></span>
-        <span>Builders: <span className="text-[#16a34a]">{builders}</span></span>
-        <span>Drainers: <span className="text-[#dc2626]">{drainers}</span></span>
+      <div style={{ padding: '8px 32px', borderBottom: '1px solid #1a1a2e', display: 'flex', gap: 24, flexShrink: 0 }}>
+        <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em' }}>People: <span style={{ color: '#6b7280' }}>{people.length}</span></span>
+        <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Builders: <span style={{ color: '#16a34a' }}>{builders}</span></span>
+        <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Drainers: <span style={{ color: '#ef4444' }}>{drainers}</span></span>
       </div>
 
       <div className="flex-1 overflow-auto px-8 py-6 space-y-10">
         {/* Search */}
         <div className="relative">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#333]" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search people..." className="w-full bg-[#141414] border border-[#2a2a2a] pl-8 pr-3 py-2 text-sm text-[#888] placeholder-[#333] focus:outline-none focus:border-[#dc2626]" />
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#4b5563' }} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search people..." style={{ width: '100%', background: '#06060f', border: '1px solid #1a1a2e', paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, fontFamily: 'Inter', fontSize: 14, color: '#d1d5db', outline: 'none' }} className="focus:border-[#f59e0b] transition-colors placeholder-[#333]" />
         </div>
 
         {/* People grid */}
@@ -119,10 +128,16 @@ export default function Relations() {
             const days = daysSince(lastContact)
             const isExpanded = expanded[p.id]
             const healthScore = days !== null ? Math.max(0, 100 - days * 5) : 50
-            const healthColor = healthScore > 60 ? '#16a34a' : healthScore > 30 ? '#facc15' : '#dc2626'
+            const healthColor = healthScore > 60 ? '#16a34a' : healthScore > 30 ? '#facc15' : '#f59e0b'
+
+            const energyBorderLeft = p.energyRating === 'builds'
+              ? '3px solid #22c55e'
+              : p.energyRating === 'drains'
+                ? '3px solid #ef4444'
+                : '3px solid #4b5563'
 
             return (
-              <div key={p.id} className="bg-[#0f0f0f] border border-[#2a2a2a] hover:shadow-[0_0_12px_rgba(220,38,38,0.1)] transition-all">
+              <div key={p.id} style={{ background: '#06060f', border: '1px solid #1a1a2e', borderLeft: energyBorderLeft, borderRadius: 8 }} className="transition-all">
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex-1">
@@ -133,7 +148,7 @@ export default function Relations() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`text-[8px] font-mono uppercase tracking-widest border px-1.5 py-0.5 ${TYPE_COLORS[p.type] || TYPE_COLORS.Other}`}>{p.type}</span>
                         {days !== null && (
-                          <span className={`text-[9px] font-mono ${days > 14 ? 'text-[#dc2626]' : 'text-[#333]'}`}>
+                          <span className="text-[9px] font-mono" style={{ color: days > 14 ? '#f59e0b' : '#4b5563' }}>
                             {days === 0 ? 'today' : `${days}d ago`}
                           </span>
                         )}
@@ -141,47 +156,48 @@ export default function Relations() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <button onClick={() => setExpanded(e => ({ ...e, [p.id]: !e[p.id] }))} className="text-[#333] hover:text-[#888] transition-colors">
+                      <button onClick={() => setExpanded(e => ({ ...e, [p.id]: !e[p.id] }))} style={{ color: '#4b5563', background: 'none', border: 'none', cursor: 'pointer' }} className="hover:text-[#888] transition-colors">
                         {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                       </button>
-                      <button onClick={() => deletePerson(p.id)} className="text-[#222] hover:text-[#dc2626] transition-colors"><X size={12} /></button>
+                      <button onClick={() => deletePerson(p.id)} style={{ color: '#333', background: 'none', border: 'none', cursor: 'pointer' }} className="hover:text-[#f59e0b] transition-colors"><X size={12} /></button>
                     </div>
                   </div>
                   {p.notes && <p className="text-xs text-[#555] leading-relaxed line-clamp-2">{p.notes}</p>}
                 </div>
 
                 {isExpanded && (
-                  <div className="border-t border-[#2a2a2a] px-4 pb-4 pt-3 space-y-3">
+                  <div style={{ borderTop: '1px solid #1a1a2e' }} className="px-4 pb-4 pt-3 space-y-3">
                     {p.notes && (
                       <div>
-                        <div className="text-[8px] font-mono uppercase tracking-widest text-[#333] mb-1">Notes</div>
+                        <div className="text-[8px] font-mono uppercase tracking-widest mb-1" style={{ color: '#4b5563' }}>Notes</div>
                         <p className="text-xs text-[#666] leading-relaxed">{p.notes}</p>
                       </div>
                     )}
                     {(p.psychologyNotes || []).length > 0 && (
                       <div>
-                        <div className="text-[8px] font-mono uppercase tracking-widest text-[#333] mb-1">Psychology</div>
+                        <div className="text-[8px] font-mono uppercase tracking-widest mb-1" style={{ color: '#4b5563' }}>Psychology</div>
                         <div className="space-y-1">
                           {(p.psychologyNotes || []).map(n => (
-                            <div key={n.id} className="text-xs text-[#555] border-l-2 border-[#dc2626]/30 pl-2 py-0.5">
+                            <div key={n.id} className="text-xs text-[#555] pl-2 py-0.5" style={{ borderLeft: '2px solid #f59e0b40' }}>
                               <span>{n.note}</span>
-                              <span className="text-[9px] font-mono text-[#333] ml-2">{fmtShort(n.date)}</span>
+                              <span className="text-[9px] font-mono ml-2" style={{ color: '#4b5563' }}>{fmtShort(n.date)}</span>
                             </div>
                           ))}
                         </div>
                       </div>
                     )}
                     <div>
-                      <div className="text-[8px] font-mono uppercase tracking-widest text-[#333] mb-1.5">Add Psychology Note</div>
+                      <div className="text-[8px] font-mono uppercase tracking-widest mb-1.5" style={{ color: '#4b5563' }}>Add Psychology Note</div>
                       <div className="flex gap-2">
                         <input
                           value={newPsyNote[p.id] || ''}
                           onChange={e => setNewPsyNote(n => ({ ...n, [p.id]: e.target.value }))}
                           onKeyDown={e => e.key === 'Enter' && addPsyNote(p.id)}
                           placeholder="Observation..."
-                          className="flex-1 bg-[#141414] border border-[#2a2a2a] px-2 py-1.5 text-xs text-white placeholder-[#333] focus:outline-none focus:border-[#dc2626]"
+                          style={{ flex: 1, background: '#06060f', border: '1px solid #1a1a2e', padding: '6px 8px', fontSize: 12, color: 'white', outline: 'none' }}
+                          className="focus:border-[#f59e0b] transition-colors placeholder-[#333]"
                         />
-                        <button onClick={() => addPsyNote(p.id)} className="px-3 py-1.5 bg-[#dc2626]/20 border border-[#dc2626]/30 text-[#dc2626] text-[9px] font-mono uppercase tracking-widest hover:bg-[#dc2626]/30 transition-colors">Add</button>
+                        <button onClick={() => addPsyNote(p.id)} style={{ padding: '6px 12px', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', color: '#f59e0b', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer' }} className="hover:bg-[rgba(245,158,11,0.2)] transition-colors">Add</button>
                       </div>
                     </div>
                   </div>
@@ -194,39 +210,53 @@ export default function Relations() {
         {/* Human Behavior Notes */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[#444]">Human Behavior Notes</span>
-            <button onClick={() => setShowBehModal(true)} className="flex items-center gap-1 px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors">
+            <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Human Behavior Notes</span>
+            <button onClick={() => setShowBehModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', border: '1px solid #1a1a2e', background: 'transparent', color: '#4b5563', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.color = 'white' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#1a1a2e'; e.currentTarget.style.color = '#4b5563' }}
+            >
               <Plus size={9} /> Add Note
             </button>
           </div>
           <div className="flex gap-1 flex-wrap mb-3">
             {['All', ...BEH_CATS].map(cat => (
               <button key={cat} onClick={() => setBehCat(cat)}
-                className={`px-3 py-1 text-[9px] font-mono uppercase tracking-widest transition-all ${behCat === cat ? 'bg-[#dc2626] text-white' : 'border border-[#2a2a2a] text-[#444] hover:border-[#dc2626] hover:text-white'}`}>
+                style={{
+                  padding: '4px 12px',
+                  fontFamily: 'Inter',
+                  fontSize: 9,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  cursor: 'pointer',
+                  border: behCat === cat ? '1px solid rgba(245,158,11,0.3)' : '1px solid #1a1a2e',
+                  background: behCat === cat ? 'rgba(245,158,11,0.12)' : 'transparent',
+                  color: behCat === cat ? '#f59e0b' : '#4b5563',
+                  transition: 'all 0.15s',
+                }}>
                 {cat}
               </button>
             ))}
           </div>
           <div className="relative mb-3">
-            <Search size={11} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#333]" />
-            <input value={behSearch} onChange={e => setBehSearch(e.target.value)} placeholder="Search observations..." className="w-full bg-[#141414] border border-[#2a2a2a] pl-8 pr-3 py-1.5 text-sm text-[#888] placeholder-[#333] focus:outline-none focus:border-[#dc2626]" />
+            <Search size={11} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#4b5563' }} />
+            <input value={behSearch} onChange={e => setBehSearch(e.target.value)} placeholder="Search observations..." style={{ width: '100%', background: '#06060f', border: '1px solid #1a1a2e', paddingLeft: 32, paddingRight: 12, paddingTop: 6, paddingBottom: 6, fontFamily: 'Inter', fontSize: 14, color: '#d1d5db', outline: 'none' }} className="focus:border-[#f59e0b] transition-colors placeholder-[#333]" />
           </div>
           <div className="space-y-2">
             {filteredBeh.map(n => (
-              <div key={n.id} className="bg-[#0f0f0f] border border-[#2a2a2a] p-4 group hover:shadow-[0_0_12px_rgba(220,38,38,0.1)] transition-all">
+              <div key={n.id} style={{ background: '#06060f', border: '1px solid #1a1a2e', padding: 16, borderRadius: 8 }} className="group transition-all">
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[8px] font-mono uppercase tracking-widest text-[#dc2626]">{n.category}</span>
-                    <span className="text-[8px] font-mono text-[#333]">{fmtShort(n.date)}</span>
+                    <span style={{ fontFamily: 'Inter', fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#f59e0b' }}>{n.category}</span>
+                    <span style={{ fontFamily: 'Inter', fontSize: 8, color: '#4b5563' }}>{fmtShort(n.date)}</span>
                   </div>
-                  <button onClick={() => deleteBeh(n.id)} className="text-[#222] hover:text-[#dc2626] opacity-0 group-hover:opacity-100 transition-all"><X size={11} /></button>
+                  <button onClick={() => deleteBeh(n.id)} style={{ color: '#333', background: 'none', border: 'none', cursor: 'pointer' }} className="opacity-0 group-hover:opacity-100 hover:text-[#f59e0b] transition-all"><X size={11} /></button>
                 </div>
                 <div className="text-sm font-semibold text-white mb-1">{n.observation}</div>
                 {n.detail && <p className="text-xs text-[#555] leading-relaxed">{n.detail}</p>}
               </div>
             ))}
             {filteredBeh.length === 0 && (
-              <div className="bg-[#0f0f0f] border border-[#2a2a2a] p-6 text-center text-[#333] text-[10px] font-mono uppercase tracking-widest">No observations yet</div>
+              <div style={{ background: '#06060f', border: '1px solid #1a1a2e', padding: 24, textAlign: 'center', fontFamily: 'Inter', fontSize: 10, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: 8 }}>No observations yet</div>
             )}
           </div>
         </section>
@@ -250,8 +280,8 @@ export default function Relations() {
             </div>
             <div><label className={cls.label}>Notes</label><textarea value={pf.notes} onChange={e => setPf({ ...pf, notes: e.target.value })} rows={3} placeholder="Who is this person..." className={cls.input + " resize-none"} /></div>
             <div className="flex gap-2 pt-1">
-              <button onClick={addPerson} className="flex-1 py-2.5 bg-[#dc2626] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors">Save</button>
-              <button onClick={() => setShowPersonModal(false)} className="px-4 py-2.5 border border-[#2a2a2a] text-[#444] text-[10px] uppercase tracking-widest hover:border-[#666] transition-colors">Cancel</button>
+              <button onClick={addPerson} style={{ background: '#f59e0b', color: '#000', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
+              <button onClick={() => setShowPersonModal(false)} style={{ border: '1px solid #1a1a2e', color: '#555', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
             </div>
           </div>
         </Modal>
@@ -268,8 +298,8 @@ export default function Relations() {
             <div><label className={cls.label}>Observation (headline)</label><input value={bf.observation} onChange={e => setBf({ ...bf, observation: e.target.value })} autoFocus placeholder="What did you notice?" className={cls.input} /></div>
             <div><label className={cls.label}>Detail</label><textarea value={bf.detail} onChange={e => setBf({ ...bf, detail: e.target.value })} rows={4} placeholder="Explain the pattern..." className={cls.input + " resize-none"} /></div>
             <div className="flex gap-2 pt-1">
-              <button onClick={addBehNote} className="flex-1 py-2.5 bg-[#dc2626] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors">Save</button>
-              <button onClick={() => setShowBehModal(false)} className="px-4 py-2.5 border border-[#2a2a2a] text-[#444] text-[10px] uppercase tracking-widest hover:border-[#666] transition-colors">Cancel</button>
+              <button onClick={addBehNote} style={{ background: '#f59e0b', color: '#000', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
+              <button onClick={() => setShowBehModal(false)} style={{ border: '1px solid #1a1a2e', color: '#555', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
             </div>
           </div>
         </Modal>

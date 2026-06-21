@@ -3,6 +3,7 @@ import { daysSinceStart } from '../utils'
 
 const NAV = [
   { id: 'record', label: 'The Record' },
+  { id: 'insights', label: 'Insights' },
   { id: 'mind', label: 'Mind' },
   { id: 'body', label: 'Body' },
   { id: 'relations', label: 'Relations' },
@@ -21,7 +22,7 @@ export default function TopNav({ active, onSelect, onSettings }) {
     >
       {/* Logo */}
       <div className="flex items-center gap-2 shrink-0">
-        <Zap size={15} fill="#7c3aed" color="#7c3aed" />
+        <Zap size={15} fill="#f59e0b" color="#f59e0b" />
         <span style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 800, color: 'white', letterSpacing: '0.06em' }}>
           MARKO OS
         </span>
@@ -39,8 +40,8 @@ export default function TopNav({ active, onSelect, onSettings }) {
                 fontFamily: 'Inter',
                 fontSize: 13,
                 fontWeight: isActive ? 700 : 400,
-                color: isActive ? '#0a0a0a' : '#6b7280',
-                background: isActive ? '#f5f5f5' : 'transparent',
+                color: isActive ? '#000' : '#6b7280',
+                background: isActive ? '#f59e0b' : 'transparent',
                 padding: '5px 11px',
                 borderRadius: 6,
                 border: 'none',

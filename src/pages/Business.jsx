@@ -5,7 +5,7 @@ import Modal from '../components/Modal'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { fmtShort } from '../utils'
 
-const CARD = { background: '#0d0d0d', border: '1px solid #262626', borderRadius: 12, padding: 20 }
+const CARD = { background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 12, padding: 20 }
 const STATUSES = ['Lead', 'Appointment Set', 'No Show', 'Closed', 'Lost']
 const STATUS_COLORS = {
   Lead: { color: '#6b7280', border: '#6b72804d' },
@@ -16,17 +16,17 @@ const STATUS_COLORS = {
 }
 const LESSON_CATS = ['Sales Call', 'Outreach', 'Client', 'Strategy', 'Other']
 const CHART_TT = {
-  contentStyle: { background: '#0d0d0d', border: '1px solid #262626', borderRadius: 8, fontSize: 11, fontFamily: 'Inter' },
+  contentStyle: { background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 8, fontSize: 11, fontFamily: 'Inter' },
   labelStyle: { color: '#6b7280' },
   itemStyle: { color: '#fff' },
 }
 
 const cls = {
-  input: "w-full bg-[#0a0a0a] border border-[#262626] px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#f59e0b] transition-colors rounded-lg",
+  input: "w-full bg-[#06060f] border border-[#1a1a2e] px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#f59e0b] transition-colors rounded-lg",
   label: "block text-[9px] font-mono uppercase tracking-widest text-[#555] mb-1.5",
 }
 
-const LABEL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }
+const LABEL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }
 
 export default function Business() {
   const [data, setData] = useLocalStorage('marko_business', { deals: [], lessons: [], revenueHistory: [] })
@@ -102,21 +102,27 @@ export default function Business() {
   })
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#0a0a0a' }}>
+    <div className="h-full flex flex-col" style={{ background: '#06060f' }}>
       {/* Header */}
-      <div className="px-6 py-4 shrink-0 flex items-center justify-between" style={{ borderBottom: '1px solid #262626' }}>
+      <div style={{ background: '#06060f', borderBottom: '1px solid #1a1a2e', padding: '20px 32px', flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
-          <h1 style={{ fontFamily: 'Inter', fontSize: 20, fontWeight: 700, color: 'white', letterSpacing: '0.06em' }}>BUSINESS</h1>
-          <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#6b7280', marginTop: 2 }}>Revenue · Pipeline · Lessons</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
+            <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#4b5563', letterSpacing: '0.12em', textTransform: 'uppercase' }}>REVENUE COMMAND ACTIVE</span>
+          </div>
+          <h1 style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(180deg,#facc15 0%,#f59e0b 60%,#f97316 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>
+            BUSINESS
+          </h1>
+          <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>REVENUE · PIPELINE · LESSONS VAULT</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2" style={{ marginTop: 16 }}>
           <button onClick={() => setShowLessonModal(true)}
-            style={{ background: 'transparent', color: '#6b7280', border: '1px solid #262626', borderRadius: 8, padding: '6px 12px', fontFamily: 'Inter', fontSize: 11, cursor: 'pointer' }}
+            style={{ background: 'transparent', color: '#6b7280', border: '1px solid #1a1a2e', borderRadius: 8, padding: '6px 12px', fontFamily: 'Inter', fontSize: 11, cursor: 'pointer' }}
             onMouseEnter={e => e.currentTarget.style.borderColor = '#f59e0b'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#262626'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = '#1a1a2e'}
           >+ Lesson</button>
           <button onClick={() => setShowDealModal(true)}
-            style={{ background: '#f59e0b', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+            style={{ background: '#f59e0b', color: '#000', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
           ><Plus size={12} strokeWidth={2.5} /> Add Deal</button>
         </div>
       </div>
@@ -125,11 +131,11 @@ export default function Business() {
 
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          <div style={{ ...CARD, borderColor: monthRevenue >= 10000 ? '#facc1540' : '#262626' }}>
+          <div style={{ ...CARD, border: monthRevenue >= 10000 ? '1px solid #facc1540' : '1px solid #1a1a2e' }}>
             <div style={LABEL}>Revenue MTD</div>
-            <div style={{ fontFamily: 'Inter', fontSize: 32, fontWeight: 800, color: revenueColor, lineHeight: 1 }}>${monthRevenue.toLocaleString()}</div>
+            <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 36, fontWeight: 400, color: revenueColor, lineHeight: 1 }}>${monthRevenue.toLocaleString()}</div>
             <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#6b7280', marginTop: 4 }}>/ $10,000 goal</div>
-            <div style={{ marginTop: 8, height: 4, background: '#262626', borderRadius: 2 }}>
+            <div style={{ marginTop: 8, height: 4, background: '#1a1a2e', borderRadius: 2 }}>
               <div style={{ height: 4, background: monthRevenue >= 10000 ? '#facc15' : '#f59e0b', borderRadius: 2, width: `${Math.min(100, (monthRevenue / 10000) * 100)}%`, transition: 'width 0.3s' }} />
             </div>
           </div>
@@ -141,7 +147,7 @@ export default function Business() {
           ].map(k => (
             <div key={k.label} style={CARD}>
               <div style={LABEL}>{k.label}</div>
-              <div style={{ fontFamily: 'Inter', fontSize: 24, fontWeight: 800, color: k.color, lineHeight: 1 }}>{k.value}</div>
+              <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 36, fontWeight: 400, color: k.color, lineHeight: 1 }}>{k.value}</div>
               {k.sub && <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#6b7280', marginTop: 4 }}>{k.sub}</div>}
             </div>
           ))}
@@ -170,7 +176,10 @@ export default function Business() {
                 {deals.slice(0, 8).map(d => {
                   const sc = STATUS_COLORS[d.status] || { color: '#6b7280', border: '#6b728040' }
                   return (
-                    <div key={d.id} className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#0a0a0a] transition-colors">
+                    <div key={d.id} className="group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors" style={{}}
+                      onMouseEnter={e => e.currentTarget.style.background = '#06060f'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 500, color: '#d1d5db', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.prospect}</div>
                         <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#6b7280' }}>${parseFloat(d.value || 0).toLocaleString()} · {fmtShort(d.date)}</div>
@@ -178,7 +187,7 @@ export default function Business() {
                       <select
                         value={d.status}
                         onChange={e => updateDealStatus(d.id, e.target.value)}
-                        style={{ fontFamily: 'Inter', fontSize: 10, color: sc.color, border: `1px solid ${sc.border}`, background: '#0a0a0a', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', outline: 'none' }}
+                        style={{ fontFamily: 'Inter', fontSize: 10, color: sc.color, border: `1px solid ${sc.border}`, background: '#06060f', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', outline: 'none' }}
                       >
                         {STATUSES.map(s => <option key={s}>{s}</option>)}
                       </select>
@@ -202,7 +211,7 @@ export default function Business() {
               value={lessonSearch}
               onChange={e => setLessonSearch(e.target.value)}
               placeholder="Search lessons..."
-              style={{ width: '100%', background: '#0a0a0a', border: '1px solid #262626', borderRadius: 8, paddingLeft: 36, paddingRight: 12, paddingTop: 8, paddingBottom: 8, fontFamily: 'Inter', fontSize: 13, color: '#d1d5db', outline: 'none' }}
+              style={{ width: '100%', background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 8, paddingLeft: 36, paddingRight: 12, paddingTop: 8, paddingBottom: 8, fontFamily: 'Inter', fontSize: 13, color: '#d1d5db', outline: 'none' }}
             />
           </div>
           {filteredLessons.length === 0 ? (
@@ -210,7 +219,7 @@ export default function Business() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {filteredLessons.map(l => (
-                <div key={l.id} className="group" style={{ background: '#0a0a0a', border: '1px solid #262626', borderRadius: 8, padding: 14 }}>
+                <div key={l.id} className="group" style={{ background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 8, padding: 14 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
                     <div>
                       <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: '#facc15', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: 8 }}>{l.category}</span>
@@ -241,8 +250,8 @@ export default function Business() {
               <div><label className={cls.label}>Deal Value ($)</label><input type="number" value={df.value} onChange={e => setDf({ ...df, value: e.target.value })} placeholder="2500" className={cls.input} /></div>
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={addDeal} style={{ background: '#f59e0b', color: 'white', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
-              <button onClick={() => setShowDealModal(false)} style={{ border: '1px solid #262626', color: '#555', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
+              <button onClick={addDeal} style={{ background: '#f59e0b', color: '#000', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
+              <button onClick={() => setShowDealModal(false)} style={{ border: '1px solid #1a1a2e', color: '#555', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
             </div>
           </div>
         </Modal>
@@ -260,8 +269,8 @@ export default function Business() {
             <div><label className={cls.label}>Situation</label><textarea value={lf.what} onChange={e => setLf({ ...lf, what: e.target.value })} rows={2} placeholder="What actually happened..." className={cls.input + ' resize-none'} /></div>
             <div><label className={cls.label}>What You Learned</label><textarea value={lf.learned} onChange={e => setLf({ ...lf, learned: e.target.value })} rows={3} placeholder="The lesson. Be specific." className={cls.input + ' resize-none'} /></div>
             <div className="flex gap-2 pt-1">
-              <button onClick={addLesson} style={{ background: '#f59e0b', color: 'white', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
-              <button onClick={() => setShowLessonModal(false)} style={{ border: '1px solid #262626', color: '#555', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
+              <button onClick={addLesson} style={{ background: '#f59e0b', color: '#000', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
+              <button onClick={() => setShowLessonModal(false)} style={{ border: '1px solid #1a1a2e', color: '#555', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
             </div>
           </div>
         </Modal>
