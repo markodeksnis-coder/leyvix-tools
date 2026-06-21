@@ -24,8 +24,8 @@ export default function Sidebar({ active, onSelect, onSettings }) {
     <aside style={{
       width: 76,
       flexShrink: 0,
-      background: '#080810',
-      borderRight: '1px solid #1a1a2e',
+      background: '#0a0f1e',
+      borderRight: '1px solid #1a2440',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -37,11 +37,11 @@ export default function Sidebar({ active, onSelect, onSettings }) {
       overflowX: 'hidden',
     }}>
       {/* Logo */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid #1a1a2e', width: '100%', alignSelf: 'stretch' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid #1a2440', width: '100%', alignSelf: 'stretch' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Zap size={18} fill="#f59e0b" color="#f59e0b" />
+          <Zap size={18} fill="#c9a84c" color="#c9a84c" />
         </div>
-        <span style={{ fontFamily: 'Inter', fontSize: 8, fontWeight: 800, color: '#4b5563', letterSpacing: '0.1em', textTransform: 'uppercase' }}>MARKO OS</span>
+        <span style={{ fontFamily: 'Inter', fontSize: 8, fontWeight: 800, color: '#a0aec0', letterSpacing: '0.1em', textTransform: 'uppercase' }}>MARKO OS</span>
       </div>
 
       {/* Primary nav */}
@@ -63,7 +63,7 @@ export default function Sidebar({ active, onSelect, onSettings }) {
                 borderRadius: 10,
                 border: 'none',
                 cursor: 'pointer',
-                background: isActive ? 'rgba(245,158,11,0.12)' : 'transparent',
+                background: isActive ? 'rgba(201,168,76,0.12)' : 'transparent',
                 transition: 'all 0.15s',
                 width: '100%',
               }}
@@ -72,7 +72,7 @@ export default function Sidebar({ active, onSelect, onSettings }) {
             >
               <Icon
                 size={20}
-                color={isActive ? '#f59e0b' : '#4b5563'}
+                color={isActive ? '#c9a84c' : '#a0aec0'}
                 strokeWidth={isActive ? 2 : 1.5}
                 style={{ transition: 'color 0.15s' }}
               />
@@ -80,7 +80,7 @@ export default function Sidebar({ active, onSelect, onSettings }) {
                 fontFamily: 'Inter',
                 fontSize: 9,
                 fontWeight: isActive ? 700 : 500,
-                color: isActive ? '#f59e0b' : '#4b5563',
+                color: isActive ? '#c9a84c' : '#a0aec0',
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
                 lineHeight: 1,
@@ -92,7 +92,7 @@ export default function Sidebar({ active, onSelect, onSettings }) {
       </div>
 
       {/* Divider */}
-      <div style={{ width: 36, height: 1, background: '#1a1a2e', margin: '12px 0' }} />
+      <div style={{ width: 36, height: 1, background: '#1a2440', margin: '12px 0' }} />
 
       {/* Secondary nav */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%', padding: '0 8px', boxSizing: 'border-box' }}>
@@ -111,14 +111,14 @@ export default function Sidebar({ active, onSelect, onSettings }) {
                 borderRadius: 8,
                 border: 'none',
                 cursor: 'pointer',
-                background: isActive ? 'rgba(245,158,11,0.1)' : 'transparent',
+                background: isActive ? 'rgba(201,168,76,0.1)' : 'transparent',
                 transition: 'all 0.15s',
                 width: '100%',
               }}
               onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
               onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
             >
-              <Icon size={15} color={isActive ? '#f59e0b' : '#374151'} strokeWidth={1.5} />
+              <Icon size={15} color={isActive ? '#c9a84c' : '#374151'} strokeWidth={1.5} />
             </button>
           )
         })}
@@ -135,12 +135,12 @@ export default function Sidebar({ active, onSelect, onSettings }) {
         gap: 1,
         marginBottom: 10,
         padding: '6px 4px',
-        background: '#06060f',
-        border: '1px solid #1a1a2e',
+        background: '#000000',
+        border: '1px solid #1a2440',
         borderRadius: 8,
         width: 'calc(100% - 16px)',
       }}>
-        <span style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 20, color: '#f59e0b', lineHeight: 1 }}>{String(day).padStart(3, '0')}</span>
+        <span style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 20, color: '#c9a84c', lineHeight: 1 }}>{String(day).padStart(3, '0')}</span>
         <span style={{ fontFamily: 'Inter', fontSize: 7, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.08em' }}>day</span>
       </div>
 
