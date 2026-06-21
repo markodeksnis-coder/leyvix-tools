@@ -33,15 +33,9 @@ function extractVideoId(url) {
   return url.trim()
 }
 
-const SubHeader = ({ children }) => (
-  <div className="font-display text-white" style={{ fontSize: 20, borderLeft: '2px solid #dc2626', paddingLeft: 12 }}>
-    {children}
-  </div>
-)
-
 const cls = {
-  input: "w-full bg-[#080808] border border-[#2a2a2a] px-3 py-2 text-sm text-white placeholder-[#333] focus:outline-none focus:border-[#dc2626] transition-colors",
-  label: "block text-[9px] font-mono uppercase tracking-widest text-[#444] mb-1.5",
+  input: "w-full bg-[#06060f] border border-[#1a1a2e] px-3 py-2 text-sm text-white placeholder-[#4b5563] focus:outline-none focus:border-[#f59e0b] transition-colors",
+  label: "block text-[9px] font-mono uppercase tracking-widest text-[#4b5563] mb-1.5",
 }
 
 function VideoCard({ video, onWatch, onRate, ratingOpen }) {
@@ -49,11 +43,11 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
 
   return (
     <div
-      style={{ background: '#111111', border: '1px solid #222222', borderRadius: 4 }}
-      className="flex flex-col overflow-hidden transition-all hover:shadow-[0_0_12px_rgba(220,38,38,0.15)]"
+      style={{ background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 12 }}
+      className="flex flex-col overflow-hidden transition-all"
     >
       {/* Thumbnail — 16:9 */}
-      <div className="relative group/thumb overflow-hidden" style={{ paddingTop: '56.25%' }}>
+      <div className="relative group/thumb overflow-hidden" style={{ paddingTop: '56.25%', borderBottom: '1px solid #1a1a2e' }}>
         <img
           src={`https://img.youtube.com/vi/${video.video_id}/maxresdefault.jpg`}
           alt={video.title}
@@ -61,8 +55,8 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
           onError={e => { e.target.src = `https://img.youtube.com/vi/${video.video_id}/hqdefault.jpg` }}
         />
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity bg-black/30">
-          <div style={{ background: '#dc2626', borderRadius: '50%', padding: 12 }}>
-            <Play size={20} fill="white" color="white" />
+          <div style={{ background: '#f59e0b', borderRadius: '50%', padding: 12 }}>
+            <Play size={20} fill="#000" color="#000" />
           </div>
         </div>
       </div>
@@ -70,7 +64,7 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
       <div className="p-3 flex flex-col gap-2 flex-1">
         {/* Pillar badge */}
         <div>
-          <span style={{ background: color, fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: 'white', padding: '2px 8px', borderRadius: 9999 }}>
+          <span style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: '#f59e0b', padding: '2px 8px', borderRadius: 9999 }}>
             {video.pillar}
           </span>
         </div>
@@ -79,34 +73,36 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
         <div className="flex items-start justify-between gap-2">
           <div
             className="line-clamp-2"
-            style={{ fontFamily: 'Inter', fontSize: 15, fontWeight: 700, color: 'white' }}
+            style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 600, color: 'white' }}
           >
             {video.title}
           </div>
-          <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#444', whiteSpace: 'nowrap', flexShrink: 0 }}>
+          <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#4b5563', whiteSpace: 'nowrap', flexShrink: 0 }}>
             {fmtShort(video.date_added)}
           </div>
         </div>
 
         {/* Channel */}
-        <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#666' }}>{video.channel}</div>
+        <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#4b5563' }}>{video.channel}</div>
 
         {/* Action area */}
         <div className="mt-auto pt-1 flex flex-col gap-2">
           {video.watched ? (
-            <div style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#facc15' }}>
+            <div style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#f59e0b', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', padding: '4px 8px', borderRadius: 4 }}>
               ✓ WATCHED — {video.user_rating}/10
             </div>
           ) : ratingOpen ? (
             <div>
-              <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#555', marginBottom: 6 }}>Rate it:</div>
+              <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563', marginBottom: 6 }}>Rate it:</div>
               <div className="flex gap-1 flex-wrap">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                   <button
                     key={n}
                     onClick={() => onRate(video.id, n)}
-                    style={{ width: 26, height: 26, border: '1px solid #333', fontFamily: 'Inter', fontSize: 11, color: '#666' }}
-                    className="flex items-center justify-center hover:border-[#dc2626] hover:text-[#dc2626] hover:bg-[#dc2626]/10 transition-colors"
+                    style={{ width: 26, height: 26, border: '1px solid #1a1a2e', fontFamily: 'Inter', fontSize: 11, color: '#4b5563', background: 'transparent', cursor: 'pointer' }}
+                    className="flex items-center justify-center transition-colors"
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.color = '#f59e0b'; e.currentTarget.style.background = 'rgba(245,158,11,0.1)' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#1a1a2e'; e.currentTarget.style.color = '#4b5563'; e.currentTarget.style.background = 'transparent' }}
                   >
                     {n}
                   </button>
@@ -117,15 +113,17 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
             <div className="flex flex-col gap-1.5">
               <button
                 onClick={() => onWatch(video.id, true)}
-                style={{ background: '#dc2626', fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white' }}
-                className="w-full py-2 hover:opacity-90 transition-opacity"
+                style={{ background: '#f59e0b', fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#000', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: 6 }}
+                className="w-full hover:opacity-90 transition-opacity"
               >
                 ▶ WATCH
               </button>
               <button
                 onClick={() => onWatch(video.id, false)}
-                style={{ border: '1px solid #2a2a2a', fontFamily: 'Inter', fontSize: 11, color: '#444' }}
-                className="w-full py-1.5 hover:border-[#555] hover:text-[#888] transition-colors"
+                style={{ border: '1px solid #1a1a2e', fontFamily: 'Inter', fontSize: 11, color: '#4b5563', background: 'transparent', cursor: 'pointer', padding: '6px', borderRadius: 6 }}
+                className="w-full transition-colors"
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#4b5563'; e.currentTarget.style.color = '#888' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#1a1a2e'; e.currentTarget.style.color = '#4b5563' }}
               >
                 Rate It
               </button>
@@ -253,34 +251,39 @@ export default function GrowthFeed() {
   const thisWeek = videos.filter(v => new Date(v.date_added + 'T00:00:00') >= weekStart).length
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Page header */}
-      <div className="px-8 py-5 border-b border-[#2a2a2a] shrink-0">
-        <div className="flex items-center justify-between">
+    <div className="h-full flex flex-col" style={{ background: '#06060f' }}>
+      {/* Page Header */}
+      <div style={{ background: '#06060f', borderBottom: '1px solid #1a1a2e', padding: '20px 32px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            <h1 className="font-display text-white" style={{ fontSize: 28 }}>GROWTH FEED</h1>
-            <p style={{ fontFamily: 'Inter', fontSize: 13, color: '#888', marginTop: 2 }}>Everything you consume. Rated. Tracked. Building you.</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
+              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#4b5563', letterSpacing: '0.12em', textTransform: 'uppercase' }}>INTELLIGENCE FEED STREAMING</span>
+            </div>
+            <h1 style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(180deg,#facc15 0%,#f59e0b 60%,#f97316 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>
+              GROWTH FEED
+            </h1>
+            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>MEDIA INTELLIGENCE // CURATED FOR ELITE OPERATORS</p>
           </div>
-          <div className="flex items-center gap-2">
-            {dropError && <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#dc2626' }}>{dropError}</span>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+            {dropError && <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#f59e0b' }}>{dropError}</span>}
             <button
               onClick={handleDrop}
               disabled={dropping}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[9px] uppercase tracking-widest transition-colors disabled:opacity-40"
-              style={{ background: dropping ? '#1a1a1a' : '#dc2626', color: 'white', border: '1px solid #dc2626' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: dropping ? '#1a1a2e' : '#f59e0b', color: dropping ? '#4b5563' : '#000', border: '1px solid #f59e0b', cursor: dropping ? 'not-allowed' : 'pointer', opacity: dropping ? 0.4 : 1, fontWeight: 700 }}
             >
-              <Zap size={9} fill={dropping ? 'none' : 'white'} />
+              <Zap size={9} fill={dropping ? 'none' : '#000'} />
               {dropping ? 'Dropping...' : 'Drop 3 Videos'}
             </button>
             <button
               onClick={() => { setKeyInput(localStorage.getItem('anthropic_key') || ''); setShowKeyModal(true) }}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #1a1a2e', color: '#4b5563', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
             >
               <Key size={9} /> API Key
             </button>
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-[#2a2a2a] text-[#444] text-[9px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #1a1a2e', color: '#4b5563', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
             >
               <Plus size={9} /> Add Video
             </button>
@@ -288,88 +291,94 @@ export default function GrowthFeed() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto px-8 py-6 space-y-6">
+      <div className="flex-1 overflow-auto" style={{ padding: '24px 32px' }}>
+        <div className="space-y-6">
 
-        {/* Stats bar */}
-        <div className="flex gap-8 flex-wrap pb-5 border-b border-[#1a1a1a]">
-          {[
-            { label: 'Total Watched', value: totalWatched },
-            { label: 'Avg Rating', value: avgRating },
-            { label: 'Top Pillar', value: topPillar },
-            { label: 'This Week', value: thisWeek },
-          ].map(s => (
-            <div key={s.label}>
-              <div className="font-display text-white" style={{ fontSize: 32, lineHeight: 1 }}>{s.value}</div>
-              <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#666', marginTop: 3 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Filter bar */}
-        <div className="flex gap-1.5 flex-wrap">
-          {FILTER_LABELS.map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              style={filter === f
-                ? { background: '#dc2626', color: 'white', fontFamily: 'Inter', fontSize: 10, fontWeight: 600, padding: '5px 12px' }
-                : { border: '1px solid #2a2a2a', color: '#555', fontFamily: 'Inter', fontSize: 10, padding: '5px 12px' }
-              }
-              className="transition-all hover:border-[#dc2626] hover:text-white"
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-
-        {/* Current Drop */}
-        <section>
-          <div className="mb-4">
-            <SubHeader>Current Drop</SubHeader>
+          {/* Stats bar */}
+          <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', paddingBottom: 20, borderBottom: '1px solid #1a1a2e' }}>
+            {[
+              { label: 'Total Watched', value: totalWatched },
+              { label: 'Avg Rating', value: avgRating },
+              { label: 'Top Pillar', value: topPillar },
+              { label: 'This Week', value: thisWeek },
+            ].map(s => (
+              <div key={s.label}>
+                <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 32, lineHeight: 1, color: '#f59e0b' }}>{s.value}</div>
+                <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#4b5563', marginTop: 3 }}>{s.label}</div>
+              </div>
+            ))}
           </div>
-          {unwatched.length === 0 ? (
-            <div style={{ background: '#111', fontFamily: 'Inter', fontSize: 12, color: '#333', padding: '32px', textAlign: 'center' }}>
-              {filter !== 'ALL' ? `No unwatched videos in ${filter.toLowerCase()}` : 'All caught up — add more videos above'}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {unwatched.map(v => (
-                <VideoCard key={v.id} video={v} onWatch={handleWatch} onRate={handleRate} ratingOpen={ratingOpen.has(v.id)} />
-              ))}
-            </div>
-          )}
-        </section>
 
-        {/* Divider */}
-        <div style={{ height: 1, background: '#222' }} />
-
-        {/* Watched */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <SubHeader>Watched ({videos.filter(v => v.watched).length})</SubHeader>
-            <button
-              onClick={() => setShowWatched(!showWatched)}
-              className="flex items-center gap-1 text-[#444] hover:text-[#888] transition-colors"
-              style={{ fontFamily: 'Inter', fontSize: 11 }}
-            >
-              {showWatched ? <><ChevronUp size={13} /> Collapse</> : <><ChevronDown size={13} /> Expand</>}
-            </button>
+          {/* Filter bar */}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {FILTER_LABELS.map(f => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                style={filter === f
+                  ? { background: '#f59e0b', color: '#000', fontFamily: 'Inter', fontSize: 10, fontWeight: 700, padding: '5px 12px', border: '1px solid #f59e0b', cursor: 'pointer', borderRadius: 4 }
+                  : { background: '#0b0b16', border: '1px solid #1a1a2e', color: '#4b5563', fontFamily: 'Inter', fontSize: 10, padding: '5px 12px', cursor: 'pointer', borderRadius: 4 }
+                }
+                onMouseEnter={e => { if (filter !== f) { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.color = '#fff' } }}
+                onMouseLeave={e => { if (filter !== f) { e.currentTarget.style.borderColor = '#1a1a2e'; e.currentTarget.style.color = '#4b5563' } }}
+              >
+                {f}
+              </button>
+            ))}
           </div>
-          {showWatched && (
-            watched.length === 0 ? (
-              <div style={{ background: '#111', fontFamily: 'Inter', fontSize: 12, color: '#333', padding: '32px', textAlign: 'center' }}>
-                No watched videos{filter !== 'ALL' ? ' in this category' : ''} yet
+
+          {/* Current Drop */}
+          <section>
+            <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 20, color: '#fff', borderLeft: '2px solid #f59e0b', paddingLeft: 12, marginBottom: 16 }}>
+              Current Drop
+            </div>
+            {unwatched.length === 0 ? (
+              <div style={{ background: 'rgba(245,158,11,0.03)', border: '2px dashed rgba(245,158,11,0.18)', fontFamily: 'Inter', fontSize: 12, color: '#4b5563', padding: '32px', textAlign: 'center', borderRadius: 12 }}>
+                {filter !== 'ALL' ? `No unwatched videos in ${filter.toLowerCase()}` : 'All caught up — add more videos above'}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" style={{ opacity: 0.6 }}>
-                {watched.map(v => (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {unwatched.map(v => (
                   <VideoCard key={v.id} video={v} onWatch={handleWatch} onRate={handleRate} ratingOpen={ratingOpen.has(v.id)} />
                 ))}
               </div>
-            )
-          )}
-        </section>
+            )}
+          </section>
 
+          {/* Divider */}
+          <div style={{ height: 1, background: '#1a1a2e' }} />
+
+          {/* Watched */}
+          <section>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 20, color: '#fff', borderLeft: '2px solid #f59e0b', paddingLeft: 12 }}>
+                Watched ({videos.filter(v => v.watched).length})
+              </div>
+              <button
+                onClick={() => setShowWatched(!showWatched)}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'Inter', fontSize: 11, color: '#4b5563', background: 'none', border: 'none', cursor: 'pointer' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#888'}
+                onMouseLeave={e => e.currentTarget.style.color = '#4b5563'}
+              >
+                {showWatched ? <><ChevronUp size={13} /> Collapse</> : <><ChevronDown size={13} /> Expand</>}
+              </button>
+            </div>
+            {showWatched && (
+              watched.length === 0 ? (
+                <div style={{ background: '#0b0b16', border: '1px solid #1a1a2e', fontFamily: 'Inter', fontSize: 12, color: '#4b5563', padding: '32px', textAlign: 'center', borderRadius: 12 }}>
+                  No watched videos{filter !== 'ALL' ? ' in this category' : ''} yet
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" style={{ opacity: 0.6 }}>
+                  {watched.map(v => (
+                    <VideoCard key={v.id} video={v} onWatch={handleWatch} onRate={handleRate} ratingOpen={ratingOpen.has(v.id)} />
+                  ))}
+                </div>
+              )
+            )}
+          </section>
+
+        </div>
       </div>
 
       {/* Add Video Modal */}
@@ -395,8 +404,8 @@ export default function GrowthFeed() {
               </select>
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={handleAddVideo} className="flex-1 py-2.5 bg-[#dc2626] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors">Add to Feed</button>
-              <button onClick={() => setShowAddModal(false)} className="px-4 py-2.5 border border-[#2a2a2a] text-[#444] text-[10px] uppercase tracking-widest hover:border-[#666] transition-colors">Cancel</button>
+              <button onClick={handleAddVideo} style={{ flex: 1, padding: '10px', background: '#f59e0b', color: '#000', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer' }}>Add to Feed</button>
+              <button onClick={() => setShowAddModal(false)} style={{ padding: '10px 16px', border: '1px solid #1a1a2e', color: '#4b5563', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
             </div>
           </div>
         </Modal>
@@ -406,8 +415,8 @@ export default function GrowthFeed() {
       {showKeyModal && (
         <Modal title="Set Anthropic API Key" onClose={() => setShowKeyModal(false)}>
           <div className="space-y-4">
-            <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#666' }}>
-              Paste your key from <span style={{ color: '#dc2626' }}>console.anthropic.com</span>. Saved to your browser only.
+            <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#6b7280' }}>
+              Paste your key from <span style={{ color: '#f59e0b' }}>console.anthropic.com</span>. Saved to your browser only.
             </p>
             <div>
               <label className={cls.label}>API Key</label>
@@ -421,8 +430,8 @@ export default function GrowthFeed() {
               />
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={handleSaveKey} className="flex-1 py-2.5 bg-[#dc2626] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors">Save Key</button>
-              <button onClick={() => setShowKeyModal(false)} className="px-4 py-2.5 border border-[#2a2a2a] text-[#444] text-[10px] uppercase tracking-widest hover:border-[#666] transition-colors">Cancel</button>
+              <button onClick={handleSaveKey} style={{ flex: 1, padding: '10px', background: '#f59e0b', color: '#000', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer' }}>Save Key</button>
+              <button onClick={() => setShowKeyModal(false)} style={{ padding: '10px 16px', border: '1px solid #1a1a2e', color: '#4b5563', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
             </div>
           </div>
         </Modal>
