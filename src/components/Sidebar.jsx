@@ -1,76 +1,170 @@
-import { ScrollText, Brain, Dumbbell, Users, TrendingUp, Flame, MessageSquare, Settings, Zap, Download, PlayCircle } from 'lucide-react'
+import { CalendarCheck, Dumbbell, Brain, TrendingUp, Target, BarChart2, Briefcase, Users, Flame, Bot, Settings, Zap } from 'lucide-react'
+import { daysSinceStart } from '../utils'
 
-const NAV = [
-  { id: 'record',      label: 'The Record',  icon: ScrollText },
-  { id: 'mind',        label: 'Mind',        icon: Brain },
-  { id: 'body',        label: 'Body',        icon: Dumbbell },
-  { id: 'relations',   label: 'Relations',   icon: Users },
-  { id: 'business',    label: 'Business',    icon: TrendingUp },
-  { id: 'soul',        label: 'Soul',        icon: Flame },
-  { id: 'coach',       label: 'Coach',       icon: MessageSquare },
-  { id: 'growth-feed', label: 'Growth Feed', icon: PlayCircle },
+const PRIMARY = [
+  { id: 'daily', label: 'Daily', Icon: CalendarCheck },
+  { id: 'body', label: 'Body', Icon: Dumbbell },
+  { id: 'mind', label: 'Mind', Icon: Brain },
+  { id: 'growth-feed', label: 'Growth', Icon: TrendingUp },
 ]
 
-function exportData() {
-  const keys = ['marko_habits','marko_content','marko_mind','marko_body','marko_diet','marko_relations','marko_business','marko_soul','marko_settings','marko_coach_messages']
-  const data = {}
-  keys.forEach(k => { try { data[k] = JSON.parse(localStorage.getItem(k)) } catch {} })
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `marko-os-${new Date().toISOString().split('T')[0]}.json`
-  a.click()
-  URL.revokeObjectURL(url)
-}
+const SECONDARY = [
+  { id: 'record', label: 'Record', Icon: Target },
+  { id: 'insights', label: 'Insights', Icon: BarChart2 },
+  { id: 'business', label: 'Business', Icon: Briefcase },
+  { id: 'relations', label: 'Relations', Icon: Users },
+  { id: 'soul', label: 'Soul', Icon: Flame },
+  { id: 'coach', label: 'Coach', Icon: Bot },
+]
 
 export default function Sidebar({ active, onSelect, onSettings }) {
+  const day = daysSinceStart()
+
   return (
-    <aside className="w-52 border-r border-[#2a2a2a] flex flex-col shrink-0 bg-[#080808]">
-      <div className="px-5 py-5 border-b border-[#2a2a2a]">
-        <div className="flex items-center gap-1.5">
-          <Zap size={14} className="text-[#dc2626]" fill="#dc2626" />
-          <div className="text-base font-black tracking-widest text-[#dc2626] uppercase">MARKO OS</div>
+    <aside style={{
+      width: 76,
+      flexShrink: 0,
+      background: '#080810',
+      borderRight: '1px solid #1a1a2e',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      paddingTop: 16,
+      paddingBottom: 16,
+      gap: 0,
+      height: '100vh',
+      overflowY: 'auto',
+      overflowX: 'hidden',
+    }}>
+      {/* Logo */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid #1a1a2e', width: '100%', alignSelf: 'stretch' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Zap size={18} fill="#f59e0b" color="#f59e0b" />
         </div>
-        <div className="text-[8px] font-mono tracking-[0.25em] text-[#222] uppercase mt-0.5">Personal Operating System</div>
+        <span style={{ fontFamily: 'Inter', fontSize: 8, fontWeight: 800, color: '#4b5563', letterSpacing: '0.1em', textTransform: 'uppercase' }}>MARKO OS</span>
       </div>
 
-      <nav className="flex-1 py-2">
-        {NAV.map(({ id, label, icon: Icon }) => {
+      {/* Primary nav */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', padding: '0 8px', boxSizing: 'border-box' }}>
+        {PRIMARY.map(({ id, label, Icon }) => {
           const isActive = active === id
           return (
             <button
               key={id}
               onClick={() => onSelect(id)}
-              className={`w-full flex items-center gap-3 px-5 py-2.5 text-left transition-all border-l-2 ${
-                isActive
-                  ? 'text-white bg-[#dc2626]/10 border-l-[#dc2626]'
-                  : 'text-[#444] hover:text-[#888] hover:bg-[#0f0f0f] border-l-transparent'
-              }`}
+              title={label}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 5,
+                padding: '10px 4px',
+                borderRadius: 10,
+                border: 'none',
+                cursor: 'pointer',
+                background: isActive ? 'rgba(245,158,11,0.12)' : 'transparent',
+                transition: 'all 0.15s',
+                width: '100%',
+              }}
+              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
             >
-              <Icon size={13} strokeWidth={isActive ? 2 : 1.5} />
-              <span className="text-[11px] font-mono uppercase tracking-widest">{label}</span>
+              <Icon
+                size={20}
+                color={isActive ? '#f59e0b' : '#4b5563'}
+                strokeWidth={isActive ? 2 : 1.5}
+                style={{ transition: 'color 0.15s' }}
+              />
+              <span style={{
+                fontFamily: 'Inter',
+                fontSize: 9,
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? '#f59e0b' : '#4b5563',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                lineHeight: 1,
+                transition: 'color 0.15s',
+              }}>{label}</span>
             </button>
           )
         })}
-      </nav>
-
-      <div className="px-4 py-4 border-t border-[#2a2a2a] space-y-1">
-        <button
-          onClick={exportData}
-          className="w-full flex items-center gap-2 px-2 py-1.5 text-[#333] hover:text-[#666] transition-colors"
-        >
-          <Download size={11} strokeWidth={1.5} />
-          <span className="text-[9px] font-mono uppercase tracking-widest">Export Data</span>
-        </button>
-        <button
-          onClick={onSettings}
-          className="w-full flex items-center gap-2 px-2 py-1.5 text-[#333] hover:text-[#666] transition-colors"
-        >
-          <Settings size={11} strokeWidth={1.5} />
-          <span className="text-[9px] font-mono uppercase tracking-widest">Settings</span>
-        </button>
       </div>
+
+      {/* Divider */}
+      <div style={{ width: 36, height: 1, background: '#1a1a2e', margin: '12px 0' }} />
+
+      {/* Secondary nav */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%', padding: '0 8px', boxSizing: 'border-box' }}>
+        {SECONDARY.map(({ id, label, Icon }) => {
+          const isActive = active === id
+          return (
+            <button
+              key={id}
+              onClick={() => onSelect(id)}
+              title={label}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '8px 4px',
+                borderRadius: 8,
+                border: 'none',
+                cursor: 'pointer',
+                background: isActive ? 'rgba(245,158,11,0.1)' : 'transparent',
+                transition: 'all 0.15s',
+                width: '100%',
+              }}
+              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
+            >
+              <Icon size={15} color={isActive ? '#f59e0b' : '#374151'} strokeWidth={1.5} />
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Spacer */}
+      <div style={{ flex: 1 }} />
+
+      {/* Day counter */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 1,
+        marginBottom: 10,
+        padding: '6px 4px',
+        background: '#06060f',
+        border: '1px solid #1a1a2e',
+        borderRadius: 8,
+        width: 'calc(100% - 16px)',
+      }}>
+        <span style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 20, color: '#f59e0b', lineHeight: 1 }}>{String(day).padStart(3, '0')}</span>
+        <span style={{ fontFamily: 'Inter', fontSize: 7, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.08em' }}>day</span>
+      </div>
+
+      {/* Settings */}
+      <button
+        onClick={onSettings}
+        title="Settings"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 8,
+          borderRadius: 8,
+          border: 'none',
+          cursor: 'pointer',
+          background: 'transparent',
+          transition: 'all 0.15s',
+          width: 'calc(100% - 16px)',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+      >
+        <Settings size={15} color="#374151" />
+      </button>
     </aside>
   )
 }
