@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import TopNav from './components/TopNav'
+import Sidebar from './components/Sidebar'
 import Settings from './components/Settings'
 import Record from './pages/Record'
 import Insights from './pages/Insights'
@@ -23,8 +23,8 @@ export default function App() {
   const Page = PAGES[active]
 
   return (
-    <div className="flex flex-col h-screen text-white overflow-hidden" style={{ background: '#06060f' }}>
-      <TopNav active={active} onSelect={setActive} onSettings={() => setShowSettings(true)} />
+    <div className="flex flex-row h-screen text-white overflow-hidden" style={{ background: '#06060f' }}>
+      <Sidebar active={active} onSelect={setActive} onSettings={() => setShowSettings(true)} />
       <main className="flex-1 overflow-auto min-w-0">
         <Page />
       </main>
