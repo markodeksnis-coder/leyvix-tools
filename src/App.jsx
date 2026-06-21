@@ -2,6 +2,7 @@ import { useState } from 'react'
 import TopNav from './components/TopNav'
 import Settings from './components/Settings'
 import Record from './pages/Record'
+import Insights from './pages/Insights'
 import Mind from './pages/Mind'
 import Body from './pages/Body'
 import Relations from './pages/Relations'
@@ -13,7 +14,7 @@ import { initSeedData } from './data/seedData'
 
 initSeedData()
 
-const PAGES = { record: Record, mind: Mind, body: Body, relations: Relations, business: Business, soul: Soul, coach: Coach, 'growth-feed': GrowthFeed }
+const PAGES = { record: Record, insights: Insights, mind: Mind, body: Body, relations: Relations, business: Business, soul: Soul, coach: Coach, 'growth-feed': GrowthFeed }
 
 export default function App() {
   const [active, setActive] = useState('record')
@@ -21,7 +22,7 @@ export default function App() {
   const Page = PAGES[active]
 
   return (
-    <div className="flex flex-col h-screen text-white overflow-hidden" style={{ background: '#0a0a0f' }}>
+    <div className="flex flex-col h-screen text-white overflow-hidden" style={{ background: '#06060f' }}>
       <TopNav active={active} onSelect={setActive} onSettings={() => setShowSettings(true)} />
       <main className="flex-1 overflow-auto min-w-0">
         <Page />

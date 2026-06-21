@@ -5,8 +5,8 @@ import Modal from '../components/Modal'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LabelList, AreaChart, Area } from 'recharts'
 import { calcStreak, today, fmtShort, daysSinceStart } from '../utils'
 
-const CARD = { background: '#0d0d0d', border: '1px solid #262626', borderRadius: 10, padding: 20 }
-const WAR_CARD = { background: '#0d0d0d', border: '1px solid #1e1a2e', borderRadius: 10, padding: 20 }
+const CARD = { background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 12, padding: 20 }
+const WAR_CARD = { background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 12, padding: 20 }
 const LABEL = { fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', letterSpacing: '0.04em' }
 const SUBLABEL = { fontFamily: 'Inter', fontSize: 9, color: '#555', letterSpacing: '0.08em', marginTop: 2 }
 const WAR_LABEL = { fontFamily: 'Inter', fontSize: 11, fontWeight: 800, color: 'white', letterSpacing: '0.08em', textTransform: 'uppercase' }
@@ -94,7 +94,7 @@ async function callOrders(prompt) {
 }
 
 export default function Record() {
-  const [view, setView] = useState('dashboard')
+  const [view, setView] = useState('warroom')
   const [habits, setHabits] = useLocalStorage('marko_habits', [])
   const [content, setContent] = useLocalStorage('marko_content', [])
   const [checkLogs, setCheckLogs] = useLocalStorage('marko_checklogs', {})
@@ -302,7 +302,7 @@ Write a war-room briefing in exactly this format:
   const readinessPct = Math.round(((doneCount + (morningLogged ? 1 : 0)) / Math.max(1, habits.length + 1)) * 100)
 
   return (
-    <div className="h-full flex flex-col overflow-auto" style={{ background: '#0a0a0a' }}>
+    <div className="h-full flex flex-col overflow-auto" style={{ background: '#06060f' }}>
       <div className="px-8 py-7" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
         {/* Header */}
@@ -341,6 +341,24 @@ Write a war-room briefing in exactly this format:
             )
           })}
         </div>
+
+        {/* Big header - visible on warroom tab */}
+        {view === 'warroom' && (
+          <div style={{ background: '#06060f', borderBottom: '1px solid #1a1a2e', padding: '20px 32px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
+              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#4b5563', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                SYSTEM STATUS: OPERATIONAL
+              </span>
+            </div>
+            <h1 style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, letterSpacing: '0.02em', background: 'linear-gradient(180deg,#facc15 0%,#f59e0b 60%,#f97316 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0, fontStyle: 'italic' }}>
+              THE RECORD
+            </h1>
+            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>
+              PERSONAL PERFORMANCE OS // WAR-ROOM LEDGER
+            </p>
+          </div>
+        )}
 
         {view === 'dashboard' ? (
           <>
