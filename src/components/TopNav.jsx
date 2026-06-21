@@ -2,6 +2,7 @@ import { Zap, Settings } from 'lucide-react'
 import { daysSinceStart } from '../utils'
 
 const NAV = [
+  { id: 'daily', label: 'Daily' },
   { id: 'record', label: 'The Record' },
   { id: 'insights', label: 'Insights' },
   { id: 'mind', label: 'Mind' },

@@ -30,6 +30,7 @@ export default function Body() {
   const [tab, setTab] = useState('fitness')
   const [body, setBody] = useLocalStorage('marko_body', {})
   const [diet, setDiet] = useLocalStorage('marko_diet', { targets: { calories: 2800, protein: 220, carbs: 280, fats: 80 }, history: [], supplements: [] })
+  const [checkLogs] = useLocalStorage('marko_checklogs', {})
 
   const [modals, setModals] = useState({})
   const om = k => setModals(m => ({ ...m, [k]: true }))
@@ -40,6 +41,13 @@ export default function Body() {
   const [sf, setSf] = useState({ weight: '', bodyFat: String(body.bodyFat || ''), goalBodyFat: String(body.goalBodyFat || '') })
   const [mf, setMf] = useState({ date: today, calories: '', protein: '', carbs: '', fats: '' })
   const [prf, setPrf] = useState({ exercise: '', weight: '', reps: '', date: today })
+  const [lf, setLf] = useState({ lift: '', weight: '', reps: '', feel: 3, date: today })
+  const [photoFile, setPhotoFile] = useState(null)
+  const [photoPreview, setPhotoPreview] = useState(null)
+  const [photoEstimate, setPhotoEstimate] = useState(null)
+  const [photoAnalyzing, setPhotoAnalyzing] = useState(false)
+  const [photoError, setPhotoError] = useState('')
+  const [photoConfirm, setPhotoConfirm] = useState({ calories: '', protein: '' })
 
   const todayDiet = diet.history?.find(h => h.date === today) || { calories: 0, protein: 0, carbs: 0, fats: 0 }
 
@@ -100,6 +108,56 @@ export default function Body() {
     }))
   }
 
+  const logLiftSession = () => {
+    if (!lf.lift.trim() || !lf.weight) return
+    const session = { id: Date.now(), date: lf.date, lift: lf.lift.trim(), weight: parseFloat(lf.weight), reps: parseInt(lf.reps) || 1, feel: lf.feel }
+    const currentPR = body.prs?.[lf.lift.trim()]
+    const updates = { liftSessions: [session, ...(body.liftSessions || [])] }
+    if (!currentPR || parseFloat(lf.weight) > currentPR.weight) {
+      updates.prs = { ...(body.prs || {}), [lf.lift.trim()]: { weight: parseFloat(lf.weight), reps: parseInt(lf.reps) || 1, date: lf.date } }
+    }
+    setBody(b => ({ ...b, ...updates }))
+    setLf({ lift: '', weight: '', reps: '', feel: 3, date: today })
+    cm('lift')
+  }
+
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setPhotoFile(file)
+    setPhotoPreview(URL.createObjectURL(file))
+    setPhotoEstimate(null)
+    setPhotoError('')
+  }
+
+  const handlePhotoAnalyze = async () => {
+    if (!photoFile) return
+    setPhotoAnalyzing(true)
+    setPhotoError('')
+    try {
+      const est = await analyzePhoto(photoFile)
+      setPhotoEstimate(est)
+      setPhotoConfirm({ calories: String(est.calories), protein: String(est.protein) })
+    } catch(err) {
+      setPhotoError(err.message || 'Analysis failed')
+    } finally { setPhotoAnalyzing(false) }
+  }
+
+  const handlePhotoLog = () => {
+    const cals = parseFloat(photoConfirm.calories) || 0
+    const prot = parseFloat(photoConfirm.protein) || 0
+    const history = [...(diet.history || [])]
+    const idx = history.findIndex(h => h.date === today)
+    if (idx >= 0) {
+      history[idx] = { ...history[idx], calories: (history[idx].calories || 0) + cals, protein: (history[idx].protein || 0) + prot }
+    } else {
+      history.push({ date: today, calories: cals, protein: prot, carbs: 0, fats: 0 })
+    }
+    setDiet(d => ({ ...d, history: history.sort((a, b) => a.date.localeCompare(b.date)) }))
+    setPhotoFile(null); setPhotoPreview(null); setPhotoEstimate(null); setPhotoConfirm({ calories: '', protein: '' })
+    cm('photomeal')
+  }
+
   const weightChart = (body.weightHistory || []).slice(-90).map(w => ({ date: w.date.slice(5), weight: w.weight }))
   const last7Cal = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (6 - i))
@@ -112,6 +170,16 @@ export default function Body() {
     const recent = (diet.history || []).filter(h => h.date >= d30.toISOString().split('T')[0])
     return recent.length ? Math.round(recent.reduce((s, h) => s + (h.calories || 0), 0) / recent.length) : 0
   })()
+
+  const todayMorning = checkLogs[today]?.morning || {}
+  const todayEnergy = parseFloat(todayMorning.energy || 0)
+  const prs = body.prs || {}
+  const liftNudges = Object.entries(prs).map(([lift, pr]) => {
+    const daysSince = pr.date ? Math.floor((Date.now() - new Date(pr.date + 'T12:00:00').getTime()) / 86400000) : 99
+    const ready = todayEnergy >= 7 && daysSince >= 14
+    const suggested = Math.round(pr.weight * 1.025 / 5) * 5
+    return { lift, pr, daysSince, ready, suggested }
+  }).filter(x => x.ready)
 
   const bf = parseFloat(body.bodyFat || 0)
   const goalBf = parseFloat(body.goalBodyFat || 10)
@@ -151,9 +219,19 @@ export default function Body() {
                 <Plus size={12} strokeWidth={2.5} /> Log Workout
               </button>
             </>
+          ) : tab === 'diet' ? (
+            <>
+              <button onClick={() => om('photomeal')} style={{ background: 'transparent', color: '#6b7280', border: '1px solid #1a1a2e', borderRadius: 8, padding: '6px 12px', fontFamily: 'Inter', fontSize: 11, cursor: 'pointer' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#f59e0b'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#1a1a2e'}
+              >📷 Scan Meal</button>
+              <button onClick={() => om('meal')} style={{ background: '#f59e0b', color: '#000', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Plus size={12} strokeWidth={2.5} /> Log Meal
+              </button>
+            </>
           ) : (
-            <button onClick={() => om('meal')} style={{ background: '#f59e0b', color: '#000', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Plus size={12} strokeWidth={2.5} /> Log Meal
+            <button onClick={() => om('lift')} style={{ background: '#f59e0b', color: '#000', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Plus size={12} strokeWidth={2.5} /> Log Session
             </button>
           )}
         </div>
@@ -161,7 +239,7 @@ export default function Body() {
 
       {/* Tabs */}
       <div className="px-6 py-3 flex gap-2 shrink-0" style={{ borderBottom: '1px solid #1a1a2e' }}>
-        {['fitness', 'diet'].map(t => (
+        {['fitness', 'diet', 'lifts'].map(t => (
           <button key={t} onClick={() => setTab(t)}
             style={{
               padding: '5px 16px', borderRadius: 8, fontFamily: 'Inter', fontSize: 12, fontWeight: tab === t ? 600 : 400,
@@ -175,7 +253,7 @@ export default function Body() {
       </div>
 
       <div className="flex-1 overflow-auto px-6 py-5" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        {tab === 'fitness' ? (
+        {tab === 'fitness' && (
           <>
             {/* Stats row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -265,7 +343,9 @@ export default function Body() {
               )}
             </div>
           </>
-        ) : (
+        )}
+
+        {tab === 'diet' && (
           <>
             {/* Macro cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -341,6 +421,80 @@ export default function Body() {
                   </div>
                 )}
               </div>
+            </div>
+          </>
+        )}
+
+        {tab === 'lifts' && (
+          <>
+            {/* PR Grid */}
+            <div style={CARD}>
+              <SectionLabel>Personal Records</SectionLabel>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {Object.entries(prs).map(([lift, pr]) => {
+                  const daysSince = pr.date ? Math.floor((Date.now() - new Date(pr.date + 'T12:00:00')) / 86400000) : 0
+                  const readiness = Math.min(100, Math.round((daysSince / 14) * 100))
+                  return (
+                    <div key={lift} style={{ background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 10, padding: 16 }}>
+                      <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{lift}</div>
+                      <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 40, color: 'white', lineHeight: 1 }}>{pr.weight}</div>
+                      <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#6b7280', marginBottom: 8 }}>lbs × {pr.reps} rep{pr.reps > 1 ? 's' : ''}</div>
+                      <div style={{ height: 4, background: '#1a1a2e', borderRadius: 2, marginBottom: 4 }}>
+                        <div style={{ height: 4, background: readiness >= 100 ? '#22c55e' : '#f59e0b', borderRadius: 2, width: `${readiness}%` }} />
+                      </div>
+                      <div style={{ fontFamily: 'Inter', fontSize: 9, color: readiness >= 100 ? '#22c55e' : '#4b5563' }}>
+                        {readiness >= 100 ? 'READY TO ATTEMPT' : `${daysSince}d since PR`}
+                      </div>
+                    </div>
+                  )
+                })}
+                {Object.keys(prs).length === 0 && (
+                  <div style={{ gridColumn: 'span 4', textAlign: 'center', padding: '24px 0', fontFamily: 'Inter', fontSize: 12, color: '#4b5563' }}>
+                    Log a session to set your first PR
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* AI Nudges */}
+            {liftNudges.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {liftNudges.map(n => (
+                  <div key={n.lift} style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.3)', borderLeft: '3px solid #f59e0b', borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <span style={{ fontSize: 18 }}>⚡</span>
+                    <div>
+                      <div style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 3 }}>OPERATOR SIGNAL</div>
+                      <div style={{ fontFamily: 'Inter', fontSize: 13, color: 'white' }}>
+                        Your <strong>{n.lift}</strong> looks ready. Last PR: <strong>{n.pr.weight}lbs</strong> ({n.daysSince} days ago). Energy {todayEnergy}/10. Suggested target: <strong style={{ color: '#facc15' }}>{n.suggested}lbs</strong>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Session History */}
+            <div style={CARD}>
+              <SectionLabel>Recent Sessions</SectionLabel>
+              {(!body.liftSessions || body.liftSessions.length === 0) ? (
+                <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#4b5563', textAlign: 'center', padding: '24px 0' }}>No sessions logged yet</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {(body.liftSessions || []).slice(0, 20).map(s => {
+                    const feelColor = s.feel >= 4 ? '#22c55e' : s.feel >= 3 ? '#f59e0b' : '#ef4444'
+                    const feelLabel = s.feel >= 5 ? 'INCREDIBLE' : s.feel >= 4 ? 'STRONG' : s.feel >= 3 ? 'AVERAGE' : s.feel >= 2 ? 'ROUGH' : 'TERRIBLE'
+                    return (
+                      <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 8 }}>
+                        <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#4b5563', width: 52, flexShrink: 0 }}>{fmtShort(s.date)}</div>
+                        <div style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 600, color: 'white', flex: 1 }}>{s.lift}</div>
+                        <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 18, color: '#facc15' }}>{s.weight}<span style={{ fontSize: 11, color: '#6b7280', fontFamily: 'Inter', fontWeight: 400 }}>lbs</span></div>
+                        <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#6b7280', width: 50, textAlign: 'center' }}>×{s.reps}</div>
+                        <div style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 700, color: feelColor, textTransform: 'uppercase', letterSpacing: '0.08em', width: 60, textAlign: 'right' }}>{feelLabel}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           </>
         )}
@@ -426,6 +580,153 @@ export default function Body() {
           </div>
         </Modal>
       )}
+
+      {modals.lift && (
+        <Modal title="Log Lift Session" onClose={() => cm('lift')}>
+          <div className="space-y-4">
+            <div>
+              <label className={cls.label}>Lift</label>
+              <select
+                value={['Squat', 'Bench Press', 'Deadlift', 'Overhead Press', ...Object.keys(body.prs || {}).filter(k => !['Squat', 'Bench Press', 'Deadlift', 'Overhead Press'].includes(k))].includes(lf.lift) ? lf.lift : (lf.lift ? '__custom__' : '')}
+                onChange={e => {
+                  if (e.target.value === '__custom__') setLf(f => ({ ...f, lift: '' }))
+                  else setLf(f => ({ ...f, lift: e.target.value }))
+                }}
+                className={cls.input}
+              >
+                <option value="">Select a lift…</option>
+                {['Squat', 'Bench Press', 'Deadlift', 'Overhead Press', ...Object.keys(body.prs || {}).filter(k => !['Squat', 'Bench Press', 'Deadlift', 'Overhead Press'].includes(k))].map(l => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+                <option value="__custom__">Custom…</option>
+              </select>
+              {(lf.lift === '' || !['Squat', 'Bench Press', 'Deadlift', 'Overhead Press', ...Object.keys(body.prs || {})].includes(lf.lift)) && (
+                <input
+                  value={lf.lift}
+                  onChange={e => setLf(f => ({ ...f, lift: e.target.value }))}
+                  placeholder="Enter lift name"
+                  className={cls.input}
+                  style={{ marginTop: 8 }}
+                  autoFocus
+                />
+              )}
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div><label className={cls.label}>Weight (lbs)</label><input type="number" value={lf.weight} onChange={e => setLf(f => ({ ...f, weight: e.target.value }))} placeholder="225" className={cls.input} /></div>
+              <div><label className={cls.label}>Reps</label><input type="number" value={lf.reps} onChange={e => setLf(f => ({ ...f, reps: e.target.value }))} placeholder="5" className={cls.input} /></div>
+              <div><label className={cls.label}>Date</label><input type="date" value={lf.date} onChange={e => setLf(f => ({ ...f, date: e.target.value }))} className={cls.input} /></div>
+            </div>
+            <div>
+              <label className={cls.label}>Feel (1–5)</label>
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                {[1, 2, 3, 4, 5].map(n => (
+                  <button key={n} onClick={() => setLf(f => ({ ...f, feel: n }))}
+                    style={{
+                      flex: 1, padding: '8px 0', borderRadius: 8, border: `1px solid ${lf.feel === n ? '#f59e0b' : '#1a1a2e'}`,
+                      background: lf.feel === n ? 'rgba(245,158,11,0.15)' : '#06060f',
+                      color: lf.feel === n ? '#f59e0b' : '#4b5563',
+                      fontFamily: 'Inter', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                    }}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563' }}>TERRIBLE</span>
+                <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563' }}>INCREDIBLE</span>
+              </div>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button onClick={logLiftSession} className={cls.primary} style={{ background: '#f59e0b' }}>Save Session</button>
+              <button onClick={() => cm('lift')} className={cls.secondary}>Cancel</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {modals.photomeal && (
+        <Modal title="Scan Meal Photo" onClose={() => { cm('photomeal'); setPhotoFile(null); setPhotoPreview(null); setPhotoEstimate(null) }}>
+          <div className="space-y-4">
+            <div>
+              <label style={{ display: 'block', marginBottom: 8, fontFamily: 'Inter', fontSize: 11, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Upload meal photo</label>
+              <input type="file" accept="image/*" onChange={handlePhotoSelect} style={{ width: '100%', fontFamily: 'Inter', fontSize: 12, color: '#d1d5db' }} />
+            </div>
+            {photoPreview && (
+              <img src={photoPreview} alt="meal" style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8, border: '1px solid #1a1a2e' }} />
+            )}
+            {photoFile && !photoEstimate && (
+              <button onClick={handlePhotoAnalyze} disabled={photoAnalyzing}
+                style={{ width: '100%', padding: '10px', background: photoAnalyzing ? '#1a1a2e' : '#f59e0b', color: photoAnalyzing ? '#4b5563' : '#000', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', borderRadius: 8, cursor: photoAnalyzing ? 'not-allowed' : 'pointer' }}>
+                {photoAnalyzing ? 'Analyzing...' : '🔍 Analyze with AI'}
+              </button>
+            )}
+            {photoError && <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#ef4444' }}>{photoError}</p>}
+            {photoEstimate && (
+              <>
+                <div style={{ background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 8, padding: 14 }}>
+                  <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#4b5563', marginBottom: 6 }}>AI DETECTED: {photoEstimate.description}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <div>
+                      <label style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>Calories</label>
+                      <input type="number" value={photoConfirm.calories} onChange={e => setPhotoConfirm(p => ({ ...p, calories: e.target.value }))}
+                        style={{ width: '100%', background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 16, fontWeight: 700, color: '#facc15', outline: 'none' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 4 }}>Protein (g)</label>
+                      <input type="number" value={photoConfirm.protein} onChange={e => setPhotoConfirm(p => ({ ...p, protein: e.target.value }))}
+                        style={{ width: '100%', background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 16, fontWeight: 700, color: '#f59e0b', outline: 'none' }} />
+                    </div>
+                  </div>
+                </div>
+                <button onClick={handlePhotoLog} style={{ width: '100%', padding: '10px', background: '#22c55e', color: '#000', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+                  ✓ Log This Meal
+                </button>
+              </>
+            )}
+          </div>
+        </Modal>
+      )}
     </div>
   )
+}
+
+async function analyzePhoto(imageFile) {
+  const apiKey = localStorage.getItem('anthropic_key') || import.meta.env.VITE_ANTHROPIC_API_KEY || ''
+  if (!apiKey) throw new Error('No API key — set it in Growth Feed → API Key')
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = async e => {
+      const base64 = e.target.result.split(',')[1]
+      const mediaType = imageFile.type || 'image/jpeg'
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+            'anthropic-dangerous-direct-browser-access': 'true',
+          },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 200,
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+                { type: 'text', text: 'Analyze this meal photo. Estimate the total calories and protein in grams for what you see. Be realistic — don\'t overestimate. Return ONLY valid JSON with no other text: {"calories": 450, "protein": 35, "description": "brief description of what you see"}' }
+              ]
+            }]
+          })
+        })
+        const data = await res.json()
+        const text = data.content[0].text.trim()
+        const parsed = JSON.parse(text.startsWith('{') ? text : text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1))
+        resolve(parsed)
+      } catch(err) { reject(err) }
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(imageFile)
+  })
 }

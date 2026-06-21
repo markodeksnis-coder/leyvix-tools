@@ -1,0 +1,366 @@
+import { useState, useEffect } from 'react'
+import { Plus, Trash2, Check, ChevronDown, ChevronUp } from 'lucide-react'
+import { useLocalStorage } from '../hooks/useLocalStorage'
+import Modal from '../components/Modal'
+import { today } from '../utils'
+
+const BG = '#06060f'
+const CARD = { background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 12, padding: 20 }
+const LBL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }
+
+const DEFAULT_NON_NEGS = [
+  { id: 1, title: 'No PMO' },
+  { id: 2, title: 'Cold Shower' },
+  { id: 3, title: 'Prayer' },
+  { id: 4, title: 'Training' },
+]
+
+const DEFAULT_TASKS = [
+  { id: 101, title: 'Review goals' },
+  { id: 102, title: 'Read / Learn (30 min)' },
+  { id: 103, title: 'Sales outreach' },
+]
+
+export default function DailyOS() {
+  const [data, setData] = useLocalStorage('marko_daily', {
+    nonNegotiables: DEFAULT_NON_NEGS,
+    taskTemplates: DEFAULT_TASKS,
+    logs: {}
+  })
+  const [showWeekly, setShowWeekly] = useState(false)
+  const [newNNText, setNewNNText] = useState('')
+  const [newTaskText, setNewTaskText] = useState('')
+  const [newOneTimeText, setNewOneTimeText] = useState('')
+  const [showManage, setShowManage] = useState(false)
+
+  const todayStr = today()
+
+  // Initialize today's log from templates if it doesn't exist
+  useEffect(() => {
+    if (!data.logs[todayStr]) {
+      const items = [
+        ...(data.nonNegotiables || []).map(n => ({ id: n.id, title: n.title, checked: false, isNonNeg: true })),
+        ...(data.taskTemplates || []).map(t => ({ id: t.id, title: t.title, checked: false, isNonNeg: false })),
+      ]
+      if (items.length > 0) {
+        setData(d => ({ ...d, logs: { ...d.logs, [todayStr]: { items } } }))
+      }
+    }
+  }, [todayStr, data.nonNegotiables, data.taskTemplates])
+
+  const todayItems = data.logs[todayStr]?.items || []
+  const nonNegItems = todayItems.filter(i => i.isNonNeg)
+  const taskItems = todayItems.filter(i => !i.isNonNeg)
+  const checkedCount = todayItems.filter(i => i.checked).length
+  const nnDone = nonNegItems.filter(i => i.checked).length
+  const score = todayItems.length > 0 ? Math.round((checkedCount / todayItems.length) * 10) : 0
+  const nnFailed = nonNegItems.some(i => !i.checked)
+
+  const toggleItem = (id) => {
+    setData(d => ({
+      ...d,
+      logs: {
+        ...d.logs,
+        [todayStr]: {
+          ...d.logs[todayStr],
+          items: (d.logs[todayStr]?.items || []).map(i => i.id === id ? { ...i, checked: !i.checked } : i)
+        }
+      }
+    }))
+  }
+
+  const addOneTimeTask = () => {
+    if (!newOneTimeText.trim()) return
+    const newItem = { id: Date.now(), title: newOneTimeText.trim(), checked: false, isNonNeg: false }
+    setData(d => ({
+      ...d,
+      logs: {
+        ...d.logs,
+        [todayStr]: {
+          items: [...(d.logs[todayStr]?.items || []), newItem]
+        }
+      }
+    }))
+    setNewOneTimeText('')
+  }
+
+  const addNonNeg = () => {
+    if (!newNNText.trim()) return
+    const item = { id: Date.now(), title: newNNText.trim() }
+    setData(d => ({
+      ...d,
+      nonNegotiables: [...(d.nonNegotiables || []), item],
+      logs: {
+        ...d.logs,
+        [todayStr]: {
+          items: [...(d.logs[todayStr]?.items || []), { ...item, checked: false, isNonNeg: true }]
+        }
+      }
+    }))
+    setNewNNText('')
+  }
+
+  const addTaskTemplate = () => {
+    if (!newTaskText.trim()) return
+    const item = { id: Date.now(), title: newTaskText.trim() }
+    setData(d => ({
+      ...d,
+      taskTemplates: [...(d.taskTemplates || []), item],
+      logs: {
+        ...d.logs,
+        [todayStr]: {
+          items: [...(d.logs[todayStr]?.items || []), { ...item, checked: false, isNonNeg: false }]
+        }
+      }
+    }))
+    setNewTaskText('')
+  }
+
+  const deleteNonNeg = (id) => {
+    setData(d => ({
+      ...d,
+      nonNegotiables: (d.nonNegotiables || []).filter(n => n.id !== id),
+      logs: {
+        ...d.logs,
+        [todayStr]: {
+          items: (d.logs[todayStr]?.items || []).filter(i => !(i.isNonNeg && i.id === id))
+        }
+      }
+    }))
+  }
+
+  const deleteTask = (id) => {
+    setData(d => ({
+      ...d,
+      taskTemplates: (d.taskTemplates || []).filter(t => t.id !== id),
+      logs: {
+        ...d.logs,
+        [todayStr]: {
+          items: (d.logs[todayStr]?.items || []).filter(i => !(!i.isNonNeg && i.id === id))
+        }
+      }
+    }))
+  }
+
+  // Weekly view - last 7 days
+  const last7 = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - (6 - i))
+    const ds = d.toISOString().split('T')[0]
+    const log = data.logs[ds]
+    const items = log?.items || []
+    const done = items.filter(i => i.checked).length
+    const total = items.length
+    const pct = total > 0 ? Math.round((done / total) * 100) : null
+    const nnFail = items.filter(i => i.isNonNeg && !i.checked).length > 0
+    const label = d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()
+    return { ds, label, done, total, pct, nnFail, isToday: ds === todayStr }
+  })
+
+  const scoreColor = score >= 9 ? '#22c55e' : score >= 7 ? '#f59e0b' : score >= 5 ? '#f97316' : '#ef4444'
+  const scoreLabel = score >= 9 ? 'ELITE' : score >= 7 ? 'SOLID' : score >= 5 ? 'ACCEPTABLE' : 'BELOW PAR'
+
+  return (
+    <div className="h-full flex flex-col" style={{ background: BG }}>
+      {/* Header */}
+      <div style={{ background: BG, borderBottom: '1px solid #1a1a2e', padding: '20px 32px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: nnFailed ? '#ef4444' : '#22c55e' }} />
+              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#4b5563', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                {nnFailed ? 'NON-NEGOTIABLES PENDING' : 'NON-NEGOTIABLES CLEAR'}
+              </span>
+            </div>
+            <h1 style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(180deg,#facc15 0%,#f59e0b 60%,#f97316 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>DAILY OPS</h1>
+            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>ACCOUNTABILITY LAYER // NON-NEGOTIABLES & DAILY TASKS</p>
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <button onClick={() => setShowManage(!showManage)} style={{ padding: '7px 14px', border: '1px solid #1a1a2e', color: '#4b5563', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer', fontFamily: 'Inter' }}>
+              {showManage ? 'Close' : 'Manage Lists'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-auto" style={{ padding: '24px 32px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* Today's score bar */}
+          <div style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 32 }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 72, lineHeight: 1, color: scoreColor }}>{score}</div>
+              <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em' }}>/ 10</div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 24, color: scoreColor, letterSpacing: '0.04em' }}>{scoreLabel}</div>
+                <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#4b5563' }}>{checkedCount} / {todayItems.length} complete</div>
+              </div>
+              <div style={{ height: 8, background: '#1a1a2e', borderRadius: 4 }}>
+                <div style={{ height: 8, background: scoreColor, borderRadius: 4, width: `${(checkedCount / Math.max(1, todayItems.length)) * 100}%`, transition: 'width 0.3s' }} />
+              </div>
+              <div style={{ display: 'flex', gap: 20, marginTop: 12 }}>
+                <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#4b5563' }}>
+                  Non-negs: <span style={{ color: nnDone === nonNegItems.length && nonNegItems.length > 0 ? '#22c55e' : '#ef4444', fontWeight: 600 }}>{nnDone}/{nonNegItems.length}</span>
+                </div>
+                <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#4b5563' }}>
+                  Tasks: <span style={{ color: 'white', fontWeight: 600 }}>{taskItems.filter(i => i.checked).length}/{taskItems.length}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Manage lists panel */}
+          {showManage && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              {/* Non-negotiables management */}
+              <div style={CARD}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />
+                  <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Non-Negotiables</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+                  {(data.nonNegotiables || []).map(n => (
+                    <div key={n.id} className="group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#06060f', border: '1px solid #ef444420', borderLeft: '3px solid #ef4444', borderRadius: 8 }}>
+                      <span style={{ fontFamily: 'Inter', fontSize: 12, color: 'white' }}>{n.title}</span>
+                      <button onClick={() => deleteNonNeg(n.id)} style={{ color: '#4b5563', background: 'none', border: 'none', cursor: 'pointer', opacity: 0 }} className="group-hover:opacity-100 hover:!text-red-400 transition-all"><Trash2 size={12} /></button>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input value={newNNText} onChange={e => setNewNNText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addNonNeg()} placeholder="Add non-negotiable..." style={{ flex: 1, background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 6, padding: '7px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
+                  <button onClick={addNonNeg} style={{ padding: '7px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer' }}><Plus size={13} /></button>
+                </div>
+              </div>
+
+              {/* Task templates */}
+              <div style={CARD}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} />
+                  <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Daily Task Templates</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+                  {(data.taskTemplates || []).map(t => (
+                    <div key={t.id} className="group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 8 }}>
+                      <span style={{ fontFamily: 'Inter', fontSize: 12, color: '#d1d5db' }}>{t.title}</span>
+                      <button onClick={() => deleteTask(t.id)} style={{ color: '#4b5563', background: 'none', border: 'none', cursor: 'pointer', opacity: 0 }} className="group-hover:opacity-100 hover:!text-red-400 transition-all"><Trash2 size={12} /></button>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input value={newTaskText} onChange={e => setNewTaskText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTaskTemplate()} placeholder="Add daily task..." style={{ flex: 1, background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 6, padding: '7px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
+                  <button onClick={addTaskTemplate} style={{ padding: '7px 12px', background: '#f59e0b', color: '#000', border: 'none', borderRadius: 6, cursor: 'pointer' }}><Plus size={13} /></button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Today's checklist */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            {/* Non-negotiables */}
+            <div style={CARD}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />
+                <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Non-Negotiables</span>
+                <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.1em', marginLeft: 'auto' }}>CANNOT SKIP</span>
+              </div>
+              {nonNegItems.length === 0 ? (
+                <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#4b5563', textAlign: 'center', padding: '24px 0' }}>Open "Manage Lists" to add non-negotiables</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {nonNegItems.map(item => (
+                    <button key={item.id} onClick={() => toggleItem(item.id)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
+                        background: item.checked ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.04)',
+                        border: `1px solid ${item.checked ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                        borderLeft: `3px solid ${item.checked ? '#22c55e' : '#ef4444'}`,
+                        borderRadius: 8, cursor: 'pointer', width: '100%', textAlign: 'left', transition: 'all 0.15s'
+                      }}
+                    >
+                      <div style={{ width: 20, height: 20, borderRadius: 4, border: `2px solid ${item.checked ? '#22c55e' : '#ef4444'}`, background: item.checked ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
+                        {item.checked && <Check size={12} strokeWidth={3} color="white" />}
+                      </div>
+                      <span style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 600, color: item.checked ? '#22c55e' : 'white', textDecoration: item.checked ? 'line-through' : 'none', transition: 'all 0.15s' }}>{item.title}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Tasks */}
+            <div style={CARD}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} />
+                <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Today's Tasks</span>
+              </div>
+              {taskItems.length === 0 ? (
+                <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#4b5563', textAlign: 'center', padding: '24px 0' }}>No tasks yet — open "Manage Lists" to add recurring tasks</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {taskItems.map(item => (
+                    <button key={item.id} onClick={() => toggleItem(item.id)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px',
+                        background: item.checked ? 'rgba(34,197,94,0.06)' : '#06060f',
+                        border: `1px solid ${item.checked ? 'rgba(34,197,94,0.2)' : '#1a1a2e'}`,
+                        borderRadius: 8, cursor: 'pointer', width: '100%', textAlign: 'left', transition: 'all 0.15s'
+                      }}
+                    >
+                      <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${item.checked ? '#22c55e' : '#4b5563'}`, background: item.checked ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
+                        {item.checked && <Check size={10} strokeWidth={3} color="white" />}
+                      </div>
+                      <span style={{ fontFamily: 'Inter', fontSize: 13, color: item.checked ? '#6b7280' : '#d1d5db', textDecoration: item.checked ? 'line-through' : 'none', transition: 'all 0.15s' }}>{item.title}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Add one-time task */}
+              <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+                <input value={newOneTimeText} onChange={e => setNewOneTimeText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addOneTimeTask()} placeholder="Add today's task..." style={{ flex: 1, background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 6, padding: '7px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
+                <button onClick={addOneTimeTask} style={{ padding: '7px 12px', background: '#f59e0b', color: '#000', border: 'none', borderRadius: 6, cursor: 'pointer' }}><Plus size={13} /></button>
+              </div>
+            </div>
+          </div>
+
+          {/* Weekly View */}
+          <div style={CARD}>
+            <button onClick={() => setShowWeekly(!showWeekly)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#8b5cf6' }} />
+                <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Weekly Pattern</span>
+              </div>
+              {showWeekly ? <ChevronUp size={14} color="#4b5563" /> : <ChevronDown size={14} color="#4b5563" />}
+            </button>
+
+            {showWeekly && (
+              <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+                {last7.map(day => {
+                  const pctColor = day.pct === null ? '#1a1a2e' : day.pct >= 90 ? '#22c55e' : day.pct >= 70 ? '#f59e0b' : day.pct >= 50 ? '#f97316' : '#ef4444'
+                  return (
+                    <div key={day.ds} style={{ textAlign: 'center' }}>
+                      <div style={{ fontFamily: 'Inter', fontSize: 9, color: day.isToday ? '#f59e0b' : '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6, fontWeight: day.isToday ? 700 : 400 }}>{day.label}</div>
+                      <div style={{ height: 80, background: '#06060f', border: `1px solid ${day.isToday ? '#f59e0b40' : '#1a1a2e'}`, borderRadius: 8, position: 'relative', overflow: 'hidden' }}>
+                        {day.pct !== null && (
+                          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: `${day.pct}%`, background: pctColor, opacity: 0.3, transition: 'height 0.3s' }} />
+                        )}
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                          <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 22, color: day.pct !== null ? pctColor : '#1a1a2e', lineHeight: 1 }}>
+                            {day.pct !== null ? day.pct : '—'}
+                          </div>
+                          {day.pct !== null && <div style={{ fontFamily: 'Inter', fontSize: 8, color: '#4b5563', marginTop: 2 }}>{day.done}/{day.total}</div>}
+                          {day.nnFail && <div style={{ fontFamily: 'Inter', fontSize: 7, color: '#ef4444', marginTop: 2, fontWeight: 700 }}>NN FAIL</div>}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
