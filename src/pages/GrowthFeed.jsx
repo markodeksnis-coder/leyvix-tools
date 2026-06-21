@@ -38,7 +38,7 @@ const cls = {
   label: "block text-[9px] font-mono uppercase tracking-widest text-[#4b5563] mb-1.5",
 }
 
-function VideoCard({ video, onWatch, onRate, ratingOpen }) {
+function VideoCard({ video, onWatch, onRate, ratingOpen, whyRecommended }) {
   const color = PILLAR_COLORS[video.pillar] || '#6b7280'
 
   return (
@@ -84,6 +84,14 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
 
         {/* Channel */}
         <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#4b5563' }}>{video.channel}</div>
+
+        {/* Why recommended */}
+        {(whyRecommended || video.whyRecommended) && (
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '6px 10px', background: 'rgba(245,158,11,0.06)', borderRadius: 6, border: '1px solid rgba(245,158,11,0.15)' }}>
+            <span style={{ fontSize: 11, flexShrink: 0 }}>🎯</span>
+            <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#f59e0b', fontStyle: 'italic', lineHeight: 1.4 }}>{whyRecommended || video.whyRecommended}</span>
+          </div>
+        )}
 
         {/* Action area */}
         <div className="mt-auto pt-1 flex flex-col gap-2">
@@ -135,10 +143,38 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
   )
 }
 
-async function fetchVideoDrop(existingIds = []) {
+async function extractVideoMeta(url, title, channel) {
+  const apiKey = localStorage.getItem('anthropic_key') || import.meta.env.VITE_ANTHROPIC_API_KEY || ''
+  if (!apiKey) throw new Error('No API key set')
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 200,
+      messages: [{ role: 'user', content: `Based on this YouTube video info, extract the topic and tags.
+Title: "${title}"
+Channel: "${channel}"
+URL: "${url}"
+
+Return ONLY valid JSON:
+{"topic": "main topic in 1-3 words", "tags": ["tag1", "tag2", "tag3"]}` }]
+    })
+  })
+  const data = await res.json()
+  const text = data.content[0].text.trim()
+  return JSON.parse(text.startsWith('{') ? text : text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1))
+}
+
+async function fetchVideoDrop(existingIds = [], tasteProfile = {}) {
   const apiKey = localStorage.getItem('anthropic_key') || import.meta.env.VITE_ANTHROPIC_API_KEY || ''
   if (!apiKey) throw new Error('No API key — click the API Key button and paste your key')
   const available = curatedVideos.filter(v => !existingIds.includes(v.id))
+  const topChannels = Object.entries(tasteProfile.channelAffinities || {}).sort((a,b) => b[1]-a[1]).slice(0,5).map(([k]) => k)
+  const topTopics = Object.entries(tasteProfile.topicAffinities || {}).sort((a,b) => b[1]-a[1]).slice(0,8).map(([k]) => k)
+  const hasTaste = topChannels.length > 0 || topTopics.length > 0
+  const tasteContext = hasTaste
+    ? `\n\nUser's taste profile — channels they like: ${topChannels.join(', ') || 'none yet'}. Topics they follow: ${topTopics.join(', ') || 'none yet'}. Prefer videos that match these patterns.`
+    : ''
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -149,15 +185,16 @@ async function fetchVideoDrop(existingIds = []) {
     },
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 256,
+      max_tokens: 400,
       messages: [{
         role: 'user',
-        content: `You are a growth content curator. Pick exactly 3 videos from this list that cover 3 different pillars. Vary the selection — don't always pick the same ones.
+        content: `You are a growth content curator. Pick exactly 3 videos from this list that cover 3 different pillars. Vary the selection.${tasteContext}
 
 Available videos:
 ${available.map(v => `id:${v.id} | ${v.pillar} | "${v.title}" by ${v.channel}`).join('\n')}
 
-Return ONLY a JSON array of exactly 3 video ids, like: ["c1","c7","c14"]
+Return ONLY a JSON array of exactly 3 objects with id and reason, like:
+[{"id":"c1","reason":"Matches your interest in sales psychology"},{"id":"c7","reason":"Similar to channels you follow"},{"id":"c14","reason":"Aligns with your mindset content"}]
 No other text.`,
       }],
     }),
@@ -169,12 +206,26 @@ No other text.`,
   const data = await res.json()
   const text = data.content[0].text.trim()
   const jsonStr = text.startsWith('[') ? text : text.slice(text.indexOf('['), text.lastIndexOf(']') + 1)
-  const ids = JSON.parse(jsonStr)
-  return ids.map(id => curatedVideos.find(v => v.id === id)).filter(Boolean)
+  const items = JSON.parse(jsonStr)
+  return items.map(item => {
+    const vid = curatedVideos.find(v => v.id === item.id)
+    if (!vid) return null
+    return { ...vid, whyRecommended: item.reason || '' }
+  }).filter(Boolean)
+}
+
+function updateTasteAffinities(profile, title, channel, topic, tags) {
+  const channelAff = { ...profile.channelAffinities }
+  const topicAff = { ...profile.topicAffinities }
+  if (channel) channelAff[channel] = (channelAff[channel] || 0) + 1
+  if (topic) topicAff[topic] = (topicAff[topic] || 0) + 1
+  tags.forEach(t => { topicAff[t] = (topicAff[t] || 0) + 0.5 })
+  return { ...profile, channelAffinities: channelAff, topicAffinities: topicAff }
 }
 
 export default function GrowthFeed() {
   const [videos, setVideos] = useLocalStorage('marko_growth_feed', INITIAL_VIDEOS)
+  const [tasteProfile, setTasteProfile] = useLocalStorage('marko_taste_profile', { seedVideos: [], channelAffinities: {}, topicAffinities: {} })
   const [filter, setFilter] = useState('ALL')
   const [showWatched, setShowWatched] = useState(false)
   const [ratingOpen, setRatingOpen] = useState(new Set())
@@ -184,6 +235,12 @@ export default function GrowthFeed() {
   const [dropError, setDropError] = useState('')
   const [showKeyModal, setShowKeyModal] = useState(false)
   const [keyInput, setKeyInput] = useState('')
+  const [seedUrl, setSeedUrl] = useState('')
+  const [seedTitle, setSeedTitle] = useState('')
+  const [seedChannel, setSeedChannel] = useState('')
+  const [seedLoading, setSeedLoading] = useState(false)
+  const [seedError, setSeedError] = useState('')
+  const [showSeedPanel, setShowSeedPanel] = useState(false)
 
   const handleWatch = (id, openTab) => {
     if (openTab) {
@@ -218,11 +275,45 @@ export default function GrowthFeed() {
     setKeyInput('')
   }
 
+  const handleSeedVideo = async () => {
+    if (!seedUrl.trim() || !seedTitle.trim()) return
+    setSeedLoading(true)
+    setSeedError('')
+    try {
+      const video_id = extractVideoId(seedUrl.trim())
+      let topic = '', tags = []
+      try {
+        const meta = await extractVideoMeta(seedUrl, seedTitle, seedChannel)
+        topic = meta.topic || ''
+        tags = meta.tags || []
+      } catch(_) { /* meta extraction optional */ }
+      const seedEntry = {
+        id: Date.now().toString(),
+        url: seedUrl.trim(),
+        video_id,
+        title: seedTitle.trim(),
+        channel: seedChannel.trim(),
+        topic,
+        tags,
+        addedAt: today()
+      }
+      setTasteProfile(p => {
+        const updated = { ...p, seedVideos: [seedEntry, ...(p.seedVideos || [])] }
+        return updateTasteAffinities(updated, seedEntry.title, seedEntry.channel, topic, tags)
+      })
+      setSeedUrl('')
+      setSeedTitle('')
+      setSeedChannel('')
+    } catch(err) {
+      setSeedError(err.message || 'Failed to save seed video')
+    } finally { setSeedLoading(false) }
+  }
+
   const handleDrop = async () => {
     setDropping(true)
     setDropError('')
     try {
-      const newVids = await fetchVideoDrop(videos.map(v => v.id))
+      const newVids = await fetchVideoDrop(videos.map(v => v.id), tasteProfile)
       setVideos(vs => [...vs, ...newVids.map(v => ({
         ...v,
         date_added: today(),
@@ -294,6 +385,77 @@ export default function GrowthFeed() {
       <div className="flex-1 overflow-auto" style={{ padding: '24px 32px' }}>
         <div className="space-y-6">
 
+          {/* Taste Signals Panel */}
+          <div style={{ background: '#0b0b16', border: '1px solid #1a1a2e', borderRadius: 12 }}>
+            <button onClick={() => setShowSeedPanel(!showSeedPanel)}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer' }}>
+              <span style={{ fontSize: 14 }}>🎯</span>
+              <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Taste Signals</span>
+              <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563', marginLeft: 4 }}>{(tasteProfile.seedVideos || []).length} seed videos saved</span>
+              <span style={{ marginLeft: 'auto', fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                {showSeedPanel ? '▲ collapse' : '▼ expand — teach the feed your taste'}
+              </span>
+            </button>
+
+            {showSeedPanel && (
+              <div style={{ padding: '0 20px 20px' }}>
+                <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#4b5563', marginBottom: 16 }}>
+                  Paste a YouTube video you liked. The feed learns your taste and recommends similar content.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+                  <input value={seedUrl} onChange={e => setSeedUrl(e.target.value)} placeholder="YouTube URL (youtube.com/watch?v=...)"
+                    style={{ width: '100%', background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <input value={seedTitle} onChange={e => setSeedTitle(e.target.value)} placeholder="Video title"
+                      style={{ background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none' }} />
+                    <input value={seedChannel} onChange={e => setSeedChannel(e.target.value)} placeholder="Channel name"
+                      style={{ background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none' }} />
+                  </div>
+                  {seedError && <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#ef4444', margin: 0 }}>{seedError}</p>}
+                  <button onClick={handleSeedVideo} disabled={seedLoading || !seedUrl.trim() || !seedTitle.trim()}
+                    style={{ padding: '9px 20px', background: seedLoading ? '#1a1a2e' : '#f59e0b', color: seedLoading ? '#4b5563' : '#000', border: 'none', cursor: seedLoading ? 'not-allowed' : 'pointer', fontFamily: 'Inter', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: 6 }}>
+                    {seedLoading ? 'Saving...' : '+ Add Taste Signal'}
+                  </button>
+                </div>
+
+                {(tasteProfile.seedVideos || []).length > 0 && (
+                  <div>
+                    <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Saved Taste Signals</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {(tasteProfile.seedVideos || []).slice(0, 10).map(sv => (
+                        <div key={sv.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#06060f', border: '1px solid #1a1a2e', borderRadius: 8 }}>
+                          <img src={`https://img.youtube.com/vi/${sv.video_id}/default.jpg`} alt="" style={{ width: 40, height: 30, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontFamily: 'Inter', fontSize: 12, color: 'white', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sv.title}</div>
+                            <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#4b5563' }}>{sv.channel}{sv.topic ? ` · ${sv.topic}` : ''}</div>
+                          </div>
+                          {sv.tags && sv.tags.length > 0 && (
+                            <div style={{ display: 'flex', gap: 4 }}>
+                              {sv.tags.slice(0, 2).map(tag => (
+                                <span key={tag} style={{ fontFamily: 'Inter', fontSize: 9, color: '#f59e0b', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 4, padding: '2px 6px' }}>{tag}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {Object.keys(tasteProfile.channelAffinities || {}).length > 0 && (
+                      <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(245,158,11,0.04)', border: '1px solid rgba(245,158,11,0.1)', borderRadius: 8 }}>
+                        <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Your Taste Profile</div>
+                        <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#d1d5db' }}>
+                          Top channels: <span style={{ color: '#f59e0b' }}>{Object.entries(tasteProfile.channelAffinities || {}).sort((a,b) => b[1]-a[1]).slice(0,3).map(([k]) => k).join(', ') || '—'}</span>
+                        </div>
+                        <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#d1d5db', marginTop: 3 }}>
+                          Top topics: <span style={{ color: '#f59e0b' }}>{Object.entries(tasteProfile.topicAffinities || {}).sort((a,b) => b[1]-a[1]).slice(0,4).map(([k]) => k).join(', ') || '—'}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Stats bar */}
           <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', paddingBottom: 20, borderBottom: '1px solid #1a1a2e' }}>
             {[
@@ -339,7 +501,7 @@ export default function GrowthFeed() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {unwatched.map(v => (
-                  <VideoCard key={v.id} video={v} onWatch={handleWatch} onRate={handleRate} ratingOpen={ratingOpen.has(v.id)} />
+                  <VideoCard key={v.id} video={v} onWatch={handleWatch} onRate={handleRate} ratingOpen={ratingOpen.has(v.id)} whyRecommended={v.whyRecommended} />
                 ))}
               </div>
             )}
@@ -371,7 +533,7 @@ export default function GrowthFeed() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" style={{ opacity: 0.6 }}>
                   {watched.map(v => (
-                    <VideoCard key={v.id} video={v} onWatch={handleWatch} onRate={handleRate} ratingOpen={ratingOpen.has(v.id)} />
+                    <VideoCard key={v.id} video={v} onWatch={handleWatch} onRate={handleRate} ratingOpen={ratingOpen.has(v.id)} whyRecommended={v.whyRecommended} />
                   ))}
                 </div>
               )

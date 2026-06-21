@@ -10,11 +10,12 @@ import Business from './pages/Business'
 import Soul from './pages/Soul'
 import Coach from './pages/Coach'
 import GrowthFeed from './pages/GrowthFeed'
+import DailyOS from './pages/DailyOS'
 import { initSeedData } from './data/seedData'
 
 initSeedData()
 
-const PAGES = { record: Record, insights: Insights, mind: Mind, body: Body, relations: Relations, business: Business, soul: Soul, coach: Coach, 'growth-feed': GrowthFeed }
+const PAGES = { record: Record, insights: Insights, mind: Mind, body: Body, relations: Relations, business: Business, soul: Soul, coach: Coach, 'growth-feed': GrowthFeed, daily: DailyOS }
 
 export default function App() {
   const [active, setActive] = useState('record')
