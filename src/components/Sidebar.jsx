@@ -1,124 +1,101 @@
-import { CalendarCheck, Dumbbell, Brain, TrendingUp, Target, BarChart2, Briefcase, Users, Flame, Bot, Settings, Zap } from 'lucide-react'
+import { LayoutDashboard, Flame, Dumbbell, Zap, TrendingUp, Briefcase, Settings } from 'lucide-react'
 import { daysSinceStart } from '../utils'
 
-const PRIMARY = [
-  { id: 'daily', label: 'Daily', Icon: CalendarCheck },
-  { id: 'body', label: 'Body', Icon: Dumbbell },
-  { id: 'mind', label: 'Mind', Icon: Brain },
-  { id: 'growth-feed', label: 'Growth', Icon: TrendingUp },
-]
-
-const SECONDARY = [
-  { id: 'record', label: 'Record', Icon: Target },
-  { id: 'insights', label: 'Insights', Icon: BarChart2 },
-  { id: 'business', label: 'Business', Icon: Briefcase },
-  { id: 'relations', label: 'Relations', Icon: Users },
-  { id: 'soul', label: 'Soul', Icon: Flame },
-  { id: 'coach', label: 'Coach', Icon: Bot },
+const NAV_ITEMS = [
+  { id: 'record', icon: LayoutDashboard, label: 'RECORD' },
+  { id: 'daily', icon: Flame, label: 'DAILY' },
+  { id: 'body', icon: Dumbbell, label: 'BODY' },
+  { id: 'arsenal', icon: Zap, label: 'ARSENAL' },
+  { id: 'growth', icon: TrendingUp, label: 'GROWTH' },
+  { id: 'business', icon: Briefcase, label: 'BIZ' },
 ]
 
 export default function Sidebar({ active, onSelect, onSettings }) {
-  const day = daysSinceStart()
+  const dayCount = daysSinceStart()
 
   return (
-    <aside style={{
-      width: 76,
-      flexShrink: 0,
-      background: '#0a0f1e',
-      borderRight: '1px solid #1a2440',
+    <div style={{
+      width: 64,
+      background: '#06090f',
+      borderRight: '1px solid #0f1628',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      paddingTop: 16,
-      paddingBottom: 16,
-      gap: 0,
+      paddingTop: 12,
+      paddingBottom: 12,
       height: '100vh',
       overflowY: 'auto',
-      overflowX: 'hidden',
+      flexShrink: 0,
     }}>
       {/* Logo */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid #1a2440', width: '100%', alignSelf: 'stretch' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Zap size={18} fill="#c9a84c" color="#c9a84c" />
-        </div>
-        <span style={{ fontFamily: 'Inter', fontSize: 8, fontWeight: 800, color: '#a0aec0', letterSpacing: '0.1em', textTransform: 'uppercase' }}>MARKO OS</span>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        marginBottom: 16,
+        paddingBottom: 12,
+        borderBottom: '1px solid #0f1628',
+        width: '100%',
+        gap: 2,
+        boxSizing: 'border-box',
+      }}>
+        <Zap size={16} fill="#c9a84c" color="#c9a84c" />
+        <span style={{
+          fontSize: 9,
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 800,
+          color: '#4a5a7a',
+        }}>
+          M
+        </span>
       </div>
 
-      {/* Primary nav */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', padding: '0 8px', boxSizing: 'border-box' }}>
-        {PRIMARY.map(({ id, label, Icon }) => {
+      {/* Nav items */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        padding: '0 8px',
+        width: '100%',
+        boxSizing: 'border-box',
+      }}>
+        {NAV_ITEMS.map(({ id, icon: Icon, label }) => {
           const isActive = active === id
           return (
             <button
               key={id}
               onClick={() => onSelect(id)}
-              title={label}
               style={{
+                width: 44,
+                height: 44,
+                borderRadius: 10,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 5,
-                padding: '10px 4px',
-                borderRadius: 10,
-                border: 'none',
+                gap: 3,
                 cursor: 'pointer',
-                background: isActive ? 'rgba(201,168,76,0.12)' : 'transparent',
-                transition: 'all 0.15s',
-                width: '100%',
+                border: isActive ? '1px solid #1a2440' : '1px solid transparent',
+                background: isActive ? '#0f1628' : 'transparent',
+                margin: '0 auto',
+                padding: 0,
+                outline: 'none',
               }}
-              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
-              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
             >
               <Icon
-                size={20}
-                color={isActive ? '#c9a84c' : '#a0aec0'}
-                strokeWidth={isActive ? 2 : 1.5}
-                style={{ transition: 'color 0.15s' }}
+                size={18}
+                color={isActive ? '#c9a84c' : '#2a3a5a'}
               />
               <span style={{
-                fontFamily: 'Inter',
-                fontSize: 9,
-                fontWeight: isActive ? 700 : 500,
-                color: isActive ? '#c9a84c' : '#a0aec0',
+                fontSize: 7,
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 600,
                 textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                lineHeight: 1,
-                transition: 'color 0.15s',
-              }}>{label}</span>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Divider */}
-      <div style={{ width: 36, height: 1, background: '#1a2440', margin: '12px 0' }} />
-
-      {/* Secondary nav */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%', padding: '0 8px', boxSizing: 'border-box' }}>
-        {SECONDARY.map(({ id, label, Icon }) => {
-          const isActive = active === id
-          return (
-            <button
-              key={id}
-              onClick={() => onSelect(id)}
-              title={label}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '8px 4px',
-                borderRadius: 8,
-                border: 'none',
-                cursor: 'pointer',
-                background: isActive ? 'rgba(201,168,76,0.1)' : 'transparent',
-                transition: 'all 0.15s',
-                width: '100%',
-              }}
-              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
-              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
-            >
-              <Icon size={15} color={isActive ? '#c9a84c' : '#374151'} strokeWidth={1.5} />
+                letterSpacing: '0.06em',
+                color: isActive ? '#c9a84c' : '#2a3a5a',
+              }}>
+                {label}
+              </span>
             </button>
           )
         })}
@@ -127,44 +104,55 @@ export default function Sidebar({ active, onSelect, onSettings }) {
       {/* Spacer */}
       <div style={{ flex: 1 }} />
 
-      {/* Day counter */}
+      {/* Day counter badge */}
       <div style={{
+        background: '#0f1628',
+        border: '1px solid #0f1628',
+        borderRadius: 8,
+        padding: 4,
+        width: 'calc(100% - 16px)',
+        marginBottom: 8,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 1,
-        marginBottom: 10,
-        padding: '6px 4px',
-        background: '#000000',
-        border: '1px solid #1a2440',
-        borderRadius: 8,
-        width: 'calc(100% - 16px)',
+        boxSizing: 'border-box',
       }}>
-        <span style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 20, color: '#c9a84c', lineHeight: 1 }}>{String(day).padStart(3, '0')}</span>
-        <span style={{ fontFamily: 'Inter', fontSize: 7, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.08em' }}>day</span>
+        <span style={{
+          fontFamily: '"Barlow Condensed", sans-serif',
+          fontWeight: 900,
+          fontSize: 18,
+          color: '#c9a84c',
+          lineHeight: 1,
+        }}>
+          {dayCount}
+        </span>
+        <span style={{
+          fontSize: 6,
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 600,
+          color: '#2a3a5a',
+          textTransform: 'uppercase',
+        }}>
+          DAY
+        </span>
       </div>
 
-      {/* Settings */}
+      {/* Settings button */}
       <button
         onClick={onSettings}
-        title="Settings"
         style={{
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          padding: 8,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: 8,
-          borderRadius: 8,
-          border: 'none',
-          cursor: 'pointer',
-          background: 'transparent',
-          transition: 'all 0.15s',
-          width: 'calc(100% - 16px)',
+          outline: 'none',
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
       >
-        <Settings size={15} color="#374151" />
+        <Settings size={14} color="#2a3a5a" />
       </button>
-    </aside>
+    </div>
   )
 }

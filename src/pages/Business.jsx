@@ -1,280 +1,671 @@
 import { useState } from 'react'
-import { Plus, Search, X } from 'lucide-react'
+import { Plus, X, ChevronDown } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import Modal from '../components/Modal'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { fmtShort } from '../utils'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { today, fmtShort } from '../utils'
 
-const CARD = { background: '#0d1427', border: '1px solid #1a2440', borderRadius: 12, padding: 20 }
+// ─── Design tokens ───────────────────────────────────────────────────────────
+const BG         = '#030508'
+const SURF       = '#06090f'
+const CARD_BORDER= '#0f1628'
+const GOLD       = '#c9a84c'
+const BLUE       = '#3b82f6'
+const GREEN      = '#10b981'
+const PURPLE     = '#a78bfa'
+const RED        = '#ef4444'
+const TEXT2      = '#4a5a7a'
+const MUTED      = '#2a3a5a'
+
 const STATUSES = ['Lead', 'Appointment Set', 'No Show', 'Closed', 'Lost']
-const STATUS_COLORS = {
-  Lead: { color: '#a0aec0', border: '#a0aec04d' },
-  'Appointment Set': { color: '#3b82f6', border: '#3b82f64d' },
-  'No Show': { color: '#c9a84c', border: '#c9a84c4d' },
-  Closed: { color: '#22c55e', border: '#22c55e4d' },
-  Lost: { color: '#ef4444', border: '#ef44444d' },
+
+const STATUS_COLOR = {
+  Lead:              { color: MUTED,   border: `${MUTED}66` },
+  'Appointment Set': { color: BLUE,   border: `${BLUE}55`  },
+  'No Show':         { color: GOLD,   border: `${GOLD}55`  },
+  Closed:            { color: GREEN,  border: `${GREEN}55` },
+  Lost:              { color: RED,    border: `${RED}55`   },
 }
-const LESSON_CATS = ['Sales Call', 'Outreach', 'Client', 'Strategy', 'Other']
+
+const LABEL_STYLE = {
+  fontFamily: 'Inter, sans-serif',
+  fontSize: 9,
+  fontWeight: 600,
+  color: TEXT2,
+  textTransform: 'uppercase',
+  letterSpacing: '0.3em',
+}
+
+const HEADING_STYLE = (color, size = 40) => ({
+  fontFamily: '"Barlow Condensed", sans-serif',
+  fontSize: size,
+  fontWeight: 900,
+  color,
+  lineHeight: 1,
+  textTransform: 'uppercase',
+})
+
+const INPUT_STYLE = {
+  width: '100%',
+  background: BG,
+  border: `1px solid ${CARD_BORDER}`,
+  borderRadius: 6,
+  padding: '8px 12px',
+  fontFamily: 'Inter, sans-serif',
+  fontSize: 13,
+  color: 'white',
+  outline: 'none',
+  boxSizing: 'border-box',
+}
+
 const CHART_TT = {
-  contentStyle: { background: '#0d1427', border: '1px solid #1a2440', borderRadius: 8, fontSize: 11, fontFamily: 'Inter' },
-  labelStyle: { color: '#a0aec0' },
-  itemStyle: { color: '#fff' },
+  contentStyle: { background: SURF, border: `1px solid ${CARD_BORDER}`, borderRadius: 6, fontSize: 11, fontFamily: 'Inter' },
+  labelStyle:   { color: TEXT2 },
+  itemStyle:    { color: '#fff' },
 }
 
-const cls = {
-  input: "w-full bg-[#000000] border border-[#1a2440] px-3 py-2 text-sm text-white placeholder-[#a0aec0] focus:outline-none focus:border-[#c9a84c] transition-colors rounded-lg",
-  label: "block text-[9px] font-mono uppercase tracking-widest text-[#a0aec0] mb-1.5",
+// ─── Week helpers ─────────────────────────────────────────────────────────────
+function getWeekBounds() {
+  const now = new Date()
+  const dow = now.getDay()
+  const mon = new Date(now)
+  mon.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
+  mon.setHours(0, 0, 0, 0)
+  const sun = new Date(mon)
+  sun.setDate(mon.getDate() + 6)
+  sun.setHours(23, 59, 59, 999)
+  return { mon, sun }
 }
 
-const LABEL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }
+function getWeekDates() {
+  const { mon } = getWeekBounds()
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(mon)
+    d.setDate(mon.getDate() + i)
+    return d.toISOString().split('T')[0]
+  })
+}
 
+function isThisWeek(dateStr) {
+  const { mon, sun } = getWeekBounds()
+  const d = new Date(dateStr + 'T12:00:00')
+  return d >= mon && d <= sun
+}
+
+function fmtWeekLabel(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00')
+  return d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()
+}
+
+function fmtWeekRange() {
+  const dates = getWeekDates()
+  const f = d => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return `${f(dates[0])} – ${f(dates[6])}`
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 export default function Business() {
-  const [data, setData] = useLocalStorage('marko_business', { deals: [], lessons: [], revenueHistory: [] })
-  const [showDealModal, setShowDealModal] = useState(false)
-  const [showLessonModal, setShowLessonModal] = useState(false)
-  const [lessonSearch, setLessonSearch] = useState('')
-  const [df, setDf] = useState({ prospect: '', status: 'Lead', value: '' })
-  const [lf, setLf] = useState({ title: '', what: '', learned: '', category: 'Sales Call' })
+  const [data, setData]       = useLocalStorage('marko_business', { deals: [], lessons: [], revenueHistory: [] })
+  const [setterData, setSetterData] = useLocalStorage('marko_setter', { weeklyData: {} })
 
-  const deals = data.deals || []
-  const lessons = data.lessons || []
+  const [showApptModal, setShowApptModal] = useState(false)
+  const [hoveredRow, setHoveredRow]       = useState(null)
+
+  // form states
+  const [apptForm, setApptForm] = useState({ prospect: '', gym: '', date: today(), status: 'Appointment Set' })
+  const [setterForm, setSetterForm] = useState({ sms: '', calls: '', appts: '' })
+
+  // ─── Derived data ──────────────────────────────────────────────────────────
+  const deals          = data.deals          || []
+  const lessons        = data.lessons        || []
   const revenueHistory = data.revenueHistory || []
 
-  const now = new Date()
+  // Month revenue
+  const now        = new Date()
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-  const monthRevenue = revenueHistory.filter(r => r.date >= monthStart).reduce((s, r) => s + (r.amount || 0), 0)
-  const gap = Math.max(0, 10000 - monthRevenue)
-  const openDeals = deals.filter(d => !['Closed', 'Lost'].includes(d.status))
-  const pipeline = openDeals.reduce((s, d) => s + (parseFloat(d.value) || 0), 0)
-  const closedDeals = deals.filter(d => ['Closed', 'Lost'].includes(d.status))
-  const wonDeals = deals.filter(d => d.status === 'Closed')
-  const closeRate = closedDeals.length > 0 ? Math.round((wonDeals.length / closedDeals.length) * 100) : 0
-  const appointments = deals.filter(d => d.status !== 'Lead')
-  const showed = deals.filter(d => ['Showed', 'Closed', 'Lost'].includes(d.status) || d.status === 'Closed')
-  const showRate = appointments.length > 0 ? Math.round((showed.length / appointments.length) * 100) : 0
+  const monthRevenue = revenueHistory
+    .filter(r => r.date >= monthStart)
+    .reduce((s, r) => s + (r.amount || 0), 0)
 
-  const revenueColor = monthRevenue >= 10000 ? '#c9a84c' : monthRevenue >= 5000 ? 'white' : '#c9a84c'
+  // Stat block calcs
+  const thisWeekDeals = deals.filter(d => isThisWeek(d.date))
 
-  const chart30 = (() => {
-    const acc = []
-    let running = 0
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i)
-      const ds = d.toISOString().split('T')[0]
-      running += revenueHistory.filter(r => r.date === ds).reduce((s, r) => s + (r.amount || 0), 0)
-      acc.push({ date: ds.slice(5), revenue: running })
-    }
-    return acc
-  })()
+  const apptsThisWeek = thisWeekDeals.filter(d => d.status === 'Appointment Set').length
 
+  const salesCallsThisWeek = thisWeekDeals.filter(d =>
+    ['Appointment Set', 'No Show', 'Closed', 'Lost'].includes(d.status)
+  ).length
+
+  const totalCalls = deals.filter(d =>
+    ['Appointment Set', 'No Show', 'Closed', 'Lost'].includes(d.status)
+  )
+  const showed = totalCalls.filter(d => d.status !== 'No Show')
+  const showRate = totalCalls.length > 0 ? Math.round((showed.length / totalCalls.length) * 100) : 0
+
+  const closedDeals = deals.filter(d => d.status === 'Closed')
+  const lostDeals   = deals.filter(d => d.status === 'Lost')
+  const closeRate   = (closedDeals.length + lostDeals.length) > 0
+    ? Math.round((closedDeals.length / (closedDeals.length + lostDeals.length)) * 100)
+    : 0
+
+  const totalClosedCount = closedDeals.length
+
+  // Recent 20 deals sorted by date desc
+  const recentDeals = [...deals]
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    .slice(0, 20)
+
+  // ─── Deal CRUD ─────────────────────────────────────────────────────────────
   const addDeal = () => {
-    if (!df.prospect.trim()) return
-    const today = new Date().toISOString().split('T')[0]
-    setData(d => ({ ...d, deals: [{ ...df, id: Date.now(), date: today, value: parseFloat(df.value) || 0 }, ...deals] }))
-    setDf({ prospect: '', status: 'Lead', value: '' })
-    setShowDealModal(false)
+    if (!apptForm.prospect.trim()) return
+    const newDeal = {
+      id: Date.now(),
+      prospect: apptForm.prospect.trim(),
+      gym: apptForm.gym.trim(),
+      date: apptForm.date || today(),
+      status: apptForm.status,
+      value: 0,
+    }
+    setData(d => ({ ...d, deals: [newDeal, ...(d.deals || [])] }))
+    setApptForm({ prospect: '', gym: '', date: today(), status: 'Appointment Set' })
+    setShowApptModal(false)
   }
 
   const updateDealStatus = (id, status) => {
-    const today = new Date().toISOString().split('T')[0]
+    const todayStr = today()
     const deal = deals.find(d => d.id === id)
     const updatedDeals = deals.map(d => d.id === id ? { ...d, status } : d)
     let updatedHistory = [...revenueHistory]
-    if (status === 'Closed' && deal) updatedHistory = [...updatedHistory, { date: today, amount: parseFloat(deal.value) || 0 }]
+    if (status === 'Closed' && deal) {
+      updatedHistory = [...updatedHistory, { date: todayStr, amount: parseFloat(deal.value) || 0 }]
+    }
     setData(d => ({ ...d, deals: updatedDeals, revenueHistory: updatedHistory }))
   }
 
-  const deleteDeal = id => setData(d => ({ ...d, deals: deals.filter(x => x.id !== id) }))
+  const deleteDeal = id => setData(d => ({ ...d, deals: (d.deals || []).filter(x => x.id !== id) }))
 
-  const addLesson = () => {
-    if (!lf.title.trim()) return
-    const today = new Date().toISOString().split('T')[0]
-    setData(d => ({ ...d, lessons: [{ ...lf, id: Date.now(), date: today }, ...(d.lessons || [])] }))
-    setLf({ title: '', what: '', learned: '', category: 'Sales Call' })
-    setShowLessonModal(false)
+  // ─── Lesson CRUD (preserved, not displayed) ────────────────────────────────
+  const addLesson = (lf) => {
+    if (!lf.title?.trim()) return
+    const todayStr = today()
+    setData(d => ({ ...d, lessons: [{ ...lf, id: Date.now(), date: todayStr }, ...(d.lessons || [])] }))
+  }
+  const deleteLesson = id => setData(d => ({ ...d, lessons: (d.lessons || []).filter(l => l.id !== id) }))
+  void addLesson; void deleteLesson  // suppress unused warnings
+
+  // ─── Setter tracker ────────────────────────────────────────────────────────
+  const weekDates    = getWeekDates()
+  const weeklyData   = setterData.weeklyData || {}
+  const todayStr     = today()
+  const todayEntry   = weeklyData[todayStr] || { sms: 0, calls: 0, appts: 0 }
+
+  const saveSetterDay = () => {
+    const sms   = parseInt(setterForm.sms)   || 0
+    const calls = parseInt(setterForm.calls) || 0
+    const appts = parseInt(setterForm.appts) || 0
+    setSetterData(d => ({
+      ...d,
+      weeklyData: {
+        ...(d.weeklyData || {}),
+        [todayStr]: { sms, calls, appts },
+      },
+    }))
+    setSetterForm({ sms: '', calls: '', appts: '' })
   }
 
-  const deleteLesson = id => setData(d => ({ ...d, lessons: (d.lessons || []).filter(l => l.id !== id) }))
-
-  const filteredLessons = lessons.filter(l => {
-    const q = lessonSearch.toLowerCase()
-    return !q || l.title?.toLowerCase().includes(q) || l.learned?.toLowerCase().includes(q) || l.what?.toLowerCase().includes(q)
+  const weekChartData = weekDates.map(ds => {
+    const entry = weeklyData[ds] || { sms: 0, calls: 0, appts: 0 }
+    return {
+      day: fmtWeekLabel(ds),
+      SMS: Math.round((entry.sms || 0) / 10),
+      Calls: entry.calls || 0,
+      Appts: entry.appts || 0,
+    }
   })
 
+  const weekTotals = weekDates.reduce(
+    (acc, ds) => {
+      const e = weeklyData[ds] || {}
+      return { sms: acc.sms + (e.sms || 0), calls: acc.calls + (e.calls || 0), appts: acc.appts + (e.appts || 0) }
+    },
+    { sms: 0, calls: 0, appts: 0 }
+  )
+
+  // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="h-full flex flex-col" style={{ background: '#000000' }}>
-      {/* Header */}
-      <div style={{ background: '#000000', borderBottom: '1px solid #1a2440', padding: '20px 32px', flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
-            <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#a0aec0', letterSpacing: '0.12em', textTransform: 'uppercase' }}>REVENUE COMMAND ACTIVE</span>
-          </div>
-          <h1 style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(180deg,#c9a84c 0%,#c9a84c 60%,#c9a84c 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>
-            BUSINESS
-          </h1>
-          <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>REVENUE · PIPELINE · LESSONS VAULT</p>
+    <div style={{ background: BG, minHeight: '100%', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, sans-serif' }}>
+
+      {/* ── TOP BAR ────────────────────────────────────────────────────────── */}
+      <div style={{
+        background: SURF,
+        borderBottom: `1px solid ${CARD_BORDER}`,
+        padding: '12px 20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexShrink: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: TEXT2 }}>
+            {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()}
+          </span>
+          <span style={{ ...HEADING_STYLE('white', 22), letterSpacing: '0.08em' }}>BUSINESS</span>
         </div>
-        <div className="flex gap-2" style={{ marginTop: 16 }}>
-          <button onClick={() => setShowLessonModal(true)}
-            style={{ background: 'transparent', color: '#a0aec0', border: '1px solid #1a2440', borderRadius: 8, padding: '6px 12px', fontFamily: 'Inter', fontSize: 11, cursor: 'pointer' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = '#c9a84c'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#1a2440'}
-          >+ Lesson</button>
-          <button onClick={() => setShowDealModal(true)}
-            style={{ background: '#c9a84c', color: '#000', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
-          ><Plus size={12} strokeWidth={2.5} /> Add Deal</button>
+        <div style={{
+          background: `${GOLD}22`,
+          border: `1px solid ${GOLD}55`,
+          borderRadius: 20,
+          padding: '3px 12px',
+          fontFamily: '"Barlow Condensed", sans-serif',
+          fontSize: 13,
+          fontWeight: 900,
+          color: GOLD,
+          letterSpacing: '0.05em',
+        }}>
+          {totalClosedCount} CLOSED
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto px-6 py-5" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          <div style={{ ...CARD, border: monthRevenue >= 10000 ? '1px solid #c9a84c40' : '1px solid #1a2440' }}>
-            <div style={LABEL}>Revenue MTD</div>
-            <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 36, fontWeight: 400, color: revenueColor, lineHeight: 1 }}>${monthRevenue.toLocaleString()}</div>
-            <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#a0aec0', marginTop: 4 }}>/ $10,000 goal</div>
-            <div style={{ marginTop: 8, height: 4, background: '#1a2440', borderRadius: 2 }}>
-              <div style={{ height: 4, background: monthRevenue >= 10000 ? '#c9a84c' : '#c9a84c', borderRadius: 2, width: `${Math.min(100, (monthRevenue / 10000) * 100)}%`, transition: 'width 0.3s' }} />
+      {/* ── 4 STAT BLOCKS ──────────────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, flexShrink: 0 }}>
+        {[
+          {
+            label: 'APPOINTMENTS',
+            value: apptsThisWeek,
+            suffix: '',
+            color: GREEN,
+            delta: 'goal: 10/wk',
+          },
+          {
+            label: 'SALES CALLS',
+            value: salesCallsThisWeek,
+            suffix: '',
+            color: BLUE,
+            delta: 'conducted this week',
+          },
+          {
+            label: 'SHOW RATE',
+            value: showRate,
+            suffix: '%',
+            color: GOLD,
+            delta: 'target: 70%+',
+          },
+          {
+            label: 'CLOSE RATE',
+            value: closeRate,
+            suffix: '%',
+            color: PURPLE,
+            delta: 'target: 30%+',
+          },
+        ].map(stat => (
+          <div key={stat.label} style={{
+            background: SURF,
+            border: `1px solid ${CARD_BORDER}`,
+            borderTop: `2px solid ${stat.color}`,
+            padding: '16px 20px',
+          }}>
+            <div style={{ ...LABEL_STYLE, marginBottom: 8 }}>{stat.label}</div>
+            <div style={{ ...HEADING_STYLE(stat.color, 40), marginBottom: 4 }}>
+              {stat.value}{stat.suffix}
+            </div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: TEXT2 }}>
+              {stat.delta}
             </div>
           </div>
-          {[
-            { label: 'Gap to $10k', value: gap === 0 ? 'DONE' : `$${gap.toLocaleString()}`, color: gap === 0 ? '#22c55e' : '#ef4444' },
-            { label: 'Pipeline', value: `$${pipeline.toLocaleString()}`, sub: `${openDeals.length} open deals`, color: 'white' },
-            { label: 'Close Rate', value: `${closeRate}%`, color: 'white' },
-            { label: 'Show Rate', value: `${showRate}%`, color: 'white' },
-          ].map(k => (
-            <div key={k.label} style={CARD}>
-              <div style={LABEL}>{k.label}</div>
-              <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 36, fontWeight: 400, color: k.color, lineHeight: 1 }}>{k.value}</div>
-              {k.sub && <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#a0aec0', marginTop: 4 }}>{k.sub}</div>}
-            </div>
-          ))}
-        </div>
+        ))}
+      </div>
 
-        {/* Chart + Deals */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div style={CARD}>
-            <div style={LABEL}>30-Day Cumulative Revenue</div>
-            <ResponsiveContainer width="100%" height={140}>
-              <LineChart data={chart30}>
-                <XAxis dataKey="date" tick={{ fill: '#a0aec0', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} interval={6} />
-                <YAxis tick={{ fill: '#a0aec0', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} width={36} tickFormatter={v => `$${(v / 1000).toFixed(0)}k`} />
-                <Tooltip {...CHART_TT} formatter={v => [`$${v.toLocaleString()}`, 'Revenue']} />
-                <Line type="monotone" dataKey="revenue" stroke="#c9a84c" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
+      {/* ── MAIN CONTENT ───────────────────────────────────────────────────── */}
+      <div style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+        {/* ── APPOINTMENTS TABLE ─────────────────────────────────────────── */}
+        <div>
+          {/* Table header bar */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={LABEL_STYLE}>RECENT APPOINTMENTS</span>
+            <button
+              onClick={() => setShowApptModal(true)}
+              style={{
+                background: 'transparent',
+                border: `1px solid ${BLUE}`,
+                borderRadius: 6,
+                padding: '5px 12px',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 10,
+                fontWeight: 600,
+                color: BLUE,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = `${BLUE}18`}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <Plus size={11} strokeWidth={2.5} /> ADD APPOINTMENT
+            </button>
           </div>
 
-          <div style={CARD}>
-            <div style={LABEL}>Active Deals</div>
-            {deals.length === 0 ? (
-              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0aec0', textAlign: 'center', padding: '24px 0' }}>No deals yet</div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {deals.slice(0, 8).map(d => {
-                  const sc = STATUS_COLORS[d.status] || { color: '#a0aec0', border: '#a0aec040' }
-                  return (
-                    <div key={d.id} className="group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors" style={{}}
-                      onMouseEnter={e => e.currentTarget.style.background = '#000000'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 500, color: '#d1d5db', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.prospect}</div>
-                        <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#a0aec0' }}>${parseFloat(d.value || 0).toLocaleString()} · {fmtShort(d.date)}</div>
-                      </div>
-                      <select
-                        value={d.status}
-                        onChange={e => updateDealStatus(d.id, e.target.value)}
-                        style={{ fontFamily: 'Inter', fontSize: 10, color: sc.color, border: `1px solid ${sc.border}`, background: '#000000', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', outline: 'none' }}
-                      >
-                        {STATUSES.map(s => <option key={s}>{s}</option>)}
-                      </select>
-                      <button onClick={() => deleteDeal(d.id)} style={{ color: '#a0aec0', background: 'none', border: 'none', cursor: 'pointer', opacity: 0 }} className="group-hover:opacity-100 hover:text-red-400 transition-all"><X size={12} /></button>
-                    </div>
-                  )
-                })}
+          {/* Table */}
+          <div style={{
+            background: SURF,
+            border: `1px solid ${CARD_BORDER}`,
+            borderRadius: 10,
+            overflow: 'hidden',
+          }}>
+            {/* Table head */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr 120px 140px 36px',
+              padding: '10px 16px',
+              borderBottom: `1px solid ${CARD_BORDER}`,
+            }}>
+              {['NAME', 'GYM', 'DATE', 'STATUS', ''].map(col => (
+                <div key={col} style={{ ...LABEL_STYLE, marginBottom: 0 }}>{col}</div>
+              ))}
+            </div>
+
+            {recentDeals.length === 0 ? (
+              <div style={{ padding: '32px 16px', textAlign: 'center', fontFamily: 'Inter, sans-serif', fontSize: 12, color: TEXT2 }}>
+                No appointments yet — add one above
               </div>
+            ) : (
+              recentDeals.map(deal => {
+                const sc = STATUS_COLOR[deal.status] || STATUS_COLOR['Lead']
+                const isHovered = hoveredRow === deal.id
+                return (
+                  <div
+                    key={deal.id}
+                    onMouseEnter={() => setHoveredRow(deal.id)}
+                    onMouseLeave={() => setHoveredRow(null)}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr 120px 140px 36px',
+                      padding: '10px 16px',
+                      borderBottom: `1px solid ${CARD_BORDER}`,
+                      alignItems: 'center',
+                      background: isHovered ? `${CARD_BORDER}80` : 'transparent',
+                      transition: 'background 0.1s',
+                    }}
+                  >
+                    {/* Name */}
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>
+                      {deal.prospect}
+                    </div>
+
+                    {/* Gym */}
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: TEXT2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>
+                      {deal.gym || '—'}
+                    </div>
+
+                    {/* Date */}
+                    <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: TEXT2 }}>
+                      {fmtShort(deal.date)}
+                    </div>
+
+                    {/* Status dropdown styled as pill */}
+                    <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+                      <select
+                        value={deal.status}
+                        onChange={e => updateDealStatus(deal.id, e.target.value)}
+                        style={{
+                          appearance: 'none',
+                          WebkitAppearance: 'none',
+                          background: `${sc.color}18`,
+                          border: `1px solid ${sc.border}`,
+                          borderRadius: 20,
+                          padding: '3px 24px 3px 10px',
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: 10,
+                          fontWeight: 600,
+                          color: sc.color,
+                          cursor: 'pointer',
+                          outline: 'none',
+                          letterSpacing: '0.04em',
+                        }}
+                      >
+                        {STATUSES.map(s => <option key={s} value={s} style={{ background: SURF, color: 'white' }}>{s}</option>)}
+                      </select>
+                      <ChevronDown size={10} style={{ position: 'absolute', right: 7, color: sc.color, pointerEvents: 'none' }} />
+                    </div>
+
+                    {/* Delete */}
+                    <button
+                      onClick={() => deleteDeal(deal.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: TEXT2,
+                        opacity: isHovered ? 1 : 0,
+                        transition: 'opacity 0.1s, color 0.1s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: 4,
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.color = RED}
+                      onMouseLeave={e => e.currentTarget.style.color = TEXT2}
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                )
+              })
             )}
           </div>
         </div>
 
-        {/* Lessons */}
-        <div style={CARD}>
-          <div className="flex items-center justify-between mb-4">
-            <div style={LABEL}>Lessons Learned</div>
+        {/* ── SETTER PERFORMANCE TRACKER ─────────────────────────────────── */}
+        <div style={{ background: SURF, border: `1px solid ${CARD_BORDER}`, borderRadius: 10, padding: '20px' }}>
+          {/* Tracker header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <span style={{ ...LABEL_STYLE, color: BLUE }}>SETTER — BILAL</span>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: TEXT2 }}>{fmtWeekRange()}</span>
           </div>
-          <div style={{ position: 'relative', marginBottom: 14 }}>
-            <Search size={12} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a0aec0' }} />
-            <input
-              value={lessonSearch}
-              onChange={e => setLessonSearch(e.target.value)}
-              placeholder="Search lessons..."
-              style={{ width: '100%', background: '#000000', border: '1px solid #1a2440', borderRadius: 8, paddingLeft: 36, paddingRight: 12, paddingTop: 8, paddingBottom: 8, fontFamily: 'Inter', fontSize: 13, color: '#d1d5db', outline: 'none' }}
-            />
-          </div>
-          {filteredLessons.length === 0 ? (
-            <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0aec0', textAlign: 'center', padding: '24px 0' }}>No lessons logged yet</div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {filteredLessons.map(l => (
-                <div key={l.id} className="group" style={{ background: '#000000', border: '1px solid #1a2440', borderRadius: 8, padding: 14 }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
-                    <div>
-                      <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: '#c9a84c', textTransform: 'uppercase', letterSpacing: '0.06em', marginRight: 8 }}>{l.category}</span>
-                      <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0' }}>{fmtShort(l.date)}</span>
-                    </div>
-                    <button onClick={() => deleteLesson(l.id)} style={{ color: '#a0aec0', background: 'none', border: 'none', cursor: 'pointer', opacity: 0, flexShrink: 0 }} className="group-hover:opacity-100 hover:text-red-400 transition-all"><X size={12} /></button>
-                  </div>
-                  <div style={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 600, color: 'white', marginBottom: 6 }}>{l.title}</div>
-                  {l.what && <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0aec0', marginBottom: 4 }}><span style={{ color: '#a0aec0', textTransform: 'uppercase', fontSize: 9, letterSpacing: '0.06em' }}>What happened: </span>{l.what}</p>}
-                  {l.learned && <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0aec0', borderLeft: '2px solid #c9a84c40', paddingLeft: 10, marginTop: 6 }}>{l.learned}</p>}
+
+          {/* Today's log inputs */}
+          <div style={{
+            background: BG,
+            border: `1px solid ${CARD_BORDER}`,
+            borderRadius: 8,
+            padding: '14px 16px',
+            marginBottom: 20,
+          }}>
+            <div style={{ ...LABEL_STYLE, marginBottom: 12 }}>
+              LOG TODAY — {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase()}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: 10, alignItems: 'flex-end' }}>
+              {[
+                { key: 'sms',   label: 'SMS SENT',    placeholder: todayEntry.sms || '0'   },
+                { key: 'calls', label: 'CALLS MADE',  placeholder: todayEntry.calls || '0' },
+                { key: 'appts', label: 'APPTS BOOKED', placeholder: todayEntry.appts || '0' },
+              ].map(field => (
+                <div key={field.key}>
+                  <div style={{ ...LABEL_STYLE, marginBottom: 6 }}>{field.label}</div>
+                  <input
+                    type="number"
+                    min="0"
+                    value={setterForm[field.key]}
+                    onChange={e => setSetterForm(f => ({ ...f, [field.key]: e.target.value }))}
+                    placeholder={String(field.placeholder)}
+                    style={{ ...INPUT_STYLE, fontSize: 16, fontWeight: 600, textAlign: 'center' }}
+                  />
                 </div>
               ))}
+              <button
+                onClick={saveSetterDay}
+                style={{
+                  background: BLUE,
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '8px 16px',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: 'white',
+                  cursor: 'pointer',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+              >
+                Save Today
+              </button>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {showDealModal && (
-        <Modal title="Add Deal" onClose={() => setShowDealModal(false)}>
-          <div className="space-y-4">
-            <div><label className={cls.label}>Prospect Name</label><input value={df.prospect} onChange={e => setDf({ ...df, prospect: e.target.value })} autoFocus placeholder="Thompson Family" className={cls.input} /></div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><label className={cls.label}>Status</label>
-                <select value={df.status} onChange={e => setDf({ ...df, status: e.target.value })} className={cls.input}>
-                  {STATUSES.map(s => <option key={s}>{s}</option>)}
+          {/* Bar chart */}
+          <div style={{ marginBottom: 16 }}>
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={weekChartData} barGap={3} barCategoryGap="30%">
+                <XAxis
+                  dataKey="day"
+                  tick={{ fill: TEXT2, fontSize: 9, fontFamily: 'Inter', fontWeight: 600 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fill: TEXT2, fontSize: 9, fontFamily: 'Inter' }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={24}
+                />
+                <Tooltip
+                  {...CHART_TT}
+                  formatter={(value, name) => {
+                    if (name === 'SMS') return [value * 10, 'SMS Sent']
+                    return [value, name]
+                  }}
+                />
+                <Legend
+                  wrapperStyle={{ fontSize: 9, fontFamily: 'Inter', color: TEXT2, paddingTop: 8 }}
+                  formatter={(value) => {
+                    if (value === 'SMS') return 'SMS (÷10)'
+                    return value
+                  }}
+                />
+                <Bar dataKey="SMS"   fill={BLUE}  radius={[3, 3, 0, 0]} />
+                <Bar dataKey="Calls" fill={GOLD}  radius={[3, 3, 0, 0]} />
+                <Bar dataKey="Appts" fill={GREEN} radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Week totals footer */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 1,
+            borderTop: `1px solid ${CARD_BORDER}`,
+            paddingTop: 14,
+          }}>
+            {[
+              { label: 'SMS TOTAL', value: weekTotals.sms,   color: BLUE  },
+              { label: 'CALLS TOTAL', value: weekTotals.calls, color: GOLD  },
+              { label: 'APPTS TOTAL', value: weekTotals.appts, color: GREEN },
+            ].map(t => (
+              <div key={t.label} style={{ textAlign: 'center' }}>
+                <div style={{ ...LABEL_STYLE, marginBottom: 4 }}>{t.label}</div>
+                <div style={{ ...HEADING_STYLE(t.color, 28) }}>{t.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>{/* end main content */}
+
+      {/* ── ADD APPOINTMENT MODAL ──────────────────────────────────────────── */}
+      {showApptModal && (
+        <Modal title="Add Appointment" onClose={() => setShowApptModal(false)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              <div style={{ ...LABEL_STYLE, marginBottom: 6 }}>PROSPECT NAME</div>
+              <input
+                autoFocus
+                value={apptForm.prospect}
+                onChange={e => setApptForm(f => ({ ...f, prospect: e.target.value }))}
+                placeholder="John Smith"
+                style={INPUT_STYLE}
+                onKeyDown={e => e.key === 'Enter' && addDeal()}
+              />
+            </div>
+            <div>
+              <div style={{ ...LABEL_STYLE, marginBottom: 6 }}>GYM</div>
+              <input
+                value={apptForm.gym}
+                onChange={e => setApptForm(f => ({ ...f, gym: e.target.value }))}
+                placeholder="Elite Fitness"
+                style={INPUT_STYLE}
+              />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <div style={{ ...LABEL_STYLE, marginBottom: 6 }}>DATE</div>
+                <input
+                  type="date"
+                  value={apptForm.date}
+                  onChange={e => setApptForm(f => ({ ...f, date: e.target.value }))}
+                  style={{ ...INPUT_STYLE, colorScheme: 'dark' }}
+                />
+              </div>
+              <div>
+                <div style={{ ...LABEL_STYLE, marginBottom: 6 }}>STATUS</div>
+                <select
+                  value={apptForm.status}
+                  onChange={e => setApptForm(f => ({ ...f, status: e.target.value }))}
+                  style={{ ...INPUT_STYLE, cursor: 'pointer' }}
+                >
+                  {STATUSES.map(s => <option key={s} value={s} style={{ background: SURF }}>{s}</option>)}
                 </select>
               </div>
-              <div><label className={cls.label}>Deal Value ($)</label><input type="number" value={df.value} onChange={e => setDf({ ...df, value: e.target.value })} placeholder="2500" className={cls.input} /></div>
             </div>
-            <div className="flex gap-2 pt-1">
-              <button onClick={addDeal} style={{ background: '#c9a84c', color: '#000', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
-              <button onClick={() => setShowDealModal(false)} style={{ border: '1px solid #1a2440', color: '#a0aec0', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
+            <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
+              <button
+                onClick={addDeal}
+                style={{
+                  flex: 1,
+                  background: BLUE,
+                  border: 'none',
+                  borderRadius: 6,
+                  padding: '10px 0',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: 'white',
+                  cursor: 'pointer',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                }}
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setShowApptModal(false)}
+                style={{
+                  padding: '10px 16px',
+                  background: 'transparent',
+                  border: `1px solid ${CARD_BORDER}`,
+                  borderRadius: 6,
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 10,
+                  color: TEXT2,
+                  cursor: 'pointer',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                }}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </Modal>
       )}
 
-      {showLessonModal && (
-        <Modal title="Add Lesson" onClose={() => setShowLessonModal(false)}>
-          <div className="space-y-4">
-            <div><label className={cls.label}>Category</label>
-              <select value={lf.category} onChange={e => setLf({ ...lf, category: e.target.value })} className={cls.input}>
-                {LESSON_CATS.map(c => <option key={c}>{c}</option>)}
-              </select>
-            </div>
-            <div><label className={cls.label}>Title</label><input value={lf.title} onChange={e => setLf({ ...lf, title: e.target.value })} autoFocus placeholder="What happened?" className={cls.input} /></div>
-            <div><label className={cls.label}>Situation</label><textarea value={lf.what} onChange={e => setLf({ ...lf, what: e.target.value })} rows={2} placeholder="What actually happened..." className={cls.input + ' resize-none'} /></div>
-            <div><label className={cls.label}>What You Learned</label><textarea value={lf.learned} onChange={e => setLf({ ...lf, learned: e.target.value })} rows={3} placeholder="The lesson. Be specific." className={cls.input + ' resize-none'} /></div>
-            <div className="flex gap-2 pt-1">
-              <button onClick={addLesson} style={{ background: '#c9a84c', color: '#000', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
-              <button onClick={() => setShowLessonModal(false)} style={{ border: '1px solid #1a2440', color: '#a0aec0', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
-            </div>
-          </div>
-        </Modal>
-      )}
     </div>
   )
 }
