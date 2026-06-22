@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today } from '../utils'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { getWinHistory, computeCurrentWinStreak, computeLongestWinStreak, computeCurrentLossStreak, getWinDaySettings } from '../utils/winLoss'
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const BG          = '#030311'
@@ -16,6 +18,8 @@ const PINK        = '#e879f9'
 const RED         = '#f43f5e'
 const TEXT2       = '#94a3b8'
 const MUTED       = '#64748b'
+const WIN_GOLD    = '#c9a84c'
+const LOSS_RED    = '#ef4444'
 
 const LABEL_STYLE = {
   fontFamily: 'Inter, sans-serif',
@@ -174,7 +178,7 @@ function Pill({ children, color }) {
   )
 }
 
-function StatBlock({ accent, label, value, delta }) {
+function StatBlock({ accent, label, value, delta, valueFontOverride }) {
   return (
     <div style={{
       background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a24 100%)',
@@ -187,7 +191,7 @@ function StatBlock({ accent, label, value, delta }) {
     }}>
       <div style={{ ...LABEL_STYLE, marginBottom: 8 }}>{label}</div>
       <div style={{
-        fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
+        fontFamily: valueFontOverride ?? '"Orbitron", "Space Grotesk", sans-serif',
         fontWeight: 900,
         textTransform: 'uppercase',
         fontSize: 40,
@@ -263,6 +267,9 @@ export default function Record() {
   const [dietData]  = useLocalStorage('marko_diet',  { targets: { calories: 2000, protein: 150 }, history: [] })
   const [bizData]   = useLocalStorage('marko_business', { deals: [], revenueHistory: [] })
 
+  // ── Win/Loss state ──────────────────────────────────────────────────────────
+  const [hoveredDay, setHoveredDay] = useState(null)
+
   // ── Derived values ──────────────────────────────────────────────────────────
   const todayStr    = today()
   const now         = new Date()
@@ -295,6 +302,13 @@ export default function Record() {
   const proteinTarget   = dietData.targets?.protein  || 150
   const todayDiet       = dietHistory.find(h => h.date === todayStr)
   const caloriesToday   = todayDiet?.calories ?? 0
+
+  // ── Win streak computations ─────────────────────────────────────────────────
+  const winSettings      = getWinDaySettings()
+  const winHistory30     = getWinHistory(30, winSettings, dailyData, bodyData, dietData)
+  const winStreak        = computeCurrentWinStreak(winHistory30)
+  const longestWinStreak = computeLongestWinStreak(winSettings, dailyData, bodyData, dietData)
+  const lossStreak       = computeCurrentLossStreak(winHistory30)
 
   // ── Graph 1: Weight — last 14 days ─────────────────────────────────────────
   const weightData = (() => {
@@ -428,7 +442,7 @@ export default function Record() {
         </div>
       </div>
 
-      {/* ── 4 Stat Blocks ── */}
+      {/* ── 5 Stat Blocks ── */}
       <div style={{
         display: 'flex',
         gap: 1,
@@ -458,6 +472,160 @@ export default function Record() {
           value={caloriesToday > 0 ? caloriesToday : '—'}
           delta={`target: ${calTarget}kcal`}
         />
+        <StatBlock
+          accent={WIN_GOLD}
+          label="WIN STREAK"
+          value={winStreak}
+          delta={`best: ${longestWinStreak}d`}
+          valueFontOverride="'Barlow Condensed', sans-serif"
+        />
+      </div>
+
+      {/* ── 30-Day Win Calendar ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a24 100%)',
+        border: '1px solid #1d1d4a',
+        boxShadow: '0 0 0 1px rgba(139,92,246,0.1), inset 0 1px 0 rgba(139,92,246,0.05)',
+        padding: '16px 20px',
+        flexShrink: 0,
+      }}>
+        <div style={{ ...LABEL_STYLE, marginBottom: 12 }}>30-DAY WIN CALENDAR</div>
+
+        {/* Calendar grid + tooltip wrapper */}
+        <div style={{ position: 'relative' }}>
+          {/* Squares */}
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 4,
+          }}>
+            {winHistory30.map((day) => {
+              const isToday = day.date === todayStr
+              const hasData = day.available > 0
+
+              let bgColor
+              if (!hasData) {
+                bgColor = '#0d0d28'
+              } else if (day.isWin) {
+                bgColor = WIN_GOLD
+              } else {
+                bgColor = 'rgba(239,68,68,0.7)'
+              }
+
+              return (
+                <div
+                  key={day.date}
+                  onMouseEnter={() => setHoveredDay(day)}
+                  onMouseLeave={() => setHoveredDay(null)}
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 4,
+                    background: bgColor,
+                    border: isToday ? `2px solid ${WIN_GOLD}` : '2px solid transparent',
+                    cursor: 'default',
+                    flexShrink: 0,
+                    transition: 'opacity 0.1s',
+                  }}
+                />
+              )
+            })}
+          </div>
+
+          {/* Hover tooltip */}
+          {hoveredDay && (
+            <div style={{
+              position: 'absolute',
+              top: 36,
+              left: 0,
+              zIndex: 10,
+              background: '#0d0d28',
+              border: `1px solid ${hoveredDay.available > 0 && hoveredDay.isWin ? WIN_GOLD : hoveredDay.available > 0 ? LOSS_RED : '#1d1d4a'}`,
+              borderRadius: 6,
+              padding: '8px 12px',
+              pointerEvents: 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+              minWidth: 120,
+            }}>
+              <div style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 10,
+                color: TEXT2,
+                letterSpacing: '0.05em',
+              }}>
+                {hoveredDay.date}
+              </div>
+              {hoveredDay.available > 0 ? (
+                <>
+                  <div style={{
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontWeight: 900,
+                    fontSize: 16,
+                    color: hoveredDay.isWin ? WIN_GOLD : LOSS_RED,
+                    letterSpacing: '0.05em',
+                  }}>
+                    {hoveredDay.isWin ? 'WIN' : 'LOSS'}
+                  </div>
+                  <div style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 10,
+                    color: MUTED,
+                  }}>
+                    {hoveredDay.pct}% score ({hoveredDay.passed}/{hoveredDay.available})
+                  </div>
+                </>
+              ) : (
+                <div style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 10,
+                  color: MUTED,
+                  letterSpacing: '0.05em',
+                }}>
+                  NO DATA
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Below calendar: Best Win Streak + Loss Streak */}
+        <div style={{
+          display: 'flex',
+          gap: 20,
+          marginTop: hoveredDay ? 60 : 14,
+          alignItems: 'center',
+          transition: 'margin-top 0.1s',
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ ...LABEL_STYLE }}>BEST WIN STREAK</div>
+            <div style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontWeight: 900,
+              fontSize: 28,
+              lineHeight: 1,
+              color: WIN_GOLD,
+            }}>
+              {longestWinStreak}d
+            </div>
+          </div>
+
+          {lossStreak > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <div style={{ ...LABEL_STYLE }}>LOSS STREAK</div>
+              <div style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontWeight: 900,
+                fontSize: 28,
+                lineHeight: 1,
+                color: LOSS_RED,
+              }}>
+                {lossStreak}d
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── 2×2 Graph Grid ── */}

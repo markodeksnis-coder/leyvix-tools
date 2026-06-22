@@ -3,6 +3,7 @@ import { Plus, Trash2, Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import Modal from '../components/Modal'
 import { today } from '../utils'
+import { calcDayScore, getWinDaySettings, getWinHistory, computeCurrentWinStreak } from '../utils/winLoss'
 
 const BG = '#030311'
 const CARD = { background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a24 100%)', border: '1px solid #1d1d4a', borderRadius: 12, padding: 20, boxShadow: '0 0 0 1px rgba(139,92,246,0.08)' }
@@ -64,7 +65,15 @@ export default function DailyOS() {
   const [newOneTimeText, setNewOneTimeText] = useState('')
   const [showManage, setShowManage] = useState(false)
 
+  const [bodyData] = useLocalStorage('marko_body', { liftSessions: [], workouts: [] })
+  const [dietData] = useLocalStorage('marko_diet', { targets: {}, history: [] })
+
   const todayStr = today()
+
+  const winSettings = getWinDaySettings()
+  const todayResult = calcDayScore(todayStr, winSettings, data, bodyData, dietData)
+  const winHistory30 = getWinHistory(30, winSettings, data, bodyData, dietData)
+  const currentWinStreak = computeCurrentWinStreak(winHistory30)
 
   const todayLog = data.logs[todayStr] || {}
   const [sleepInput, setSleepInput] = useState(String(todayLog.sleep || ''))
@@ -232,7 +241,20 @@ export default function DailyOS() {
             <h1 style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(135deg, #8b5cf6 0%, #22d3ee 50%, #fbbf24 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>DAILY OPS</h1>
             <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#94a3b8', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>ACCOUNTABILITY LAYER // NON-NEGOTIABLES & DAILY TASKS</p>
           </div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
+            {currentWinStreak > 0 && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)',
+                borderRadius: 999, padding: '5px 10px',
+              }}>
+                <span style={{ fontSize: 13 }}>🔥</span>
+                <span style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 18, color: '#c9a84c', lineHeight: 1 }}>
+                  {currentWinStreak}
+                </span>
+                <span style={{ fontFamily: 'Inter', fontSize: 8, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>STREAK</span>
+              </div>
+            )}
             <button onClick={() => setShowManage(!showManage)} style={{ padding: '7px 14px', border: '1px solid #1d1d4a', color: '#94a3b8', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer', fontFamily: 'Inter' }}>
               {showManage ? 'Close' : 'Manage Lists'}
             </button>
@@ -242,6 +264,45 @@ export default function DailyOS() {
 
       <div className="flex-1 overflow-auto" style={{ padding: '24px 32px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* WIN/LOSS Badge */}
+          {todayResult.available > 0 && (
+            <div style={{
+              margin: '0 32px 0',
+              padding: '14px 20px',
+              borderRadius: 12,
+              background: todayResult.isWin ? '#c9a84c' : '#ef4444',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{
+                  fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 28,
+                  color: todayResult.isWin ? '#000' : '#fff', letterSpacing: '0.05em',
+                }}>
+                  {todayResult.isWin ? 'WIN DAY' : 'LOSS DAY'}
+                </span>
+                <span style={{
+                  fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 28,
+                  color: todayResult.isWin ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.8)',
+                }}>
+                  {todayResult.pct}%
+                </span>
+              </div>
+              {!todayResult.isWin && (() => {
+                const needed = Math.ceil((winSettings.threshold / 100) * todayResult.available) - todayResult.passed
+                return needed > 0 ? (
+                  <span style={{ fontFamily: 'Inter', fontSize: 11, color: 'rgba(255,255,255,0.85)', fontWeight: 600 }}>
+                    Complete {needed} more to flip to WIN
+                  </span>
+                ) : null
+              })()}
+              {todayResult.isWin && (
+                <span style={{ fontFamily: 'Inter', fontSize: 11, color: 'rgba(0,0,0,0.6)', fontWeight: 600 }}>
+                  {todayResult.passed}/{todayResult.available} metrics hit
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Score + stats */}
           <div style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 40 }}>

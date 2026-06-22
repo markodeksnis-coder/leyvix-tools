@@ -1,6 +1,9 @@
 import { useState, useMemo } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
+import { getWinRatePoints, getWinDaySettings } from '../utils/winLoss'
+import WinDaySettings from '../components/WinDaySettings'
+import { Settings2 } from 'lucide-react'
 
 const DEFAULT_METRICS = [
   { id: 'diet_quality', name: 'Diet Quality', unit: '%', maxVal: 100 },
@@ -225,8 +228,16 @@ export default function LifeCycles() {
   const [newMetricMax, setNewMetricMax] = useState('10')
   const [editingMetric, setEditingMetric] = useState(null)
   const [customLogInputs, setCustomLogInputs] = useState({})
+  const [showWinSettings, setShowWinSettings] = useState(false)
 
   const allMetrics = [...DEFAULT_METRICS, ...(cyclesConfig.customMetrics || [])]
+
+  const winSettings = getWinDaySettings()
+  const winRatePoints = getWinRatePoints(winSettings, dailyData, bodyData, dietData)
+  const winRateMeta = { id: 'daily_win_rate', name: 'Daily Win Rate', unit: 'binary', maxVal: 1 }
+  const winDaysCount = winRatePoints.filter(p => p.value === 1).length
+  const totalDays = winRatePoints.filter(p => p.value !== null).length
+  const winRatePct = totalDays > 0 ? Math.round(winDaysCount / totalDays * 100) : 0
 
   const last30Days = useMemo(() => {
     const days = []
@@ -312,18 +323,33 @@ export default function LifeCycles() {
               TRACK YOUR OSCILLATIONS · RAISE YOUR FLOOR
             </p>
           </div>
-          <button
-            onClick={() => setShowAddMetric(!showAddMetric)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
-              background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)',
-              color: '#fff', border: 'none', borderRadius: 8, fontFamily: 'Inter', fontSize: 11,
-              fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer',
-              marginTop: 8, boxShadow: '0 0 20px rgba(34,211,238,0.35)'
-            }}
-          >
-            + Add Metric
-          </button>
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <button
+              onClick={() => setShowWinSettings(true)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px',
+                background: 'rgba(201,168,76,0.1)', color: '#c9a84c',
+                border: '1px solid rgba(201,168,76,0.3)', borderRadius: 8,
+                fontFamily: 'Inter', fontSize: 11, fontWeight: 700,
+                textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer',
+              }}
+            >
+              <Settings2 size={13} />
+              Win Settings
+            </button>
+            <button
+              onClick={() => setShowAddMetric(!showAddMetric)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
+                background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)',
+                color: '#fff', border: 'none', borderRadius: 8, fontFamily: 'Inter', fontSize: 11,
+                fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer',
+                boxShadow: '0 0 20px rgba(34,211,238,0.35)'
+              }}
+            >
+              + Add Metric
+            </button>
+          </div>
         </div>
 
         {/* Add metric panel */}
@@ -397,6 +423,33 @@ export default function LifeCycles() {
 
       {/* Metric graphs */}
       <div style={{ padding: '24px 32px' }}>
+        {/* Daily Win Rate — always first */}
+        <div style={{ background: 'linear-gradient(135deg, #0d0d28 0%, #09091f 100%)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 12, overflow: 'hidden', marginBottom: 12, boxShadow: '0 0 0 1px rgba(201,168,76,0.08)' }}>
+          <div style={{ padding: '14px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 22, letterSpacing: '0.04em', lineHeight: 1, background: 'linear-gradient(135deg, #c9a84c, #fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                DAILY WIN RATE
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#c9a84c', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 4, padding: '2px 8px' }}>
+                  {winRatePct}% — {winDaysCount}/{totalDays} days
+                </span>
+              </div>
+            </div>
+          </div>
+          <div style={{ padding: '0 4px' }}>
+            <OscillationGraph points={winRatePoints} mean={0.5} metricId="daily_win_rate" />
+          </div>
+          <div style={{ margin: '8px 16px 16px', padding: '10px 14px', background: 'linear-gradient(135deg, #0d0d28, #090918)', borderLeft: '3px solid #c9a84c', borderRadius: '0 6px 6px 0' }}>
+            <span style={{ fontFamily: 'Inter', fontSize: 11, color: 'white', lineHeight: 1.5 }}>
+              {totalDays < 3 ? 'Log at least 3 days to detect your win pattern.' :
+                winRatePct >= 80 ? `You are winning ${winRatePct}% of days. Elite consistency. Protect the streak.` :
+                winRatePct >= 60 ? `You are winning ${winRatePct}% of days. Good, but there are ${totalDays - winDaysCount} loss days to reclaim.` :
+                `You are winning ${winRatePct}% of days. Your loss days outnumber your wins. Start a new run today.`}
+            </span>
+          </div>
+        </div>
+
         {metricData.map(({ metric, points, stats, mean }) => {
           const isCustom = !DEFAULT_METRICS.find(m => m.id === metric.id)
           return (
@@ -440,6 +493,15 @@ export default function LifeCycles() {
           )
         })}
       </div>
+
+      {showWinSettings && (
+        <WinDaySettings
+          onClose={() => setShowWinSettings(false)}
+          dailyData={dailyData}
+          bodyData={bodyData}
+          dietData={dietData}
+        />
+      )}
     </div>
   )
 }
