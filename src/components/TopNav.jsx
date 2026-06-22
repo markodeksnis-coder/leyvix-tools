@@ -23,7 +23,7 @@ export default function TopNav({ active, onSelect, onSettings }) {
     >
       {/* Logo */}
       <div className="flex items-center gap-2 shrink-0">
-        <Zap size={15} fill="#c9a84c" color="#c9a84c" />
+        <Zap size={15} fill="#f0c040" color="#f0c040" />
         <span style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 800, color: 'white', letterSpacing: '0.06em' }}>
           MARKO OS
         </span>
@@ -42,7 +42,7 @@ export default function TopNav({ active, onSelect, onSettings }) {
                 fontSize: 13,
                 fontWeight: isActive ? 700 : 400,
                 color: isActive ? '#000' : '#a0aec0',
-                background: isActive ? '#c9a84c' : 'transparent',
+                background: isActive ? '#f0c040' : 'transparent',
                 padding: '5px 11px',
                 borderRadius: 6,
                 border: 'none',
@@ -66,18 +66,18 @@ export default function TopNav({ active, onSelect, onSettings }) {
         </button>
         <div style={{
           background: '#1a1505',
-          border: '1px solid #c9a84c',
+          border: '1px solid #f0c040',
           borderRadius: 6,
           padding: '4px 10px',
           fontFamily: 'Inter',
           fontSize: 11,
           fontWeight: 600,
-          color: '#c9a84c',
+          color: '#f0c040',
           display: 'flex',
           alignItems: 'center',
           gap: 6,
         }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#c9a84c', flexShrink: 0 }} />
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f0c040', flexShrink: 0 }} />
           DAY {String(day).padStart(3, '0')} OF THE WAR
         </div>
       </div>

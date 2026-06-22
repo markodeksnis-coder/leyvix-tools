@@ -5,9 +5,9 @@ import Modal from '../components/Modal'
 import { today } from '../utils'
 import { calcDayScore, getWinDaySettings, getWinHistory, computeCurrentWinStreak } from '../utils/winLoss'
 
-const BG = '#030311'
-const CARD = { background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a24 100%)', border: '1px solid #1d1d4a', borderRadius: 12, padding: 20, boxShadow: '0 0 0 1px rgba(139,92,246,0.08)' }
-const LBL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }
+const BG = '#080e1a'
+const CARD = { background: 'linear-gradient(135deg, #080e1a 0%, #0a0a24 100%)', border: '1px solid #1e3050', borderRadius: 12, padding: 20, boxShadow: '0 0 0 1px rgba(139,92,246,0.08)' }
+const LBL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }
 
 function ProgressRing({ done, total, size = 148 }) {
   const sw = 11
@@ -15,7 +15,7 @@ function ProgressRing({ done, total, size = 148 }) {
   const circ = 2 * Math.PI * r
   const pct = total > 0 ? done / total : 0
   const offset = circ * (1 - pct)
-  const color = pct >= 0.9 ? '#22c55e' : pct >= 0.7 ? '#fbbf24' : pct >= 0.5 ? '#fbbf24' : '#ef4444'
+  const color = pct >= 0.9 ? '#22c55e' : pct >= 0.7 ? '#f0c040' : pct >= 0.5 ? '#f0c040' : '#ff5555'
   const label = pct >= 0.9 ? 'ELITE' : pct >= 0.7 ? 'SOLID' : pct >= 0.5 ? 'ACCEPTABLE' : pct > 0 ? 'REPORT FOR DUTY' : 'NOT STARTED'
   const cx = size / 2, cy = size / 2
   return (
@@ -29,12 +29,12 @@ function ProgressRing({ done, total, size = 148 }) {
         </svg>
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 44, color, lineHeight: 1, filter: 'drop-shadow(0 0 8px currentColor)' }}>{done}</span>
-          <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#94a3b8' }}>/ {total}</span>
+          <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#a0bcdf' }}>/ {total}</span>
         </div>
       </div>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 20, color, letterSpacing: '0.04em' }}>{label}</div>
-        <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#94a3b8', marginTop: 2 }}>{Math.round(pct * 100)}% complete</div>
+        <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0bcdf', marginTop: 2 }}>{Math.round(pct * 100)}% complete</div>
       </div>
     </div>
   )
@@ -223,39 +223,39 @@ export default function DailyOS() {
     return { ds, label, done, total, pct, nnFail, isToday: ds === todayStr }
   })
 
-  const scoreColor = score >= 9 ? '#22c55e' : score >= 7 ? '#fbbf24' : score >= 5 ? '#fbbf24' : '#ef4444'
+  const scoreColor = score >= 9 ? '#22c55e' : score >= 7 ? '#f0c040' : score >= 5 ? '#f0c040' : '#ff5555'
   const scoreLabel = score >= 9 ? 'ELITE' : score >= 7 ? 'SOLID' : score >= 5 ? 'ACCEPTABLE' : 'BELOW PAR'
 
   return (
     <div className="h-full flex flex-col" style={{ background: BG }}>
       {/* Header */}
-      <div style={{ background: BG, borderBottom: '1px solid #1d1d4a', padding: '20px 32px', flexShrink: 0 }}>
+      <div style={{ background: BG, borderBottom: '1px solid #162035', padding: '20px 32px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: nnFailed ? '#ef4444' : '#22c55e' }} />
-              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#94a3b8', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: nnFailed ? '#ff5555' : '#22c55e' }} />
+              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#a0bcdf', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
                 {nnFailed ? 'NON-NEGOTIABLES PENDING' : 'NON-NEGOTIABLES CLEAR'}
               </span>
             </div>
-            <h1 style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(135deg, #8b5cf6 0%, #22d3ee 50%, #fbbf24 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>DAILY OPS</h1>
-            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#94a3b8', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>ACCOUNTABILITY LAYER // NON-NEGOTIABLES & DAILY TASKS</p>
+            <h1 style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(135deg, #8b5cf6 0%, #22d3ee 50%, #f0c040 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>DAILY OPS</h1>
+            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0bcdf', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>ACCOUNTABILITY LAYER // NON-NEGOTIABLES & DAILY TASKS</p>
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
             {currentWinStreak > 0 && (
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 5,
-                background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)',
+                background: 'rgba(240,192,64,0.12)', border: '1px solid rgba(240,192,64,0.3)',
                 borderRadius: 999, padding: '5px 10px',
               }}>
                 <span style={{ fontSize: 13 }}>🔥</span>
-                <span style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 18, color: '#c9a84c', lineHeight: 1 }}>
+                <span style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 20, color: '#f0c040', lineHeight: 1 }}>
                   {currentWinStreak}
                 </span>
-                <span style={{ fontFamily: 'Inter', fontSize: 8, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>STREAK</span>
+                <span style={{ fontFamily: 'Inter', fontSize: 8, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em' }}>STREAK</span>
               </div>
             )}
-            <button onClick={() => setShowManage(!showManage)} style={{ padding: '7px 14px', border: '1px solid #1d1d4a', color: '#94a3b8', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer', fontFamily: 'Inter' }}>
+            <button onClick={() => setShowManage(!showManage)} style={{ padding: '7px 14px', border: '1px solid #1e3050', color: '#a0bcdf', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer', fontFamily: 'Inter' }}>
               {showManage ? 'Close' : 'Manage Lists'}
             </button>
           </div>
@@ -271,18 +271,18 @@ export default function DailyOS() {
               margin: '0 32px 0',
               padding: '14px 20px',
               borderRadius: 12,
-              background: todayResult.isWin ? '#c9a84c' : '#ef4444',
+              background: todayResult.isWin ? '#f0c040' : '#ff5555',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <span style={{
-                  fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 28,
+                  fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 31,
                   color: todayResult.isWin ? '#000' : '#fff', letterSpacing: '0.05em',
                 }}>
                   {todayResult.isWin ? 'WIN DAY' : 'LOSS DAY'}
                 </span>
                 <span style={{
-                  fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 28,
+                  fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 31,
                   color: todayResult.isWin ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.8)',
                 }}>
                   {todayResult.pct}%
@@ -308,27 +308,27 @@ export default function DailyOS() {
           <div style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 40 }}>
             <ProgressRing done={checkedCount} total={todayItems.length} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>
+              <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>
                 {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{ fontFamily: 'Inter', fontSize: 12, color: '#d1d5db' }}>Non-Negotiables</span>
-                  <span style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 18, color: nnDone === nonNegItems.length && nonNegItems.length > 0 ? '#22c55e' : '#ef4444' }}>
+                  <span style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 20, color: nnDone === nonNegItems.length && nonNegItems.length > 0 ? '#22c55e' : '#ff5555' }}>
                     {nnDone} / {nonNegItems.length}
                   </span>
                 </div>
-                <div style={{ height: 3, background: '#1d1d4a', borderRadius: 2 }}>
-                  <div style={{ height: 3, background: '#ef4444', borderRadius: 2, width: `${nonNegItems.length > 0 ? (nnDone / nonNegItems.length) * 100 : 0}%`, transition: 'width 0.4s' }} />
+                <div style={{ height: 4, background: '#1e3050', borderRadius: 2 }}>
+                  <div style={{ height: 4, background: '#ff5555', borderRadius: 2, width: `${nonNegItems.length > 0 ? (nnDone / nonNegItems.length) * 100 : 0}%`, transition: 'width 0.4s' }} />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
                   <span style={{ fontFamily: 'Inter', fontSize: 12, color: '#d1d5db' }}>Daily Tasks</span>
-                  <span style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 18, color: '#fbbf24' }}>
+                  <span style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 20, color: '#f0c040' }}>
                     {taskItems.filter(i => i.checked).length} / {taskItems.length}
                   </span>
                 </div>
-                <div style={{ height: 3, background: 'rgba(251,191,36,0.15)', borderRadius: 2 }}>
-                  <div style={{ height: 3, background: '#fbbf24', borderRadius: 2, width: `${taskItems.length > 0 ? (taskItems.filter(i => i.checked).length / taskItems.length) * 100 : 0}%`, transition: 'width 0.4s' }} />
+                <div style={{ height: 4, background: '#1e3050', borderRadius: 2 }}>
+                  <div style={{ height: 4, background: '#f0c040', borderRadius: 2, width: `${taskItems.length > 0 ? (taskItems.filter(i => i.checked).length / taskItems.length) * 100 : 0}%`, transition: 'width 0.4s' }} />
                 </div>
               </div>
             </div>
@@ -337,37 +337,37 @@ export default function DailyOS() {
           {/* Daily Stats */}
           <div style={CARD}>
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
-              <div style={{ width:8, height:8, borderRadius:'50%', background:'#3b82f6' }} />
+              <div style={{ width:8, height:8, borderRadius:'50%', background:'#4d9fff' }} />
               <span style={{ fontFamily:'Inter', fontSize:12, fontWeight:700, color:'white', textTransform:'uppercase', letterSpacing:'0.08em' }}>Daily Stats</span>
-              <span style={{ fontFamily:'Inter', fontSize:9, color:'#94a3b8', marginLeft:'auto' }}>Optional · feeds Life Cycles section</span>
+              <span style={{ fontFamily:'Inter', fontSize:9, color:'#a0bcdf', marginLeft:'auto' }}>Optional · feeds Life Cycles section</span>
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
               {/* Sleep Quality */}
               <div>
-                <div style={{ fontFamily:'Inter', fontSize:9, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }}>Sleep Quality /10</div>
+                <div style={{ fontFamily:'Inter', fontSize:9, color:'#a0bcdf', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }}>Sleep Quality /10</div>
                 <input type="number" min="1" max="10" step="0.5"
                   value={sleepInput} onChange={e => setSleepInput(e.target.value)}
                   placeholder={data.logs[todayStr]?.sleep ? String(data.logs[todayStr].sleep) : '—'}
-                  style={{ width:'100%', background: '#030311', border:'1px solid #1d1d4a', borderRadius:6, padding:'8px 12px', fontFamily:'Inter', fontSize:14, color:'white', outline:'none', boxSizing:'border-box' }} />
-                {data.logs[todayStr]?.sleep && <div style={{ fontFamily:'Inter', fontSize:9, color:'#3b82f6', marginTop:4 }}>Logged: {data.logs[todayStr].sleep}/10</div>}
+                  style={{ width:'100%', background: '#020609', border:'1px solid #1e3050', borderRadius:6, padding:'8px 12px', fontFamily:'Inter', fontSize:14, color:'white', outline:'none', boxSizing:'border-box' }} />
+                {data.logs[todayStr]?.sleep && <div style={{ fontFamily:'Inter', fontSize:9, color:'#4d9fff', marginTop:4 }}>Logged: {data.logs[todayStr].sleep}/10</div>}
               </div>
               {/* Steps */}
               <div>
-                <div style={{ fontFamily:'Inter', fontSize:9, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }}>Steps Today</div>
+                <div style={{ fontFamily:'Inter', fontSize:9, color:'#a0bcdf', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }}>Steps Today</div>
                 <input type="number" min="0"
                   value={stepsInput} onChange={e => setStepsInput(e.target.value)}
                   placeholder={data.logs[todayStr]?.steps ? String(data.logs[todayStr].steps) : '—'}
-                  style={{ width:'100%', background: '#030311', border:'1px solid #1d1d4a', borderRadius:6, padding:'8px 12px', fontFamily:'Inter', fontSize:14, color:'white', outline:'none', boxSizing:'border-box' }} />
-                {data.logs[todayStr]?.steps && <div style={{ fontFamily:'Inter', fontSize:9, color:'#fbbf24', marginTop:4 }}>Logged: {data.logs[todayStr].steps.toLocaleString()}</div>}
+                  style={{ width:'100%', background: '#020609', border:'1px solid #1e3050', borderRadius:6, padding:'8px 12px', fontFamily:'Inter', fontSize:14, color:'white', outline:'none', boxSizing:'border-box' }} />
+                {data.logs[todayStr]?.steps && <div style={{ fontFamily:'Inter', fontSize:9, color:'#f0c040', marginTop:4 }}>Logged: {data.logs[todayStr].steps.toLocaleString()}</div>}
               </div>
               {/* Work Output */}
               <div>
-                <div style={{ fontFamily:'Inter', fontSize:9, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }}>Work Output /10</div>
+                <div style={{ fontFamily:'Inter', fontSize:9, color:'#a0bcdf', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }}>Work Output /10</div>
                 <input type="number" min="1" max="10" step="0.5"
                   value={workInput} onChange={e => setWorkInput(e.target.value)}
                   placeholder={data.logs[todayStr]?.workOutput ? String(data.logs[todayStr].workOutput) : '—'}
-                  style={{ width:'100%', background: '#030311', border:'1px solid #1d1d4a', borderRadius:6, padding:'8px 12px', fontFamily:'Inter', fontSize:14, color:'white', outline:'none', boxSizing:'border-box' }} />
-                {data.logs[todayStr]?.workOutput && <div style={{ fontFamily:'Inter', fontSize:9, color:'#10b981', marginTop:4 }}>Logged: {data.logs[todayStr].workOutput}/10</div>}
+                  style={{ width:'100%', background: '#020609', border:'1px solid #1e3050', borderRadius:6, padding:'8px 12px', fontFamily:'Inter', fontSize:14, color:'white', outline:'none', boxSizing:'border-box' }} />
+                {data.logs[todayStr]?.workOutput && <div style={{ fontFamily:'Inter', fontSize:9, color:'#1ad9a0', marginTop:4 }}>Logged: {data.logs[todayStr].workOutput}/10</div>}
               </div>
             </div>
             <button onClick={saveDailyStats}
@@ -382,40 +382,40 @@ export default function DailyOS() {
               {/* Non-negotiables management */}
               <div style={CARD}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ff5555' }} />
                   <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Non-Negotiables</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
                   {(data.nonNegotiables || []).map(n => (
-                    <div key={n.id} className="group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#030311', border: '1px solid #ef444420', borderLeft: '3px solid #ef4444', borderRadius: 8 }}>
+                    <div key={n.id} className="group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#080e1a', border: '1px solid #ff555520', borderLeft: '3px solid #ff5555', borderRadius: 8 }}>
                       <span style={{ fontFamily: 'Inter', fontSize: 12, color: 'white' }}>{n.title}</span>
-                      <button onClick={() => deleteNonNeg(n.id)} style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', opacity: 0 }} className="group-hover:opacity-100 hover:!text-red-400 transition-all"><Trash2 size={12} /></button>
+                      <button onClick={() => deleteNonNeg(n.id)} style={{ color: '#a0bcdf', background: 'none', border: 'none', cursor: 'pointer', opacity: 0 }} className="group-hover:opacity-100 hover:!text-red-400 transition-all"><Trash2 size={12} /></button>
                     </div>
                   ))}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <input value={newNNText} onChange={e => setNewNNText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addNonNeg()} placeholder="Add non-negotiable..." style={{ flex: 1, background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6, padding: '7px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
-                  <button onClick={addNonNeg} style={{ padding: '7px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer' }}><Plus size={13} /></button>
+                  <input value={newNNText} onChange={e => setNewNNText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addNonNeg()} placeholder="Add non-negotiable..." style={{ flex: 1, background: '#020609', border: '1px solid #1e3050', borderRadius: 6, padding: '7px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
+                  <button onClick={addNonNeg} style={{ padding: '7px 12px', background: '#ff5555', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer' }}><Plus size={13} /></button>
                 </div>
               </div>
 
               {/* Task templates */}
               <div style={CARD}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fbbf24' }} />
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f0c040' }} />
                   <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Daily Task Templates</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
                   {(data.taskTemplates || []).map(t => (
-                    <div key={t.id} className="group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#030311', border: '1px solid #1d1d4a', borderRadius: 8 }}>
+                    <div key={t.id} className="group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#080e1a', border: '1px solid #1e3050', borderRadius: 8 }}>
                       <span style={{ fontFamily: 'Inter', fontSize: 12, color: '#d1d5db' }}>{t.title}</span>
-                      <button onClick={() => deleteTask(t.id)} style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', opacity: 0 }} className="group-hover:opacity-100 hover:!text-red-400 transition-all"><Trash2 size={12} /></button>
+                      <button onClick={() => deleteTask(t.id)} style={{ color: '#a0bcdf', background: 'none', border: 'none', cursor: 'pointer', opacity: 0 }} className="group-hover:opacity-100 hover:!text-red-400 transition-all"><Trash2 size={12} /></button>
                     </div>
                   ))}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <input value={newTaskText} onChange={e => setNewTaskText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTaskTemplate()} placeholder="Add daily task..." style={{ flex: 1, background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6, padding: '7px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
-                  <button onClick={addTaskTemplate} style={{ padding: '7px 12px', background: '#fbbf24', color: '#000', border: 'none', borderRadius: 6, cursor: 'pointer' }}><Plus size={13} /></button>
+                  <input value={newTaskText} onChange={e => setNewTaskText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTaskTemplate()} placeholder="Add daily task..." style={{ flex: 1, background: '#020609', border: '1px solid #1e3050', borderRadius: 6, padding: '7px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
+                  <button onClick={addTaskTemplate} style={{ padding: '7px 12px', background: '#f0c040', color: '#000', border: 'none', borderRadius: 6, cursor: 'pointer' }}><Plus size={13} /></button>
                 </div>
               </div>
             </div>
@@ -425,13 +425,13 @@ export default function DailyOS() {
           <div style={CARD}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: nnFailed ? '#ef4444' : '#8b5cf6' }} />
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: nnFailed ? '#ff5555' : '#8b5cf6' }} />
                 <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Non-Negotiables</span>
               </div>
-              <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.1em', background: 'rgba(26,36,64,0.3)', border: '1px solid rgba(59,130,246,0.15)', borderRadius: 4, padding: '3px 8px' }}>CANNOT SKIP</span>
+              <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 700, color: '#ff5555', textTransform: 'uppercase', letterSpacing: '0.1em', background: 'rgba(26,36,64,0.3)', border: '1px solid rgba(77,159,255,0.2)', borderRadius: 4, padding: '3px 8px' }}>CANNOT SKIP</span>
             </div>
             {nonNegItems.length === 0 ? (
-              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '16px 0' }}>Open "Manage Lists" to add non-negotiables</div>
+              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0bcdf', textAlign: 'center', padding: '16px 0' }}>Open "Manage Lists" to add non-negotiables</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {nonNegItems.map(item => (
@@ -440,14 +440,14 @@ export default function DailyOS() {
                       display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px',
                       background: item.checked ? 'rgba(34,197,94,0.05)' : 'rgba(26,36,64,0.3)',
                       border: `1px solid ${item.checked ? 'rgba(34,197,94,0.15)' : 'rgba(26,36,64,0.3)'}`,
-                      borderLeft: `3px solid ${item.checked ? '#22c55e' : '#ef4444'}`,
+                      borderLeft: `3px solid ${item.checked ? '#22c55e' : '#ff5555'}`,
                       borderRadius: 8, cursor: 'pointer', width: '100%', textAlign: 'left', transition: 'all 0.15s',
                     }}
                   >
-                    <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${item.checked ? '#22c55e' : '#ef4444'}`, background: item.checked ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
+                    <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${item.checked ? '#22c55e' : '#ff5555'}`, background: item.checked ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
                       {item.checked && <Check size={13} strokeWidth={3} color="white" />}
                     </div>
-                    <span style={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 600, color: item.checked ? '#94a3b8' : 'white', textDecoration: item.checked ? 'line-through' : 'none', transition: 'all 0.15s', flex: 1 }}>{item.title}</span>
+                    <span style={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 600, color: item.checked ? '#a0bcdf' : 'white', textDecoration: item.checked ? 'line-through' : 'none', transition: 'all 0.15s', flex: 1 }}>{item.title}</span>
                     {item.checked && <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '0.08em' }}>✓ Done</span>}
                   </button>
                 ))}
@@ -458,27 +458,27 @@ export default function DailyOS() {
           {/* Daily tasks — full width */}
           <div style={CARD}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#fbbf24' }} />
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f0c040' }} />
               <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Daily Tasks</span>
             </div>
             {taskItems.length === 0 ? (
-              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '16px 0' }}>No tasks yet — open "Manage Lists" to add recurring tasks</div>
+              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0bcdf', textAlign: 'center', padding: '16px 0' }}>No tasks yet — open "Manage Lists" to add recurring tasks</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {taskItems.map(item => (
                   <button key={item.id} onClick={() => toggleItem(item.id)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px',
-                      background: '#030311',
-                      border: `1px solid ${item.checked ? 'rgba(34,197,94,0.12)' : '#1d1d4a'}`,
-                      borderLeft: `3px solid ${item.checked ? '#22c55e' : '#fbbf24'}`,
+                      background: '#080e1a',
+                      border: `1px solid ${item.checked ? 'rgba(34,197,94,0.12)' : '#1e3050'}`,
+                      borderLeft: `3px solid ${item.checked ? '#22c55e' : '#f0c040'}`,
                       borderRadius: 8, cursor: 'pointer', width: '100%', textAlign: 'left', transition: 'all 0.15s',
                     }}
                   >
                     <div style={{ width: 20, height: 20, borderRadius: 5, border: item.checked ? '2px solid #22c55e' : '1px solid rgba(139,92,246,0.3)', background: item.checked ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
                       {item.checked && <Check size={11} strokeWidth={3} color="white" />}
                     </div>
-                    <span style={{ fontFamily: 'Inter', fontSize: 13, color: item.checked ? '#94a3b8' : '#d1d5db', textDecoration: item.checked ? 'line-through' : 'none', transition: 'all 0.15s', flex: 1 }}>{item.title}</span>
+                    <span style={{ fontFamily: 'Inter', fontSize: 13, color: item.checked ? '#a0bcdf' : '#d1d5db', textDecoration: item.checked ? 'line-through' : 'none', transition: 'all 0.15s', flex: 1 }}>{item.title}</span>
                   </button>
                 ))}
               </div>
@@ -486,8 +486,8 @@ export default function DailyOS() {
             {/* Add one-time task */}
             <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
               <input value={newOneTimeText} onChange={e => setNewOneTimeText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addOneTimeTask()} placeholder="Add task for today..."
-                style={{ flex: 1, background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
-              <button onClick={addOneTimeTask} style={{ padding: '8px 12px', background: '#fbbf24', color: '#000', border: 'none', borderRadius: 6, cursor: 'pointer' }}><Plus size={14} /></button>
+                style={{ flex: 1, background: '#020609', border: '1px solid #1e3050', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
+              <button onClick={addOneTimeTask} style={{ padding: '8px 12px', background: '#f0c040', color: '#000', border: 'none', borderRadius: 6, cursor: 'pointer' }}><Plus size={14} /></button>
             </div>
           </div>
 
@@ -495,24 +495,24 @@ export default function DailyOS() {
           {last7.some(d => d.pct !== null) && (
             <div style={CARD}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6' }} />
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4d9fff' }} />
                 <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>7-Day Pattern</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
                 {last7.map(day => {
-                  const pctColor = day.pct === null ? '#1d1d4a' : day.pct >= 90 ? '#22c55e' : day.pct >= 70 ? '#fbbf24' : day.pct >= 50 ? '#fbbf24' : '#ef4444'
+                  const pctColor = day.pct === null ? '#1e3050' : day.pct >= 90 ? '#22c55e' : day.pct >= 70 ? '#f0c040' : day.pct >= 50 ? '#f0c040' : '#ff5555'
                   return (
                     <div key={day.ds} style={{ textAlign: 'center' }}>
-                      <div style={{ fontFamily: 'Inter', fontSize: 9, color: day.isToday ? '#fbbf24' : '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6, fontWeight: day.isToday ? 700 : 400 }}>{day.label}</div>
-                      <div style={{ height: 72, background: '#030311', border: `1px solid ${day.isToday ? '#fbbf2430' : '#1d1d4a'}`, borderRadius: 8, position: 'relative', overflow: 'hidden' }}>
+                      <div style={{ fontFamily: 'Inter', fontSize: 9, color: day.isToday ? '#f0c040' : '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6, fontWeight: day.isToday ? 700 : 400 }}>{day.label}</div>
+                      <div style={{ height: 72, background: '#1e3a5f', border: `1px solid ${day.isToday ? '#f0c04030' : '#1e3050'}`, borderRadius: 8, position: 'relative', overflow: 'hidden' }}>
                         {day.pct !== null && (
                           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: `${day.pct}%`, background: pctColor, opacity: 0.25 }} />
                         )}
                         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-                          <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 20, color: day.pct !== null ? pctColor : '#1d1d4a', lineHeight: 1 }}>
+                          <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 22, color: day.pct !== null ? pctColor : '#2a4a7a', lineHeight: 1 }}>
                             {day.pct !== null ? `${day.pct}%` : '—'}
                           </div>
-                          {day.nnFail && <div style={{ fontFamily: 'Inter', fontSize: 6, color: '#ef4444', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>NN FAIL</div>}
+                          {day.nnFail && <div style={{ fontFamily: 'Inter', fontSize: 6, color: '#ff5555', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>NN FAIL</div>}
                         </div>
                       </div>
                     </div>

@@ -4,19 +4,19 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today as getToday } from '../utils'
 
 // ─── Design tokens ───────────────────────────────────────────────
-const BG          = '#030311'
-const SURF        = '#09091f'
-const CARD_BG     = '#0d0d28'
-const CARD_BORDER = '#1d1d4a'
-const GOLD        = '#fbbf24'
+const BG          = '#020609'
+const SURF        = '#040810'
+const CARD_BG     = '#080e1a'
+const CARD_BORDER = '#1e3050'
+const GOLD        = '#f0c040'
 const CYAN        = '#22d3ee'
-const BLUE        = '#3b82f6'
-const GREEN       = '#10b981'
+const BLUE        = '#4d9fff'
+const GREEN       = '#1ad9a0'
 const PURPLE      = '#8b5cf6'
 const PINK        = '#e879f9'
 const RED         = '#f43f5e'
-const TEXT2       = '#94a3b8'
-const MUTED       = '#64748b'
+const TEXT2       = '#a0bcdf'
+const MUTED       = '#7a95c0'
 
 const HEADING_STYLE = {
   fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
@@ -44,7 +44,7 @@ const S = {
     boxSizing: 'border-box',
   },
   goldBtn: {
-    background: 'linear-gradient(135deg, #10b981, #059669)',
+    background: 'linear-gradient(135deg, #1ad9a0, #059669)',
     color: 'white',
     border: 'none',
     borderRadius: 6,
@@ -433,7 +433,7 @@ export default function Body() {
             fontSize: 22,
             textTransform: 'uppercase',
             letterSpacing: '0.06em',
-            background: 'linear-gradient(135deg, #10b981, #22d3ee)',
+            background: 'linear-gradient(135deg, #1ad9a0, #22d3ee)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -468,8 +468,8 @@ export default function Body() {
               const isOpen = openLift === lift
               return (
                 <div key={lift} style={{
-                  background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a20 100%)',
-                  border: '1px solid #1d1d4a',
+                  background: 'linear-gradient(135deg, #080e1a 0%, #0a0a20 100%)',
+                  border: '1px solid #1e3050',
                   boxShadow: '0 0 0 1px rgba(16,185,129,0.08)',
                   borderRadius: 8,
                   overflow: 'hidden',
@@ -593,8 +593,8 @@ export default function Body() {
               </button>
             ) : (
               <div style={{
-                background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a20 100%)',
-                border: '1px solid #1d1d4a',
+                background: 'linear-gradient(135deg, #080e1a 0%, #0a0a20 100%)',
+                border: '1px solid #1e3050',
                 boxShadow: '0 0 0 1px rgba(16,185,129,0.08)',
                 borderRadius: 8,
                 padding: '12px 16px',
@@ -652,8 +652,8 @@ export default function Body() {
 
           {/* AI Coach Card */}
           <div style={{
-            background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a20 100%)',
-            border: '1px solid #1d1d4a',
+            background: 'linear-gradient(135deg, #080e1a 0%, #0a0a20 100%)',
+            border: '1px solid #1e3050',
             boxShadow: '0 0 0 1px rgba(16,185,129,0.08)',
             borderRadius: 8,
             padding: 14,
@@ -689,8 +689,8 @@ export default function Body() {
 
           {/* Progress bars */}
           <div style={{
-            background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a20 100%)',
-            border: '1px solid #1d1d4a',
+            background: 'linear-gradient(135deg, #080e1a 0%, #0a0a20 100%)',
+            border: '1px solid #1e3050',
             boxShadow: '0 0 0 1px rgba(16,185,129,0.08)',
             borderRadius: 8,
             padding: '14px 16px',
@@ -713,8 +713,8 @@ export default function Body() {
 
           {/* Photo Meal Log */}
           <div style={{
-            background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a20 100%)',
-            border: '1px solid #1d1d4a',
+            background: 'linear-gradient(135deg, #080e1a 0%, #0a0a20 100%)',
+            border: '1px solid #1e3050',
             boxShadow: '0 0 0 1px rgba(16,185,129,0.08)',
             borderRadius: 8,
             padding: '14px 16px',
@@ -810,8 +810,8 @@ export default function Body() {
 
           {/* Nutrition Settings (collapsible) */}
           <div style={{
-            background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a20 100%)',
-            border: '1px solid #1d1d4a',
+            background: 'linear-gradient(135deg, #080e1a 0%, #0a0a20 100%)',
+            border: '1px solid #1e3050',
             boxShadow: '0 0 0 1px rgba(16,185,129,0.08)',
             borderRadius: 8,
             overflow: 'hidden',
@@ -866,7 +866,7 @@ export default function Body() {
                 onClick={() => progressPhotoInputRef.current?.click()}
                 style={{
                   aspectRatio: '3/4',
-                  background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a20 100%)',
+                  background: 'linear-gradient(135deg, #080e1a 0%, #0a0a20 100%)',
                   border: `1px dashed ${MUTED}`,
                   borderRadius: 8,
                   display: 'flex',

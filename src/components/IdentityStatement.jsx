@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 
-const GOLD  = '#c9a84c'
-const MUTED = '#64748b'
+const GOLD  = '#f0c040'
+const MUTED = '#7a95c0'
 
 // Circumference of circle with r=15: 2 * pi * 15 ≈ 94.248
 const CIRCUMFERENCE = 2 * Math.PI * 15
@@ -134,7 +134,7 @@ export default function IdentityStatement({ statement, dayNumber, dateStr, onCon
             cy="18"
             r="15"
             fill="none"
-            stroke="rgba(201,168,76,0.2)"
+            stroke="rgba(240,192,64,0.2)"
             strokeWidth="3"
           />
           {/* Gold progress arc — starts from top (rotate -90deg) */}

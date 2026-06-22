@@ -3,12 +3,12 @@ import { X, Settings2 } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { DEFAULT_WIN_SETTINGS, saveWinDaySettings, getWinHistory, calcDayScore } from '../utils/winLoss'
 
-const WIN  = '#c9a84c'
-const LOSS = '#ef4444'
-const BG   = '#030311'
-const CARD = '#0d0d28'
-const BORD = '#1d1d4a'
-const TEXT2 = '#94a3b8'
+const WIN  = '#f0c040'
+const LOSS = '#ff5555'
+const BG   = '#020609'
+const CARD = '#080e1a'
+const BORD = '#1e3050'
+const TEXT2 = '#a0bcdf'
 
 const METRIC_LABELS = {
   calories:  'Calorie Target',
@@ -70,11 +70,11 @@ export default function WinDaySettings({ onClose, dailyData, bodyData, dietData 
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{
-        background: 'linear-gradient(135deg, #0d0d28 0%, #090918 100%)',
+        background: '#080e1a',
         border: `1px solid ${BORD}`,
         borderTop: `2px solid ${WIN}`,
         borderRadius: 16, width: 540, maxHeight: '88vh', display: 'flex', flexDirection: 'column',
-        boxShadow: `0 0 60px rgba(201,168,76,0.12), 0 0 120px rgba(3,3,17,0.8)`,
+        boxShadow: `0 0 60px rgba(240,192,64,0.12), 0 0 120px rgba(3,3,17,0.8)`,
       }}>
         {/* Header */}
         <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -146,7 +146,7 @@ export default function WinDaySettings({ onClose, dailyData, bodyData, dietData 
                           <span style={{ fontFamily: 'Inter', fontSize: 12, color: 'white' }}>{METRIC_LABELS[key]}</span>
                           <button onClick={() => toggleMetric(key)} style={{
                             width: 36, height: 20, borderRadius: 10, border: 'none', cursor: 'pointer',
-                            background: m.enabled ? WIN : '#1d1d4a',
+                            background: m.enabled ? WIN : '#1e3050',
                             position: 'relative', flexShrink: 0, transition: 'background 0.2s',
                           }}>
                             <div style={{
@@ -162,7 +162,7 @@ export default function WinDaySettings({ onClose, dailyData, bodyData, dietData 
                             <input type="range" min={cfg.min} max={cfg.max} step={cfg.step}
                               value={m.target}
                               onChange={e => setTarget(key, parseFloat(e.target.value))}
-                              className="checkin-slider" style={{ flex: 1, height: 3 }}
+                              className="checkin-slider" style={{ flex: 1, height: 4 }}
                             />
                             <span style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 18, color: WIN, minWidth: 60, textAlign: 'right' }}>
                               {key === 'steps' ? m.target.toLocaleString() : m.target}{cfg.unit !== 'steps' ? ' ' + cfg.unit : ''}
@@ -182,7 +182,7 @@ export default function WinDaySettings({ onClose, dailyData, bodyData, dietData 
                 if (h.available === 0) return (
                   <div key={h.date} style={{ padding: '10px 14px', background: BG, border: `1px solid ${BORD}`, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{ fontFamily: 'Inter', fontSize: 11, color: TEXT2 }}>{h.date}</span>
-                    <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#1d1d4a' }}>NO DATA</span>
+                    <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#5a7aaa' }}>NO DATA</span>
                   </div>
                 )
                 const missed = h.metrics.filter(m => !m.pass).map(m => m.label)
@@ -201,8 +201,9 @@ export default function WinDaySettings({ onClose, dailyData, bodyData, dietData 
                         </span>
                         <span style={{
                           fontFamily: 'Inter', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em',
-                          color: h.isWin ? WIN : LOSS, background: h.isWin ? WIN + '18' : LOSS + '18',
-                          border: `1px solid ${h.isWin ? WIN + '40' : LOSS + '40'}`,
+                          color: h.isWin ? '#000000' : '#ffffff',
+                          background: h.isWin ? WIN : LOSS,
+                          border: 'none',
                           borderRadius: 4, padding: '2px 8px',
                         }}>{h.isWin ? 'WIN' : 'LOSS'}</span>
                       </div>

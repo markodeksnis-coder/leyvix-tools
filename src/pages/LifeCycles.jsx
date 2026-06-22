@@ -108,7 +108,7 @@ function OscillationGraph({ points, mean, metricId }) {
     return (
       <div style={{
         height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'Inter', fontSize: 11, color: '#94a3b8', fontStyle: 'italic'
+        fontFamily: 'Inter', fontSize: 11, color: '#a0bcdf', fontStyle: 'italic'
       }}>
         Not enough data yet. Keep logging daily.
       </div>
@@ -131,18 +131,18 @@ function OscillationGraph({ points, mean, metricId }) {
       <LineChart data={points} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
         <defs>
           <linearGradient id={`wave-${metricId}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset={`${clampedMeanYPct}%`} stopColor="#10b981" />
-            <stop offset={`${clampedMeanYPct}%`} stopColor="#ef4444" />
+            <stop offset={`${clampedMeanYPct}%`} stopColor="#1ad9a0" />
+            <stop offset={`${clampedMeanYPct}%`} stopColor="#ff5555" />
           </linearGradient>
         </defs>
         <XAxis dataKey="label" hide />
         <YAxis domain={[domainMin, domainMax]} hide />
         <Tooltip
-          contentStyle={{ background: '#09091f', border: '1px solid #1d1d4a', fontSize: 10, fontFamily: 'Inter', boxShadow: '0 0 20px rgba(34,211,238,0.1)' }}
-          labelStyle={{ color: '#94a3b8' }}
+          contentStyle={{ background: '#040810', border: '1px solid #1e3050', fontSize: 10, fontFamily: 'Inter', boxShadow: '0 0 20px rgba(34,211,238,0.1)' }}
+          labelStyle={{ color: '#a0bcdf' }}
           formatter={(v) => [v !== null ? (Number.isInteger(v) ? v : v.toFixed(1)) : '—', '']}
         />
-        <ReferenceLine y={mean} stroke="#94a3b8" strokeDasharray="4 3" strokeWidth={1} strokeOpacity={0.5} />
+        <ReferenceLine y={mean} stroke="#a0bcdf" strokeDasharray="4 3" strokeWidth={1} strokeOpacity={0.5} />
         <Line
           type="monotone"
           dataKey="value"
@@ -162,7 +162,7 @@ function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
   const low = stats?.low ?? null
 
   return (
-    <div style={{ background: 'linear-gradient(135deg, #0d0d28 0%, #09091f 100%)', border: '1px solid #1d1d4a', borderRadius: 12, overflow: 'hidden', marginBottom: 12, boxShadow: '0 0 0 1px rgba(34,211,238,0.06)' }}>
+    <div style={{ background: 'linear-gradient(135deg, #080e1a 0%, #040810 100%)', border: '1px solid #1e3050', borderRadius: 12, overflow: 'hidden', marginBottom: 12, boxShadow: '0 0 0 1px rgba(34,211,238,0.06)' }}>
       <div style={{ padding: '14px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 22, letterSpacing: '0.04em', lineHeight: 1, background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
@@ -170,17 +170,17 @@ function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
             {high !== null && (
-              <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#10b981', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 4, padding: '2px 8px' }}>
+              <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#1ad9a0', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 4, padding: '2px 8px' }}>
                 HIGH {Number.isInteger(high) ? high : high.toFixed(1)}{metric.unit !== 'binary' && metric.unit !== 'steps' ? metric.unit : ''}
               </span>
             )}
             {low !== null && (
-              <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#ef4444', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 4, padding: '2px 8px' }}>
+              <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#ff5555', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 4, padding: '2px 8px' }}>
                 LOW {Number.isInteger(low) ? low : low.toFixed(1)}{metric.unit !== 'binary' && metric.unit !== 'steps' ? metric.unit : ''}
               </span>
             )}
             {stats && (
-              <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#94a3b8' }}>
+              <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0bcdf' }}>
                 avg {Number.isInteger(stats.mean) ? stats.mean : stats.mean.toFixed(1)}{metric.unit !== 'binary' && metric.unit !== 'steps' ? metric.unit : ''}
               </span>
             )}
@@ -188,12 +188,12 @@ function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           {onEdit && (
-            <button onClick={onEdit} style={{ padding: '4px 10px', border: '1px solid rgba(139,92,246,0.3)', background: 'rgba(139,92,246,0.08)', color: '#a78bfa', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', borderRadius: 4 }}>
+            <button onClick={onEdit} style={{ padding: '4px 10px', border: '1px solid rgba(139,92,246,0.3)', background: 'rgba(139,92,246,0.08)', color: '#b8a0ff', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', borderRadius: 4 }}>
               Edit
             </button>
           )}
           {onDelete && (
-            <button onClick={onDelete} style={{ padding: '4px 10px', border: '1px solid rgba(239,68,68,0.3)', background: 'transparent', color: '#ef4444', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', borderRadius: 4 }}>
+            <button onClick={onDelete} style={{ padding: '4px 10px', border: '1px solid rgba(239,68,68,0.3)', background: 'transparent', color: '#ff5555', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', borderRadius: 4 }}>
               Delete
             </button>
           )}
@@ -207,8 +207,8 @@ function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
       <div style={{
         margin: '8px 16px 16px',
         padding: '10px 14px',
-        background: 'linear-gradient(135deg, #0d0d28, #090918)',
-        borderLeft: `3px solid ${insight.type === 'warning' ? '#f43f5e' : insight.type === 'positive' ? '#10b981' : '#8b5cf6'}`,
+        background: 'linear-gradient(135deg, #080e1a, #090918)',
+        borderLeft: `3px solid ${insight.type === 'warning' ? '#f43f5e' : insight.type === 'positive' ? '#1ad9a0' : '#8b5cf6'}`,
         borderRadius: '0 6px 6px 0',
       }}>
         <span style={{ fontFamily: 'Inter', fontSize: 11, color: 'white', lineHeight: 1.5 }}>{insight.text}</span>
@@ -303,9 +303,9 @@ export default function LifeCycles() {
   }
 
   return (
-    <div style={{ background: '#030311', minHeight: '100%' }}>
+    <div style={{ background: '#080e1a', minHeight: '100%' }}>
       {/* Header */}
-      <div style={{ background: '#030311', borderBottom: '1px solid #1d1d4a', padding: '20px 32px', flexShrink: 0 }}>
+      <div style={{ background: '#080e1a', borderBottom: '1px solid #162035', padding: '20px 32px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
             <h1 style={{
@@ -317,7 +317,7 @@ export default function LifeCycles() {
               LIFE CYCLES
             </h1>
             <p style={{
-              fontFamily: 'Inter', fontSize: 10, color: '#94a3b8', letterSpacing: '0.14em',
+              fontFamily: 'Inter', fontSize: 10, color: '#a0bcdf', letterSpacing: '0.14em',
               textTransform: 'uppercase', marginTop: 4
             }}>
               TRACK YOUR OSCILLATIONS · RAISE YOUR FLOOR
@@ -328,8 +328,8 @@ export default function LifeCycles() {
               onClick={() => setShowWinSettings(true)}
               style={{
                 display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px',
-                background: 'rgba(201,168,76,0.1)', color: '#c9a84c',
-                border: '1px solid rgba(201,168,76,0.3)', borderRadius: 8,
+                background: 'rgba(240,192,64,0.1)', color: '#f0c040',
+                border: '1px solid rgba(240,192,64,0.3)', borderRadius: 8,
                 fontFamily: 'Inter', fontSize: 11, fontWeight: 700,
                 textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer',
               }}
@@ -355,11 +355,11 @@ export default function LifeCycles() {
         {/* Add metric panel */}
         {showAddMetric && (
           <div style={{
-            marginTop: 16, padding: '16px', background: 'linear-gradient(135deg, #0d0d28, #09091f)', border: '1px solid rgba(34,211,238,0.2)',
+            marginTop: 16, padding: '16px', background: 'linear-gradient(135deg, #080e1a, #040810)', border: '1px solid rgba(34,211,238,0.2)',
             borderRadius: 10, display: 'flex', gap: 12, alignItems: 'flex-end', boxShadow: '0 0 20px rgba(34,211,238,0.06)'
           }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+              <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
                 Metric Name
               </div>
               <input
@@ -368,13 +368,13 @@ export default function LifeCycles() {
                 onKeyDown={e => e.key === 'Enter' && addCustomMetric()}
                 placeholder="e.g. Morning Energy"
                 style={{
-                  width: '100%', background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6,
+                  width: '100%', background: '#020609', border: '1px solid #1e3050', borderRadius: 6,
                   padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box'
                 }}
               />
             </div>
             <div style={{ width: 120 }}>
-              <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+              <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
                 Max Value
               </div>
               <input
@@ -382,7 +382,7 @@ export default function LifeCycles() {
                 onChange={e => setNewMetricMax(e.target.value)}
                 type="number"
                 style={{
-                  width: '100%', background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6,
+                  width: '100%', background: '#020609', border: '1px solid #1e3050', borderRadius: 6,
                   padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box'
                 }}
               />
@@ -395,7 +395,7 @@ export default function LifeCycles() {
             </button>
             <button
               onClick={() => setShowAddMetric(false)}
-              style={{ padding: '8px 14px', border: '1px solid #1d1d4a', background: 'transparent', color: '#94a3b8', borderRadius: 6, cursor: 'pointer', fontFamily: 'Inter', fontSize: 11 }}
+              style={{ padding: '8px 14px', border: '1px solid #1e3050', background: 'transparent', color: '#a0bcdf', borderRadius: 6, cursor: 'pointer', fontFamily: 'Inter', fontSize: 11 }}
             >
               Cancel
             </button>
@@ -404,17 +404,17 @@ export default function LifeCycles() {
       </div>
 
       {/* Summary stats */}
-      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #1d1d4a' }}>
+      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #162035' }}>
         {[
           { label: 'Current Avg Floor', value: avgFloor !== 0 ? String(avgFloor) : '—', color: '#22d3ee' },
-          { label: 'Longest Active Streak', value: longestStreak > 0 ? `${longestStreak}d` : '—', color: '#10b981' },
+          { label: 'Longest Active Streak', value: longestStreak > 0 ? `${longestStreak}d` : '—', color: '#1ad9a0' },
           { label: 'Metrics Tracked', value: allMetrics.length, color: '#8b5cf6' },
         ].map((s, i) => (
-          <div key={i} style={{ flex: 1, padding: '16px 24px', borderRight: i < 2 ? '1px solid #1d1d4a' : 'none', background: 'linear-gradient(135deg, #0d0d28, #09091f)' }}>
-            <div style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
+          <div key={i} style={{ flex: 1, padding: '16px 24px', borderRight: i < 2 ? '1px solid #162035' : 'none', background: 'linear-gradient(135deg, #080e1a, #040810)' }}>
+            <div style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
               {s.label}
             </div>
-            <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 36, color: s.color, lineHeight: 1 }}>
+            <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 40, color: s.color, lineHeight: 1 }}>
               {s.value}
             </div>
           </div>
@@ -424,14 +424,14 @@ export default function LifeCycles() {
       {/* Metric graphs */}
       <div style={{ padding: '24px 32px' }}>
         {/* Daily Win Rate — always first */}
-        <div style={{ background: 'linear-gradient(135deg, #0d0d28 0%, #09091f 100%)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 12, overflow: 'hidden', marginBottom: 12, boxShadow: '0 0 0 1px rgba(201,168,76,0.08)' }}>
+        <div style={{ background: 'linear-gradient(135deg, #080e1a 0%, #040810 100%)', border: '1px solid rgba(240,192,64,0.3)', borderRadius: 12, overflow: 'hidden', marginBottom: 12, boxShadow: '0 0 0 1px rgba(240,192,64,0.08)' }}>
           <div style={{ padding: '14px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 22, letterSpacing: '0.04em', lineHeight: 1, background: 'linear-gradient(135deg, #c9a84c, #fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 22, letterSpacing: '0.04em', lineHeight: 1, background: 'linear-gradient(135deg, #f0c040, #f0c040)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                 DAILY WIN RATE
               </div>
               <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-                <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#c9a84c', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 4, padding: '2px 8px' }}>
+                <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#f0c040', background: 'rgba(240,192,64,0.08)', border: '1px solid rgba(240,192,64,0.2)', borderRadius: 4, padding: '2px 8px' }}>
                   {winRatePct}% — {winDaysCount}/{totalDays} days
                 </span>
               </div>
@@ -440,7 +440,7 @@ export default function LifeCycles() {
           <div style={{ padding: '0 4px' }}>
             <OscillationGraph points={winRatePoints} mean={0.5} metricId="daily_win_rate" />
           </div>
-          <div style={{ margin: '8px 16px 16px', padding: '10px 14px', background: 'linear-gradient(135deg, #0d0d28, #090918)', borderLeft: '3px solid #c9a84c', borderRadius: '0 6px 6px 0' }}>
+          <div style={{ margin: '8px 16px 16px', padding: '10px 14px', background: 'linear-gradient(135deg, #080e1a, #090918)', borderLeft: '3px solid #f0c040', borderRadius: '0 6px 6px 0' }}>
             <span style={{ fontFamily: 'Inter', fontSize: 11, color: 'white', lineHeight: 1.5 }}>
               {totalDays < 3 ? 'Log at least 3 days to detect your win pattern.' :
                 winRatePct >= 80 ? `You are winning ${winRatePct}% of days. Elite consistency. Protect the streak.` :
@@ -465,11 +465,11 @@ export default function LifeCycles() {
               {/* Custom metric log input */}
               {isCustom && (
                 <div style={{
-                  marginTop: -6, marginBottom: 12, padding: '10px 20px', background: 'linear-gradient(135deg, #0d0d28, #09091f)',
-                  border: '1px solid #1d1d4a', borderTop: 'none', borderRadius: '0 0 12px 12px',
+                  marginTop: -6, marginBottom: 12, padding: '10px 20px', background: 'linear-gradient(135deg, #080e1a, #040810)',
+                  border: '1px solid #1e3050', borderTop: 'none', borderRadius: '0 0 12px 12px',
                   display: 'flex', gap: 8, alignItems: 'center'
                 }}>
-                  <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#94a3b8' }}>Log today's value:</span>
+                  <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0bcdf' }}>Log today's value:</span>
                   <input
                     type="number"
                     value={customLogInputs[metric.id] || ''}
@@ -477,7 +477,7 @@ export default function LifeCycles() {
                     onKeyDown={e => e.key === 'Enter' && logCustomValue(metric.id)}
                     placeholder={`0–${metric.maxVal}`}
                     style={{
-                      width: 80, background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6,
+                      width: 80, background: '#020609', border: '1px solid #1e3050', borderRadius: 6,
                       padding: '5px 10px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none'
                     }}
                   />

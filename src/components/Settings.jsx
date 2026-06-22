@@ -5,8 +5,8 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 const LS_KEYS = ['marko_habits','marko_content','marko_mind','marko_body','marko_diet','marko_relations','marko_business','marko_soul','marko_settings','marko_coach_messages']
 
 const cls = {
-  input: "w-full bg-[#080808] border border-[#2a2a2a] px-3 py-2 text-sm text-white focus:outline-none focus:border-[#dc2626] transition-colors",
-  label: "block text-[9px] font-mono uppercase tracking-widest text-[#444] mb-1.5",
+  input: "w-full bg-[#080e1a] border border-[#1e3050] px-3 py-2 text-sm text-white focus:outline-none focus:border-[#dc2626] transition-colors",
+  label: "block text-[9px] font-mono uppercase tracking-widest text-[#a0bcdf] mb-1.5",
   section: "text-[9px] font-mono uppercase tracking-widest text-[#dc2626] mb-3",
 }
 
@@ -42,19 +42,19 @@ export default function Settings({ onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-end">
       <div className="absolute inset-0 bg-black/70" onClick={onClose} />
-      <div className="relative z-10 bg-[#0f0f0f] border-l border-[#2a2a2a] w-80 h-full flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#2a2a2a]">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-[#555]">Settings</span>
-          <button onClick={onClose} className="text-[#444] hover:text-white transition-colors"><X size={15} /></button>
+      <div className="relative z-10 bg-[#080e1a] border-l border-[#1e3050] w-80 h-full flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1e3050]">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[#a0bcdf]">Settings</span>
+          <button onClick={onClose} className="text-[#a0bcdf] hover:text-white transition-colors"><X size={15} /></button>
         </div>
 
         <div className="flex-1 overflow-auto px-6 py-5 space-y-6">
           <div>
             <div className={cls.section}>App</div>
-            <div className="bg-[#141414] border border-[#2a2a2a] p-3">
-              <div className="text-[9px] font-mono text-[#444] uppercase tracking-widest">Day of the war</div>
+            <div className="bg-[#040810] border border-[#1e3050] p-3">
+              <div className="text-[9px] font-mono text-[#a0bcdf] uppercase tracking-widest">Day of the war</div>
               <div className="text-3xl font-mono font-black text-[#dc2626] mt-1">Day {dayNum}</div>
-              <div className="text-[9px] font-mono text-[#333] mt-0.5">Since {appStart}</div>
+              <div className="text-[9px] font-mono text-[#7a95c0] mt-0.5">Since {appStart}</div>
             </div>
           </div>
 
@@ -70,13 +70,13 @@ export default function Settings({ onClose }) {
             <div>
               <label className={cls.label}>Anthropic API Key</label>
               <input type="password" value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="sk-ant-..." className={cls.input + " font-mono"} />
-              <p className="text-[9px] font-mono text-[#333] mt-1.5">Stored locally. Never sent anywhere except Anthropic.</p>
+              <p className="text-[9px] font-mono text-[#7a95c0] mt-1.5">Stored locally. Never sent anywhere except Anthropic.</p>
             </div>
           </div>
 
           <div>
             <div className={cls.section}>Data</div>
-            <label className="w-full flex items-center gap-2 px-4 py-2.5 border border-[#2a2a2a] text-[#555] text-[10px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors cursor-pointer">
+            <label className="w-full flex items-center gap-2 px-4 py-2.5 border border-[#1e3050] text-[#a0bcdf] text-[10px] uppercase tracking-widest hover:border-[#dc2626] hover:text-white transition-colors cursor-pointer">
               <Upload size={11} /> Import Backup
               <input type="file" accept=".json" onChange={importData} className="hidden" />
             </label>
@@ -101,7 +101,7 @@ export default function Settings({ onClose }) {
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-[#2a2a2a]">
+        <div className="px-6 py-4 border-t border-[#1e3050]">
           <button
             onClick={save}
             className="w-full py-2.5 bg-[#dc2626] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 transition-colors"

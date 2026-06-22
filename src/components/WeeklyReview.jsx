@@ -3,16 +3,16 @@ import { X, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, Minus } from 'lucide-
 import { calcDayScore, getWinDaySettings } from '../utils/winLoss'
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
-const BG     = '#030311'
-const CARD   = '#0d0d28'
-const BORDER = '#1d1d4a'
-const GOLD   = '#c9a84c'
-const RED    = '#ef4444'
-const GREEN  = '#10b981'
-const BLUE   = '#3b82f6'
-const MUTED  = '#64748b'
-const TEXT2  = '#94a3b8'
-const NAVY   = '#0d0d28'
+const BG     = '#020609'
+const CARD   = '#080e1a'
+const BORDER = '#1e3050'
+const GOLD   = '#f0c040'
+const RED    = '#ff5555'
+const GREEN  = '#1ad9a0'
+const BLUE   = '#4d9fff'
+const MUTED  = '#7a95c0'
+const TEXT2  = '#a0bcdf'
+const NAVY   = '#1e3a5f'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -286,7 +286,7 @@ function CompareRow({ label, thisVal, prevVal, unit = '', higherIsBetter = true,
     >
       <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: TEXT2 }}>{label}</span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 20, color: '#fff' }}>
+        <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 22, color: '#fff' }}>
           {fmt(thisVal)}
         </span>
         {diff != null && (
@@ -364,10 +364,10 @@ function DataSummaryScreen({ weekData, onNext }) {
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 900,
-            fontSize: 80,
+            fontSize: 88,
             lineHeight: 1,
             color: GOLD,
-            filter: 'drop-shadow(0 0 20px rgba(201,168,76,0.5))',
+            filter: 'drop-shadow(0 0 20px rgba(240,192,64,0.5))',
           }}
         >
           {wins}W
@@ -376,10 +376,10 @@ function DataSummaryScreen({ weekData, onNext }) {
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 900,
-            fontSize: 80,
+            fontSize: 88,
             lineHeight: 1,
             color: RED,
-            filter: 'drop-shadow(0 0 20px rgba(239,68,68,0.4))',
+            filter: 'drop-shadow(0 0 20px rgba(255,85,85,0.4))',
           }}
         >
           {losses}L
@@ -390,7 +390,7 @@ function DataSummaryScreen({ weekData, onNext }) {
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               fontWeight: 900,
-              fontSize: 40,
+              fontSize: 44,
               lineHeight: 1,
               color: weekData.weeklyScoreAvg >= 80 ? GREEN : weekData.weeklyScoreAvg >= 60 ? GOLD : RED,
             }}
@@ -464,7 +464,7 @@ function DataSummaryScreen({ weekData, onNext }) {
           </div>
           {bestDayDate ? (
             <>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 26, color: GREEN }}>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 29, color: GREEN }}>
                 {bestDayPct}%
               </div>
               <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: TEXT2, marginTop: 2 }}>
@@ -490,7 +490,7 @@ function DataSummaryScreen({ weekData, onNext }) {
           </div>
           {worstDayDate ? (
             <>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 26, color: RED }}>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 29, color: RED }}>
                 {worstDayPct}%
               </div>
               <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: TEXT2, marginTop: 2 }}>
@@ -776,10 +776,10 @@ function CompletionScreen({ weekData, answers, aiSummary, aiLoading, onClose }) 
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 900,
-            fontSize: 72,
+            fontSize: 79,
             lineHeight: 1,
             color: GOLD,
-            filter: 'drop-shadow(0 0 28px rgba(201,168,76,0.6))',
+            filter: 'drop-shadow(0 0 28px rgba(240,192,64,0.6))',
             letterSpacing: '0.06em',
           }}
         >
@@ -1057,7 +1057,7 @@ export default function WeeklyReview({ onClose, dailyData, bodyData, dietData })
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,168,76,0.1)',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(240,192,64,0.15)',
         }}
       >
         {/* Modal top bar */}

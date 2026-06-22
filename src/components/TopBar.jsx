@@ -61,8 +61,8 @@ export default function TopBar({ section }) {
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #070718 0%, #09091f 100%)',
-      borderBottom: '1px solid rgba(139,92,246,0.15)',
+      background: '#040810',
+      borderBottom: '1px solid #1e3050',
       padding: '12px 20px',
       display: 'flex',
       justifyContent: 'space-between',
@@ -74,7 +74,7 @@ export default function TopBar({ section }) {
           fontSize: 9,
           fontFamily: 'Inter, sans-serif',
           fontWeight: 600,
-          color: '#64748b',
+          color: '#7a95c0',
           textTransform: 'uppercase',
           letterSpacing: '0.3em',
         }}>
@@ -99,8 +99,8 @@ export default function TopBar({ section }) {
           display: 'flex',
           alignItems: 'center',
           gap: 4,
-          background: 'rgba(251,191,36,0.1)',
-          border: '1px solid rgba(251,191,36,0.3)',
+          background: '#1a0f00',
+          border: '1px solid #5a4000',
           borderRadius: 9999,
           padding: '4px 10px',
         }}>
@@ -109,7 +109,7 @@ export default function TopBar({ section }) {
             fontFamily: 'Inter, sans-serif',
             fontWeight: 600,
             fontSize: 12,
-            color: '#fbbf24',
+            color: '#f0c040',
           }}>
             {streak}d
           </span>
@@ -120,8 +120,8 @@ export default function TopBar({ section }) {
           display: 'flex',
           alignItems: 'center',
           gap: 4,
-          background: 'rgba(139,92,246,0.1)',
-          border: '1px solid rgba(139,92,246,0.3)',
+          background: '#0a1428',
+          border: '1px solid #1a3a7a',
           borderRadius: 9999,
           padding: '4px 10px',
         }}>
@@ -129,7 +129,7 @@ export default function TopBar({ section }) {
             fontFamily: 'Inter, sans-serif',
             fontWeight: 600,
             fontSize: 12,
-            color: '#8b5cf6',
+            color: '#4d9fff',
           }}>
             {score}%
           </span>

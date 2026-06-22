@@ -7,21 +7,21 @@ import { Trophy } from 'lucide-react'
 import WeeklyReview from '../components/WeeklyReview'
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
-const BG          = '#030311'
-const SURF        = '#09091f'
-const CARD_BG     = '#0d0d28'
-const CARD_BORDER = '#1d1d4a'
-const GOLD        = '#fbbf24'
+const BG          = '#020609'
+const SURF        = '#040810'
+const CARD_BG     = '#080e1a'
+const CARD_BORDER = '#1e3050'
+const GOLD        = '#f0c040'
 const CYAN        = '#22d3ee'
-const BLUE        = '#3b82f6'
-const GREEN       = '#10b981'
+const BLUE        = '#4d9fff'
+const GREEN       = '#1ad9a0'
 const PURPLE      = '#8b5cf6'
 const PINK        = '#e879f9'
 const RED         = '#f43f5e'
-const TEXT2       = '#94a3b8'
-const MUTED       = '#64748b'
-const WIN_GOLD    = '#c9a84c'
-const LOSS_RED    = '#ef4444'
+const TEXT2       = '#a0bcdf'
+const MUTED       = '#7a95c0'
+const WIN_GOLD    = '#f0c040'
+const LOSS_RED    = '#ff5555'
 
 const LABEL_STYLE = {
   fontFamily: 'Inter, sans-serif',
@@ -40,12 +40,12 @@ const HEADING_STYLE = {
 
 const TOOLTIP_PROPS = {
   contentStyle: {
-    background: '#0d0d28',
-    border: '1px solid #1d1d4a',
+    background: '#080e1a',
+    border: '1px solid #1e3050',
     fontSize: 10,
     fontFamily: 'Inter, sans-serif',
   },
-  labelStyle: { color: '#94a3b8' },
+  labelStyle: { color: '#a0bcdf' },
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -183,9 +183,9 @@ function Pill({ children, color }) {
 function StatBlock({ accent, label, value, delta, valueFontOverride }) {
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a24 100%)',
-      border: '1px solid #1d1d4a',
-      boxShadow: '0 0 0 1px rgba(139,92,246,0.1), inset 0 1px 0 rgba(139,92,246,0.05)',
+      background: 'linear-gradient(135deg, #0d1628 0%, #080e1a 100%)',
+      border: '1px solid #1e3050',
+      boxShadow: '0 0 0 1px rgba(30,48,80,0.8), inset 0 1px 0 rgba(30,48,80,0.4)',
       borderTop: `2px solid ${accent}`,
       padding: 16,
       flex: 1,
@@ -196,7 +196,7 @@ function StatBlock({ accent, label, value, delta, valueFontOverride }) {
         fontFamily: valueFontOverride ?? '"Orbitron", "Space Grotesk", sans-serif',
         fontWeight: 900,
         textTransform: 'uppercase',
-        fontSize: 40,
+        fontSize: 44,
         lineHeight: 1,
         color: accent,
         marginBottom: 6,
@@ -218,9 +218,9 @@ function StatBlock({ accent, label, value, delta, valueFontOverride }) {
 function GraphBox({ title, footer, children }) {
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a24 100%)',
-      border: '1px solid #1d1d4a',
-      boxShadow: '0 0 0 1px rgba(139,92,246,0.1), inset 0 1px 0 rgba(139,92,246,0.05)',
+      background: 'linear-gradient(135deg, #0d1628 0%, #080e1a 100%)',
+      border: '1px solid #1e3050',
+      boxShadow: '0 0 0 1px rgba(30,48,80,0.8), inset 0 1px 0 rgba(30,48,80,0.4)',
       padding: 16,
       display: 'flex',
       flexDirection: 'column',
@@ -260,14 +260,14 @@ function EmptyState() {
   )
 }
 
-function TrophyCard({ label, value, unit, date, accent = '#c9a84c' }) {
+function TrophyCard({ label, value, unit, date, accent = '#f0c040' }) {
   if (value === null || value === undefined || value === 0) return null
   return (
-    <div style={{ background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a24 100%)', border: '1px solid #1d1d4a', borderTop: `2px solid ${accent}`, padding: 16, position: 'relative', minWidth: 0 }}>
+    <div style={{ background: 'linear-gradient(135deg, #0d1628 0%, #080e1a 100%)', border: '1px solid #1e3050', borderTop: `2px solid ${accent}`, padding: 16, position: 'relative', minWidth: 0 }}>
       <Trophy size={14} color={accent} style={{ position: 'absolute', top: 12, right: 12 }} />
-      <div style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{label}</div>
-      <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 32, color: accent, lineHeight: 1 }}>{value}{unit ? <span style={{ fontSize: 16, marginLeft: 4, color: '#64748b' }}>{unit}</span> : null}</div>
-      {date && <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#64748b', marginTop: 4 }}>{date}</div>}
+      <div style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{label}</div>
+      <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 35, color: accent, lineHeight: 1 }}>{value}{unit ? <span style={{ fontSize: 16, marginLeft: 4, color: '#7a95c0' }}>{unit}</span> : null}</div>
+      {date && <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#7a95c0', marginTop: 4 }}>{date}</div>}
     </div>
   )
 }
@@ -552,12 +552,12 @@ export default function Record() {
   }
 
   function scoreToColor(s) {
-    if (s === null) return '#0d0d28'
+    if (s === null) return '#080e1a'
     if (s <= 3) return '#7f1d1d'
     if (s <= 5) return 'rgba(239,68,68,0.5)'
     if (s <= 7) return '#92740a'
-    if (s <= 8) return '#c9a84c'
-    return '#10b981'
+    if (s <= 8) return '#f0c040'
+    return '#1ad9a0'
   }
 
   const year = now.getFullYear()
@@ -724,12 +724,12 @@ export default function Record() {
         <>
           {/* Weekly Review Banner */}
           {showWeeklyBanner && (
-            <div style={{ background: 'linear-gradient(135deg, #c9a84c18, #c9a84c08)', border: '1px solid #c9a84c40', borderLeft: '3px solid #c9a84c', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+            <div style={{ background: 'linear-gradient(135deg, #f0c04018, #f0c04008)', border: '1px solid #f0c04040', borderLeft: '3px solid #f0c040', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
               <div>
-                <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 12, color: '#c9a84c', letterSpacing: '0.1em' }}>WEEKLY REVIEW READY</div>
-                <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#94a3b8', marginTop: 3 }}>Sunday review session — 10-15 minutes</div>
+                <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 12, color: '#f0c040', letterSpacing: '0.1em' }}>WEEKLY REVIEW READY</div>
+                <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#a0bcdf', marginTop: 3 }}>Sunday review session — 10-15 minutes</div>
               </div>
-              <button onClick={() => setShowWeeklyReview(true)} style={{ padding: '8px 18px', background: '#c9a84c', color: '#000', border: 'none', borderRadius: 6, fontFamily: 'Inter', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}>
+              <button onClick={() => setShowWeeklyReview(true)} style={{ padding: '8px 18px', background: '#f0c040', color: '#000', border: 'none', borderRadius: 6, fontFamily: 'Inter', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}>
                 Begin Review
               </button>
             </div>
@@ -772,9 +772,9 @@ export default function Record() {
 
           {/* ── 30-Day Win Calendar ── */}
           <div style={{
-            background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a24 100%)',
-            border: '1px solid #1d1d4a',
-            boxShadow: '0 0 0 1px rgba(139,92,246,0.1), inset 0 1px 0 rgba(139,92,246,0.05)',
+            background: 'linear-gradient(135deg, #0d1628 0%, #080e1a 100%)',
+            border: '1px solid #1e3050',
+            boxShadow: '0 0 0 1px rgba(30,48,80,0.8), inset 0 1px 0 rgba(30,48,80,0.4)',
             padding: '16px 20px',
             flexShrink: 0,
           }}>
@@ -790,7 +790,7 @@ export default function Record() {
 
                   let bgColor
                   if (!hasData) {
-                    bgColor = '#0d0d28'
+                    bgColor = '#080e1a'
                   } else if (day.isWin) {
                     bgColor = WIN_GOLD
                   } else {
@@ -824,8 +824,8 @@ export default function Record() {
                   top: 36,
                   left: 0,
                   zIndex: 10,
-                  background: '#0d0d28',
-                  border: `1px solid ${hoveredDay.available > 0 && hoveredDay.isWin ? WIN_GOLD : hoveredDay.available > 0 ? LOSS_RED : '#1d1d4a'}`,
+                  background: '#080e1a',
+                  border: `1px solid ${hoveredDay.available > 0 && hoveredDay.isWin ? WIN_GOLD : hoveredDay.available > 0 ? LOSS_RED : '#1e3050'}`,
                   borderRadius: 6,
                   padding: '8px 12px',
                   pointerEvents: 'none',
@@ -839,7 +839,7 @@ export default function Record() {
                   </div>
                   {hoveredDay.available > 0 ? (
                     <>
-                      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 16, color: hoveredDay.isWin ? WIN_GOLD : LOSS_RED, letterSpacing: '0.05em' }}>
+                      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 18, color: hoveredDay.isWin ? WIN_GOLD : LOSS_RED, letterSpacing: '0.05em' }}>
                         {hoveredDay.isWin ? 'WIN' : 'LOSS'}
                       </div>
                       <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: MUTED }}>
@@ -865,7 +865,7 @@ export default function Record() {
             }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <div style={{ ...LABEL_STYLE }}>BEST WIN STREAK</div>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 28, lineHeight: 1, color: WIN_GOLD }}>
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 31, lineHeight: 1, color: WIN_GOLD }}>
                   {longestWinStreak}d
                 </div>
               </div>
@@ -873,7 +873,7 @@ export default function Record() {
               {lossStreak > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <div style={{ ...LABEL_STYLE }}>LOSS STREAK</div>
-                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 28, lineHeight: 1, color: LOSS_RED }}>
+                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 31, lineHeight: 1, color: LOSS_RED }}>
                     {lossStreak}d
                   </div>
                 </div>
@@ -992,7 +992,7 @@ export default function Record() {
 
           {/* ── Goals Widget ── */}
           {activeGoals.length > 0 && (
-            <div style={{ background: '#0d0d28', border: '1px solid #1d1d4a', padding: 16, flexShrink: 0 }}>
+            <div style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 16, flexShrink: 0 }}>
               <div style={{ ...LABEL_STYLE, marginBottom: 12 }}>ACTIVE GOALS</div>
               <div style={{ display: 'flex', gap: 8 }}>
                 {activeGoals.slice(0, 2).map(g => {
@@ -1001,11 +1001,11 @@ export default function Record() {
                   const pct = Math.min(100, Math.max(0, Math.round(elapsed / total * 100)))
                   const daysLeft = Math.ceil((new Date(g.endDate) - new Date()) / 86400000)
                   return (
-                    <div key={g.id} style={{ flex: 1, background: '#030311', border: '1px solid #1d1d4a', borderRadius: 8, padding: 12 }}>
+                    <div key={g.id} style={{ flex: 1, background: '#020609', border: '1px solid #1e3050', borderRadius: 8, padding: 12 }}>
                       <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 14, color: 'white', marginBottom: 4 }}>{g.title}</div>
-                      <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#c9a84c', marginBottom: 8 }}>{daysLeft > 0 ? `${daysLeft} DAYS LEFT` : 'OVERDUE'}</div>
-                      <div style={{ height: 4, background: '#1d1d4a', borderRadius: 2, position: 'relative' }}>
-                        <div style={{ height: 4, background: '#3b82f6', borderRadius: 2, width: `${pct}%` }} />
+                      <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#f0c040', marginBottom: 8 }}>{daysLeft > 0 ? `${daysLeft} DAYS LEFT` : 'OVERDUE'}</div>
+                      <div style={{ height: 4, background: '#1e3050', borderRadius: 2, position: 'relative' }}>
+                        <div style={{ height: 4, background: '#4d9fff', borderRadius: 2, width: `${pct}%` }} />
                       </div>
                     </div>
                   )
@@ -1016,12 +1016,12 @@ export default function Record() {
 
           {/* ── Latest Reflection ── */}
           {lastJournalEntry && (
-            <div style={{ background: '#0d0d28', border: '1px solid #1d1d4a', padding: 16, borderLeft: `3px solid ${lastJournalEntry.isWin ? '#c9a84c' : '#ef4444'}`, flexShrink: 0 }}>
+            <div style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 16, borderLeft: `3px solid ${lastJournalEntry.isWin ? '#f0c040' : '#ff5555'}`, flexShrink: 0 }}>
               <div style={{ ...LABEL_STYLE, marginBottom: 8 }}>LATEST REFLECTION</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <span style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 16, color: '#c9a84c' }}>DAY {String(lastJournalEntry.dayNumber).padStart(3, '0')}</span>
-                <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#94a3b8' }}>{lastJournalEntry.date}</span>
-                <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 700, color: lastJournalEntry.isWin ? '#c9a84c' : '#ef4444', background: lastJournalEntry.isWin ? 'rgba(201,168,76,0.12)' : 'rgba(239,68,68,0.12)', border: `1px solid ${lastJournalEntry.isWin ? '#c9a84c40' : '#ef444440'}`, borderRadius: 4, padding: '2px 8px' }}>{lastJournalEntry.isWin ? 'WIN' : 'LOSS'}</span>
+                <span style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 18, color: '#f0c040' }}>DAY {String(lastJournalEntry.dayNumber).padStart(3, '0')}</span>
+                <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0bcdf' }}>{lastJournalEntry.date}</span>
+                <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 700, color: lastJournalEntry.isWin ? '#000000' : '#ffffff', background: lastJournalEntry.isWin ? '#f0c040' : '#ff5555', border: 'none', borderRadius: 4, padding: '2px 8px' }}>{lastJournalEntry.isWin ? 'WIN' : 'LOSS'}</span>
               </div>
               <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#d1d5db', lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                 {lastJournalEntry.aiReflection}
@@ -1040,19 +1040,19 @@ export default function Record() {
           <div>
             <div style={{ ...LABEL_STYLE, marginBottom: 10 }}>BODY RECORDS</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
-              <TrophyCard label="Bench Press PR" value={prs.bench} unit="kg" accent="#c9a84c" />
-              <TrophyCard label="Squat PR" value={prs.squat} unit="kg" accent="#c9a84c" />
-              <TrophyCard label="Deadlift PR" value={prs.deadlift} unit="kg" accent="#c9a84c" />
+              <TrophyCard label="Bench Press PR" value={prs.bench} unit="kg" accent="#f0c040" />
+              <TrophyCard label="Squat PR" value={prs.squat} unit="kg" accent="#f0c040" />
+              <TrophyCard label="Deadlift PR" value={prs.deadlift} unit="kg" accent="#f0c040" />
               <TrophyCard label="Lowest Weight" value={lowestWeight} unit="kg" accent="#22d3ee" />
-              <TrophyCard label="Highest Single Protein" value={highestProtein} unit="g" accent="#10b981" />
-              <TrophyCard label="Best Calorie Accuracy" value={highestCalAccuracy} unit="%" accent="#10b981" />
+              <TrophyCard label="Highest Single Protein" value={highestProtein} unit="g" accent="#1ad9a0" />
+              <TrophyCard label="Best Calorie Accuracy" value={highestCalAccuracy} unit="%" accent="#1ad9a0" />
             </div>
           </div>
           {/* Streak Records */}
           <div>
             <div style={{ ...LABEL_STYLE, marginBottom: 10 }}>STREAK RECORDS</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
-              <TrophyCard label="Longest Win Streak" value={longestWinStreakVal} unit="d" accent="#c9a84c" />
+              <TrophyCard label="Longest Win Streak" value={longestWinStreakVal} unit="d" accent="#f0c040" />
               <TrophyCard label="Longest Non-Neg Streak" value={longestNNStreak} unit="d" accent="#8b5cf6" />
               <TrophyCard label="Longest Day Streak" value={longestStreak} unit="d" accent="#22d3ee" />
             </div>
@@ -1061,16 +1061,16 @@ export default function Record() {
           <div>
             <div style={{ ...LABEL_STYLE, marginBottom: 10 }}>DAILY PERFORMANCE</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
-              <TrophyCard label="Highest Day Score" value={highestDayScore.value > 0 ? highestDayScore.value : null} unit="%" date={highestDayScore.date} accent="#c9a84c" />
-              <TrophyCard label="Most Tasks Done" value={mostTasksDay.value > 0 ? mostTasksDay.value : null} unit=" tasks" date={mostTasksDay.date} accent="#fbbf24" />
+              <TrophyCard label="Highest Day Score" value={highestDayScore.value > 0 ? highestDayScore.value : null} unit="%" date={highestDayScore.date} accent="#f0c040" />
+              <TrophyCard label="Most Tasks Done" value={mostTasksDay.value > 0 ? mostTasksDay.value : null} unit=" tasks" date={mostTasksDay.date} accent="#f0c040" />
             </div>
           </div>
           {/* Business */}
           <div>
             <div style={{ ...LABEL_STYLE, marginBottom: 10 }}>BUSINESS RECORDS</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
-              <TrophyCard label="Most Appts in One Day" value={maxApptDay > 0 ? maxApptDay : null} accent="#3b82f6" />
-              <TrophyCard label="Most Calls in One Day" value={maxCallsDay > 0 ? maxCallsDay : null} accent="#3b82f6" />
+              <TrophyCard label="Most Appts in One Day" value={maxApptDay > 0 ? maxApptDay : null} accent="#4d9fff" />
+              <TrophyCard label="Most Calls in One Day" value={maxCallsDay > 0 ? maxCallsDay : null} accent="#4d9fff" />
             </div>
           </div>
         </div>
@@ -1150,8 +1150,8 @@ export default function Record() {
                 left: '50%',
                 transform: 'translateX(-50%)',
                 zIndex: 100,
-                background: '#0d0d28',
-                border: '1px solid #1d1d4a',
+                background: '#080e1a',
+                border: '1px solid #1e3050',
                 borderRadius: 6,
                 padding: '8px 14px',
                 pointerEvents: 'none',
@@ -1161,7 +1161,7 @@ export default function Record() {
                 minWidth: 140,
               }}>
                 <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: TEXT2 }}>{heatmapTooltip.ds}</div>
-                <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 18, color: heatmapTooltip.score !== null ? scoreToColor(heatmapTooltip.score) : MUTED }}>
+                <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 20, color: heatmapTooltip.score !== null ? scoreToColor(heatmapTooltip.score) : MUTED }}>
                   {heatmapTooltip.score !== null ? `Score: ${heatmapTooltip.score.toFixed(1)}` : 'No data'}
                 </div>
                 {heatmapTooltip.isWin !== undefined && (
@@ -1176,15 +1176,15 @@ export default function Record() {
           {/* Color legend */}
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
             {[
-              { color: '#0d0d28', label: 'No data' },
+              { color: '#080e1a', label: 'No data' },
               { color: '#7f1d1d', label: '1-3' },
               { color: 'rgba(239,68,68,0.5)', label: '4-5' },
               { color: '#92740a', label: '6-7' },
-              { color: '#c9a84c', label: '8' },
-              { color: '#10b981', label: '9-10' },
+              { color: '#f0c040', label: '8' },
+              { color: '#1ad9a0', label: '9-10' },
             ].map(({ color, label }) => (
               <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <div style={{ width: 10, height: 10, background: color, borderRadius: 2, border: '1px solid #1d1d4a' }} />
+                <div style={{ width: 10, height: 10, background: color, borderRadius: 2, border: '1px solid #1e3050' }} />
                 <span style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED }}>{label}</span>
               </div>
             ))}
@@ -1192,20 +1192,20 @@ export default function Record() {
 
           {/* Insight blocks */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1, marginTop: 1 }}>
-            <div style={{ background: '#0d0d28', border: '1px solid #1d1d4a', padding: 16 }}>
-              <div style={{ ...LABEL_STYLE, color: '#10b981', marginBottom: 4 }}>BEST DAY OF WEEK</div>
-              <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 32, color: '#10b981' }}>{bestDow}</div>
+            <div style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 16 }}>
+              <div style={{ ...LABEL_STYLE, color: '#1ad9a0', marginBottom: 4 }}>BEST DAY OF WEEK</div>
+              <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 35, color: '#1ad9a0' }}>{bestDow}</div>
             </div>
-            <div style={{ background: '#0d0d28', border: '1px solid #1d1d4a', padding: 16 }}>
-              <div style={{ ...LABEL_STYLE, color: '#ef4444', marginBottom: 4 }}>WORST DAY OF WEEK</div>
-              <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 32, color: '#ef4444' }}>{worstDow}</div>
+            <div style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 16 }}>
+              <div style={{ ...LABEL_STYLE, color: '#ff5555', marginBottom: 4 }}>WORST DAY OF WEEK</div>
+              <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 35, color: '#ff5555' }}>{worstDow}</div>
             </div>
-            <div style={{ background: '#0d0d28', border: '1px solid #1d1d4a', padding: 16 }}>
-              <div style={{ ...LABEL_STYLE, color: '#c9a84c', marginBottom: 4 }}>LONGEST HIGH STREAK</div>
-              <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 32, color: '#c9a84c' }}>{longestHighStreak}d</div>
-              <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#64748b' }}>consecutive days above 7</div>
+            <div style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 16 }}>
+              <div style={{ ...LABEL_STYLE, color: '#f0c040', marginBottom: 4 }}>LONGEST HIGH STREAK</div>
+              <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 35, color: '#f0c040' }}>{longestHighStreak}d</div>
+              <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#7a95c0' }}>consecutive days above 7</div>
             </div>
-            <div style={{ background: '#0d0d28', border: '1px solid #1d1d4a', padding: 16 }}>
+            <div style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 16 }}>
               <div style={{ ...LABEL_STYLE, marginBottom: 4 }}>PATTERN</div>
               <div style={{ fontFamily: 'Inter', fontSize: 11, color: 'white', lineHeight: 1.5 }}>{patternInsight}</div>
             </div>
@@ -1216,10 +1216,10 @@ export default function Record() {
       {/* ── PR Celebration Overlay ── */}
       {celebrating && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9000, background: '#000', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
-          <Trophy size={80} color="#c9a84c" />
-          <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 40, color: 'white', letterSpacing: '0.05em', textAlign: 'center', padding: '0 32px' }}>{celebrating.name}</div>
-          <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 72, color: '#c9a84c', lineHeight: 1 }}>{celebrating.value}{celebrating.unit}</div>
-          <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 18, color: '#c9a84c', letterSpacing: '0.2em', textShadow: '0 0 20px rgba(201,168,76,0.8)' }}>NEW PERSONAL RECORD</div>
+          <Trophy size={80} color="#f0c040" />
+          <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 44, color: 'white', letterSpacing: '0.05em', textAlign: 'center', padding: '0 32px' }}>{celebrating.name}</div>
+          <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 79, color: '#f0c040', lineHeight: 1 }}>{celebrating.value}{celebrating.unit}</div>
+          <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 18, color: '#f0c040', letterSpacing: '0.2em', textShadow: '0 0 20px rgba(240,192,64,0.8)' }}>NEW PERSONAL RECORD</div>
         </div>
       )}
 

@@ -6,28 +6,28 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } fro
 import { today, fmtShort } from '../utils'
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
-const BG         = '#030311'
-const SURF       = '#09091f'
-const CARD_BG    = '#0d0d28'
-const CARD_BORDER= '#1d1d4a'
-const GOLD       = '#fbbf24'
+const BG         = '#020609'
+const SURF       = '#040810'
+const CARD_BG    = '#080e1a'
+const CARD_BORDER= '#1e3050'
+const GOLD       = '#f0c040'
 const CYAN       = '#22d3ee'
-const BLUE       = '#3b82f6'
-const GREEN      = '#10b981'
+const BLUE       = '#4d9fff'
+const GREEN      = '#1ad9a0'
 const PURPLE     = '#8b5cf6'
 const PINK       = '#e879f9'
 const RED        = '#f43f5e'
-const TEXT2      = '#94a3b8'
-const MUTED      = '#64748b'
+const TEXT2      = '#a0bcdf'
+const MUTED      = '#7a95c0'
 
 const STATUSES = ['Lead', 'Appointment Set', 'No Show', 'Closed', 'Lost']
 
 const STATUS_COLOR = {
-  Lead:              { color: '#64748b', border: 'rgba(100,116,139,0.4)' },
-  'Appointment Set': { color: '#3b82f6', border: 'rgba(59,130,246,0.4)' },
-  'No Show':         { color: '#f43f5e', border: 'rgba(244,63,94,0.4)'  },
-  Closed:            { color: '#10b981', border: 'rgba(16,185,129,0.4)' },
-  Lost:              { color: '#94a3b8', border: 'rgba(148,163,184,0.3)' },
+  Lead:              { color: '#7a95c0', border: '#3a5580' },
+  'Appointment Set': { color: '#4d9fff', border: '#1a4a8a' },
+  'No Show':         { color: '#ff5555', border: '#7a1a1a' },
+  Closed:            { color: '#1ad9a0', border: '#0a5540' },
+  Lost:              { color: '#a0bcdf', border: '#3a5070' },
 }
 
 const LABEL_STYLE = {
@@ -255,7 +255,7 @@ export default function Business() {
           <span style={{
             ...HEADING_STYLE('white', 22),
             letterSpacing: '0.08em',
-            background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+            background: 'linear-gradient(135deg, #4d9fff, #8b5cf6)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -309,16 +309,15 @@ export default function Business() {
           },
         ].map(stat => (
           <div key={stat.label} style={{
-            background: 'linear-gradient(135deg, #0d0d28, #090920)',
+            background: '#080e1a',
             border: `1px solid ${CARD_BORDER}`,
             borderTop: `2px solid ${stat.color}`,
             padding: '16px 20px',
-            boxShadow: '0 0 0 1px rgba(59,130,246,0.08)',
           }}>
             <div style={{ ...LABEL_STYLE, marginBottom: 8 }}>{stat.label}</div>
             <div style={{
               fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
-              fontSize: 40,
+              fontSize: 44,
               fontWeight: 900,
               color: stat.color,
               lineHeight: 1,
@@ -369,11 +368,10 @@ export default function Business() {
 
           {/* Table */}
           <div style={{
-            background: 'linear-gradient(135deg, #0d0d28, #090920)',
+            background: '#080e1a',
             border: `1px solid ${CARD_BORDER}`,
             borderRadius: 10,
             overflow: 'hidden',
-            boxShadow: '0 0 0 1px rgba(59,130,246,0.08)',
           }}>
             {/* Table head */}
             <div style={{
@@ -482,11 +480,10 @@ export default function Business() {
 
         {/* ── SETTER PERFORMANCE TRACKER ─────────────────────────────────── */}
         <div style={{
-          background: 'linear-gradient(135deg, #0d0d28, #090920)',
+          background: '#080e1a',
           border: `1px solid ${CARD_BORDER}`,
           borderRadius: 10,
           padding: '20px',
-          boxShadow: '0 0 0 1px rgba(59,130,246,0.08)',
         }}>
           {/* Tracker header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -601,7 +598,7 @@ export default function Business() {
                 <div style={{ ...LABEL_STYLE, marginBottom: 4 }}>{t.label}</div>
                 <div style={{
                   fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
-                  fontSize: 28,
+                  fontSize: 31,
                   fontWeight: 900,
                   color: t.color,
                   lineHeight: 1,
