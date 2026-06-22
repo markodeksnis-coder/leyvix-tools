@@ -86,13 +86,13 @@ export default function Sidebar({ active, onSelect, onSettings }) {
               onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = '#0d1628'; e.currentTarget.style.borderColor = 'rgba(58,90,154,0.4)' }}}
               onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent' }}}
             >
-              <Icon size={20} color={isActive ? '#ffffff' : color} strokeWidth={isActive ? 2.5 : 1.5}
-                style={{ filter: `drop-shadow(0 0 ${isActive ? 8 : 4}px ${color}${isActive ? 'ff' : '99'})`, transition: 'all 0.2s', opacity: isActive ? 1 : 0.65 }} />
+              <Icon size={20} color={color} strokeWidth={isActive ? 2.5 : 1.5}
+                style={{ filter: `drop-shadow(0 0 ${isActive ? 10 : 6}px ${color})`, transition: 'all 0.2s' }} />
               <span style={{
                 fontFamily: 'Inter', fontSize: 8, fontWeight: isActive ? 700 : 500,
-                color: isActive ? '#ffffff' : color,
+                color: color,
                 textTransform: 'uppercase', letterSpacing: '0.1em', lineHeight: 1, transition: 'color 0.2s',
-                opacity: isActive ? 1 : 0.6,
+                textShadow: `0 0 8px ${color}`,
               }}>{label}</span>
             </button>
           )
@@ -119,8 +119,8 @@ export default function Sidebar({ active, onSelect, onSettings }) {
               onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = '#0d1628'; e.currentTarget.style.borderColor = 'rgba(58,90,154,0.3)' }}}
               onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent' }}}
             >
-              <Icon size={15} color={isActive ? '#ffffff' : color} strokeWidth={1.5}
-                style={{ filter: `drop-shadow(0 0 ${isActive ? 6 : 3}px ${color}${isActive ? 'ff' : '88'})`, opacity: isActive ? 1 : 0.6, transition: 'all 0.2s' }} />
+              <Icon size={15} color={color} strokeWidth={1.5}
+                style={{ filter: `drop-shadow(0 0 ${isActive ? 8 : 5}px ${color})`, transition: 'all 0.2s' }} />
             </button>
           )
         })}
