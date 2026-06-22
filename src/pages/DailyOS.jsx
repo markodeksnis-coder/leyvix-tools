@@ -1,25 +1,42 @@
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, Check } from 'lucide-react'
+import { Plus, Trash2, Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import Modal from '../components/Modal'
 import { today } from '../utils'
 
-const BG = '#030508'
-const SURF = '#06090f'
-const CARD_BORDER = '#0f1628'
-const GOLD = '#c9a84c'
-const BLUE = '#3b82f6'
-const GREEN = '#10b981'
-const RED = '#ef4444'
-const TEXT2 = '#4a5a7a'
-const MUTED = '#2a3a5a'
+const BG = '#000000'
+const CARD = { background: '#0d1427', border: '1px solid #1a2440', borderRadius: 12, padding: 20 }
+const LBL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }
 
-const LBL = {
-  fontFamily: 'Inter',
-  fontSize: 9,
-  fontWeight: 600,
-  letterSpacing: '0.3em',
-  textTransform: 'uppercase',
-  color: TEXT2,
+function ProgressRing({ done, total, size = 148 }) {
+  const sw = 11
+  const r = (size - sw * 2) / 2
+  const circ = 2 * Math.PI * r
+  const pct = total > 0 ? done / total : 0
+  const offset = circ * (1 - pct)
+  const color = pct >= 0.9 ? '#22c55e' : pct >= 0.7 ? '#c9a84c' : pct >= 0.5 ? '#c9a84c' : '#ef4444'
+  const label = pct >= 0.9 ? 'ELITE' : pct >= 0.7 ? 'SOLID' : pct >= 0.5 ? 'ACCEPTABLE' : pct > 0 ? 'REPORT FOR DUTY' : 'NOT STARTED'
+  const cx = size / 2, cy = size / 2
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+      <div style={{ position: 'relative', width: size, height: size }}>
+        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#1a2440" strokeWidth={sw} />
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={sw}
+            strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+            style={{ transition: 'stroke-dashoffset 0.5s ease, stroke 0.3s ease' }} />
+        </svg>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 44, color, lineHeight: 1 }}>{done}</span>
+          <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#a0aec0' }}>/ {total}</span>
+        </div>
+      </div>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 20, color, letterSpacing: '0.04em' }}>{label}</div>
+        <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0', marginTop: 2 }}>{Math.round(pct * 100)}% complete</div>
+      </div>
+    </div>
+  )
 }
 
 const DEFAULT_NON_NEGS = [
@@ -35,24 +52,31 @@ const DEFAULT_TASKS = [
   { id: 103, title: 'Sales outreach' },
 ]
 
-function priorityColor(p) {
-  if (p === 'HIGH') return RED
-  if (p === 'LOW') return MUTED
-  return GOLD
-}
-
 export default function DailyOS() {
   const [data, setData] = useLocalStorage('marko_daily', {
     nonNegotiables: DEFAULT_NON_NEGS,
     taskTemplates: DEFAULT_TASKS,
-    logs: {},
+    logs: {}
   })
+  const [showWeekly, setShowWeekly] = useState(false)
   const [newNNText, setNewNNText] = useState('')
   const [newTaskText, setNewTaskText] = useState('')
   const [newOneTimeText, setNewOneTimeText] = useState('')
   const [showManage, setShowManage] = useState(false)
 
   const todayStr = today()
+
+  const todayLog = data.logs[todayStr] || {}
+  const [sleepInput, setSleepInput] = useState(String(todayLog.sleep || ''))
+  const [stepsInput, setStepsInput] = useState(String(todayLog.steps || ''))
+  const [workInput, setWorkInput] = useState(String(todayLog.workOutput || ''))
+
+  useEffect(() => {
+    const log = data.logs[todayStr] || {}
+    setSleepInput(log.sleep != null ? String(log.sleep) : '')
+    setStepsInput(log.steps != null ? String(log.steps) : '')
+    setWorkInput(log.workOutput != null ? String(log.workOutput) : '')
+  }, [todayStr])
 
   // Initialize today's log from templates if it doesn't exist
   useEffect(() => {
@@ -71,30 +95,9 @@ export default function DailyOS() {
   const nonNegItems = todayItems.filter(i => i.isNonNeg)
   const taskItems = todayItems.filter(i => !i.isNonNeg)
   const checkedCount = todayItems.filter(i => i.checked).length
-  const totalCount = todayItems.length
-  const scorePercent = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0
-
-  // Streak: count consecutive days where all non-negotiables were checked
-  const streak = (() => {
-    let count = 0
-    const d = new Date()
-    // start from yesterday so today doesn't break streak if still in progress
-    d.setDate(d.getDate() - 1)
-    for (let i = 0; i < 365; i++) {
-      const ds = d.toISOString().split('T')[0]
-      const log = data.logs[ds]
-      if (!log) break
-      const nns = (log.items || []).filter(item => item.isNonNeg)
-      if (nns.length === 0) break
-      if (nns.every(item => item.checked)) {
-        count++
-        d.setDate(d.getDate() - 1)
-      } else {
-        break
-      }
-    }
-    return count
-  })()
+  const nnDone = nonNegItems.filter(i => i.checked).length
+  const score = todayItems.length > 0 ? Math.round((checkedCount / todayItems.length) * 10) : 0
+  const nnFailed = nonNegItems.some(i => !i.checked)
 
   const toggleItem = (id) => {
     setData(d => ({
@@ -103,9 +106,9 @@ export default function DailyOS() {
         ...d.logs,
         [todayStr]: {
           ...d.logs[todayStr],
-          items: (d.logs[todayStr]?.items || []).map(i => i.id === id ? { ...i, checked: !i.checked } : i),
-        },
-      },
+          items: (d.logs[todayStr]?.items || []).map(i => i.id === id ? { ...i, checked: !i.checked } : i)
+        }
+      }
     }))
   }
 
@@ -117,11 +120,26 @@ export default function DailyOS() {
       logs: {
         ...d.logs,
         [todayStr]: {
-          items: [...(d.logs[todayStr]?.items || []), newItem],
-        },
-      },
+          items: [...(d.logs[todayStr]?.items || []), newItem]
+        }
+      }
     }))
     setNewOneTimeText('')
+  }
+
+  const saveDailyStats = () => {
+    const updates = {}
+    if (sleepInput.trim()) updates.sleep = Math.min(10, Math.max(1, parseFloat(sleepInput)))
+    if (stepsInput.trim()) updates.steps = parseInt(stepsInput)
+    if (workInput.trim()) updates.workOutput = Math.min(10, Math.max(1, parseFloat(workInput)))
+    if (Object.keys(updates).length === 0) return
+    setData(d => ({
+      ...d,
+      logs: {
+        ...d.logs,
+        [todayStr]: { ...(d.logs[todayStr] || {}), ...updates }
+      }
+    }))
   }
 
   const addNonNeg = () => {
@@ -133,9 +151,9 @@ export default function DailyOS() {
       logs: {
         ...d.logs,
         [todayStr]: {
-          items: [...(d.logs[todayStr]?.items || []), { ...item, checked: false, isNonNeg: true }],
-        },
-      },
+          items: [...(d.logs[todayStr]?.items || []), { ...item, checked: false, isNonNeg: true }]
+        }
+      }
     }))
     setNewNNText('')
   }
@@ -149,9 +167,9 @@ export default function DailyOS() {
       logs: {
         ...d.logs,
         [todayStr]: {
-          items: [...(d.logs[todayStr]?.items || []), { ...item, checked: false, isNonNeg: false }],
-        },
-      },
+          items: [...(d.logs[todayStr]?.items || []), { ...item, checked: false, isNonNeg: false }]
+        }
+      }
     }))
     setNewTaskText('')
   }
@@ -163,9 +181,9 @@ export default function DailyOS() {
       logs: {
         ...d.logs,
         [todayStr]: {
-          items: (d.logs[todayStr]?.items || []).filter(i => !(i.isNonNeg && i.id === id)),
-        },
-      },
+          items: (d.logs[todayStr]?.items || []).filter(i => !(i.isNonNeg && i.id === id))
+        }
+      }
     }))
   }
 
@@ -176,427 +194,273 @@ export default function DailyOS() {
       logs: {
         ...d.logs,
         [todayStr]: {
-          items: (d.logs[todayStr]?.items || []).filter(i => !(!i.isNonNeg && i.id === id)),
-        },
-      },
+          items: (d.logs[todayStr]?.items || []).filter(i => !(!i.isNonNeg && i.id === id))
+        }
+      }
     }))
   }
 
-  // Last 7 days for weekly pattern
+  // Weekly view - last 7 days
   const last7 = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date()
-    d.setDate(d.getDate() - (6 - i))
+    const d = new Date(); d.setDate(d.getDate() - (6 - i))
     const ds = d.toISOString().split('T')[0]
     const log = data.logs[ds]
     const items = log?.items || []
-    const done = items.filter(item => item.checked).length
+    const done = items.filter(i => i.checked).length
     const total = items.length
     const pct = total > 0 ? Math.round((done / total) * 100) : null
-    const dayAbbr = d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()
-    return { ds, dayAbbr, pct, isToday: ds === todayStr }
+    const nnFail = items.filter(i => i.isNonNeg && !i.checked).length > 0
+    const label = d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()
+    return { ds, label, done, total, pct, nnFail, isToday: ds === todayStr }
   })
 
-  const hasWeeklyData = last7.some(d => d.pct !== null)
-
-  const progressWidth = totalCount > 0 ? (checkedCount / totalCount) * 100 : 0
-
-  const dateLabel = new Date().toLocaleDateString('en-US', {
-    weekday: 'short', month: 'short', day: 'numeric',
-  }).toUpperCase()
+  const scoreColor = score >= 9 ? '#22c55e' : score >= 7 ? '#c9a84c' : score >= 5 ? '#c9a84c' : '#ef4444'
+  const scoreLabel = score >= 9 ? 'ELITE' : score >= 7 ? 'SOLID' : score >= 5 ? 'ACCEPTABLE' : 'BELOW PAR'
 
   return (
-    <div style={{ background: BG, minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
-
-      {/* Top Progress Bar */}
-      <div style={{ height: 3, background: CARD_BORDER, flexShrink: 0 }}>
-        <div style={{
-          height: 3,
-          background: GOLD,
-          width: `${progressWidth}%`,
-          transition: 'width 0.15s',
-        }} />
-      </div>
-
-      {/* TopBar */}
-      <div style={{
-        background: SURF,
-        borderBottom: `1px solid ${CARD_BORDER}`,
-        padding: '12px 20px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexShrink: 0,
-      }}>
-        {/* Left: date + title */}
-        <div>
-          <div style={{ ...LBL, marginBottom: 2 }}>{dateLabel}</div>
-          <div style={{
-            fontFamily: '"Barlow Condensed", sans-serif',
-            fontSize: 22,
-            fontWeight: 900,
-            color: 'white',
-            textTransform: 'uppercase',
-            lineHeight: 1,
-          }}>
-            DAILY OPS
-          </div>
-        </div>
-
-        {/* Right: pills */}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          {/* Streak pill */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-            background: `${GOLD}18`,
-            border: `1px solid ${GOLD}40`,
-            borderRadius: 20,
-            padding: '4px 10px',
-          }}>
-            <span style={{ fontSize: 10, color: GOLD }}>🔥</span>
-            <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: GOLD }}>
-              {streak}d
-            </span>
-            <span style={{ ...LBL, fontSize: 8, letterSpacing: '0.2em', marginBottom: 0, color: `${GOLD}99` }}>streak</span>
-          </div>
-          {/* Score pill */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-            background: `${BLUE}18`,
-            border: `1px solid ${BLUE}40`,
-            borderRadius: 20,
-            padding: '4px 10px',
-          }}>
-            <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontSize: 14, fontWeight: 900, color: BLUE }}>
-              {scorePercent}%
-            </span>
-            <span style={{ ...LBL, fontSize: 8, letterSpacing: '0.2em', marginBottom: 0, color: `${BLUE}99` }}>score</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Manage Lists Panel */}
-      {showManage && (
-        <div style={{
-          background: SURF,
-          borderBottom: `1px solid ${CARD_BORDER}`,
-          padding: '16px 20px',
-          flexShrink: 0,
-        }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            {/* Non-negotiables management */}
-            <div style={{ background: BG, border: `1px solid ${CARD_BORDER}`, borderRadius: 10, padding: 14 }}>
-              <div style={{ ...LBL, marginBottom: 10 }}>Non-Negotiables</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
-                {(data.nonNegotiables || []).map(n => (
-                  <div key={n.id} className="group" style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '7px 10px',
-                    background: SURF,
-                    border: `1px solid ${CARD_BORDER}`,
-                    borderLeft: `2px solid ${RED}`,
-                    borderRadius: 6,
-                  }}>
-                    <span style={{ fontFamily: 'Inter', fontSize: 12, color: 'white' }}>{n.title}</span>
-                    <button
-                      onClick={() => deleteNonNeg(n.id)}
-                      style={{ color: TEXT2, background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex' }}
-                      className="group-hover:!text-red-400 transition-colors"
-                    >
-                      <Trash2 size={11} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <input
-                  value={newNNText}
-                  onChange={e => setNewNNText(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addNonNeg()}
-                  placeholder="Add non-negotiable..."
-                  style={{
-                    flex: 1, background: SURF, border: `1px solid ${CARD_BORDER}`,
-                    borderRadius: 6, padding: '6px 10px',
-                    fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none',
-                  }}
-                />
-                <button onClick={addNonNeg} style={{
-                  padding: '6px 10px', background: RED, color: 'white',
-                  border: 'none', borderRadius: 6, cursor: 'pointer', display: 'flex',
-                }}>
-                  <Plus size={13} />
-                </button>
-              </div>
-            </div>
-
-            {/* Task templates management */}
-            <div style={{ background: BG, border: `1px solid ${CARD_BORDER}`, borderRadius: 10, padding: 14 }}>
-              <div style={{ ...LBL, marginBottom: 10 }}>Task Templates</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
-                {(data.taskTemplates || []).map(t => (
-                  <div key={t.id} className="group" style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '7px 10px',
-                    background: SURF,
-                    border: `1px solid ${CARD_BORDER}`,
-                    borderLeft: `2px solid ${GOLD}`,
-                    borderRadius: 6,
-                  }}>
-                    <span style={{ fontFamily: 'Inter', fontSize: 12, color: 'white' }}>{t.title}</span>
-                    <button
-                      onClick={() => deleteTask(t.id)}
-                      style={{ color: TEXT2, background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex' }}
-                      className="group-hover:!text-red-400 transition-colors"
-                    >
-                      <Trash2 size={11} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <input
-                  value={newTaskText}
-                  onChange={e => setNewTaskText(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addTaskTemplate()}
-                  placeholder="Add daily task..."
-                  style={{
-                    flex: 1, background: SURF, border: `1px solid ${CARD_BORDER}`,
-                    borderRadius: 6, padding: '6px 10px',
-                    fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none',
-                  }}
-                />
-                <button onClick={addTaskTemplate} style={{
-                  padding: '6px 10px', background: GOLD, color: '#000',
-                  border: 'none', borderRadius: 6, cursor: 'pointer', display: 'flex',
-                }}>
-                  <Plus size={13} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Main content */}
-      <div style={{ flex: 1, overflow: 'auto', padding: 20 }}>
-
-        {/* Two-column checklist */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
-
-          {/* Left — Non-Negotiables */}
+    <div className="h-full flex flex-col" style={{ background: BG }}>
+      {/* Header */}
+      <div style={{ background: BG, borderBottom: '1px solid #1a2440', padding: '20px 32px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            {/* Column header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={LBL}>Non-Negotiables</span>
-                <span style={{
-                  fontFamily: 'Inter', fontSize: 8, fontWeight: 700,
-                  color: RED, border: `1px solid ${RED}`, borderRadius: 10,
-                  padding: '2px 6px', letterSpacing: '0.15em', textTransform: 'uppercase',
-                }}>
-                  CANNOT SKIP
-                </span>
-              </div>
-              <button
-                onClick={() => setShowManage(v => !v)}
-                style={{
-                  fontFamily: 'Inter', fontSize: 10, color: TEXT2,
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  textDecoration: 'underline', padding: 0,
-                }}
-              >
-                {showManage ? 'Close' : 'Manage'}
-              </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: nnFailed ? '#ef4444' : '#22c55e' }} />
+              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#a0aec0', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                {nnFailed ? 'NON-NEGOTIABLES PENDING' : 'NON-NEGOTIABLES CLEAR'}
+              </span>
             </div>
+            <h1 style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(180deg,#c9a84c 0%,#c9a84c 60%,#c9a84c 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>DAILY OPS</h1>
+            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>ACCOUNTABILITY LAYER // NON-NEGOTIABLES & DAILY TASKS</p>
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <button onClick={() => setShowManage(!showManage)} style={{ padding: '7px 14px', border: '1px solid #1a2440', color: '#a0aec0', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer', fontFamily: 'Inter' }}>
+              {showManage ? 'Close' : 'Manage Lists'}
+            </button>
+          </div>
+        </div>
+      </div>
 
-            {/* Items */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {nonNegItems.length === 0 ? (
-                <div style={{ fontFamily: 'Inter', fontSize: 12, color: TEXT2, padding: '12px 0' }}>
-                  No non-negotiables configured.
-                </div>
-              ) : nonNegItems.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => toggleItem(item.id)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    background: SURF,
-                    border: `1px solid ${CARD_BORDER}`,
-                    borderLeft: `2px solid ${RED}`,
-                    borderRadius: 8,
-                    padding: '12px 14px',
-                    cursor: 'pointer',
-                    width: '100%',
-                    textAlign: 'left',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  {/* Checkbox */}
-                  <div style={{
-                    width: 20, height: 20, borderRadius: 5, flexShrink: 0,
-                    border: `2px solid ${RED}`,
-                    background: item.checked ? RED : 'transparent',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'all 0.15s',
-                  }}>
-                    {item.checked && <Check size={11} strokeWidth={3} color="white" />}
-                  </div>
-                  {/* Title */}
-                  <span style={{
-                    fontFamily: 'Inter', fontSize: 13, flex: 1,
-                    color: item.checked ? TEXT2 : 'white',
-                    textDecoration: item.checked ? 'line-through' : 'none',
-                    transition: 'all 0.15s',
-                  }}>
-                    {item.title}
+      <div className="flex-1 overflow-auto" style={{ padding: '24px 32px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* Score + stats */}
+          <div style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 40 }}>
+            <ProgressRing done={checkedCount} total={todayItems.length} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontFamily: 'Inter', fontSize: 12, color: '#d1d5db' }}>Non-Negotiables</span>
+                  <span style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 18, color: nnDone === nonNegItems.length && nonNegItems.length > 0 ? '#22c55e' : '#ef4444' }}>
+                    {nnDone} / {nonNegItems.length}
                   </span>
-                </button>
-              ))}
+                </div>
+                <div style={{ height: 3, background: '#1a2440', borderRadius: 2 }}>
+                  <div style={{ height: 3, background: '#ef4444', borderRadius: 2, width: `${nonNegItems.length > 0 ? (nnDone / nonNegItems.length) * 100 : 0}%`, transition: 'width 0.4s' }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
+                  <span style={{ fontFamily: 'Inter', fontSize: 12, color: '#d1d5db' }}>Daily Tasks</span>
+                  <span style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 18, color: '#c9a84c' }}>
+                    {taskItems.filter(i => i.checked).length} / {taskItems.length}
+                  </span>
+                </div>
+                <div style={{ height: 3, background: '#1a2440', borderRadius: 2 }}>
+                  <div style={{ height: 3, background: '#c9a84c', borderRadius: 2, width: `${taskItems.length > 0 ? (taskItems.filter(i => i.checked).length / taskItems.length) * 100 : 0}%`, transition: 'width 0.4s' }} />
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Right — Daily Tasks */}
-          <div>
-            {/* Column header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={LBL}>Daily Tasks</span>
+          {/* Daily Stats */}
+          <div style={CARD}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
+              <div style={{ width:8, height:8, borderRadius:'50%', background:'#3b82f6' }} />
+              <span style={{ fontFamily:'Inter', fontSize:12, fontWeight:700, color:'white', textTransform:'uppercase', letterSpacing:'0.08em' }}>Daily Stats</span>
+              <span style={{ fontFamily:'Inter', fontSize:9, color:'#a0aec0', marginLeft:'auto' }}>Optional · feeds Life Cycles section</span>
             </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
+              {/* Sleep Quality */}
+              <div>
+                <div style={{ fontFamily:'Inter', fontSize:9, color:'#a0aec0', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }}>Sleep Quality /10</div>
+                <input type="number" min="1" max="10" step="0.5"
+                  value={sleepInput} onChange={e => setSleepInput(e.target.value)}
+                  placeholder={data.logs[todayStr]?.sleep ? String(data.logs[todayStr].sleep) : '—'}
+                  style={{ width:'100%', background:'#000000', border:'1px solid #1a2440', borderRadius:6, padding:'8px 12px', fontFamily:'Inter', fontSize:14, color:'white', outline:'none', boxSizing:'border-box' }} />
+                {data.logs[todayStr]?.sleep && <div style={{ fontFamily:'Inter', fontSize:9, color:'#3b82f6', marginTop:4 }}>Logged: {data.logs[todayStr].sleep}/10</div>}
+              </div>
+              {/* Steps */}
+              <div>
+                <div style={{ fontFamily:'Inter', fontSize:9, color:'#a0aec0', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }}>Steps Today</div>
+                <input type="number" min="0"
+                  value={stepsInput} onChange={e => setStepsInput(e.target.value)}
+                  placeholder={data.logs[todayStr]?.steps ? String(data.logs[todayStr].steps) : '—'}
+                  style={{ width:'100%', background:'#000000', border:'1px solid #1a2440', borderRadius:6, padding:'8px 12px', fontFamily:'Inter', fontSize:14, color:'white', outline:'none', boxSizing:'border-box' }} />
+                {data.logs[todayStr]?.steps && <div style={{ fontFamily:'Inter', fontSize:9, color:'#c9a84c', marginTop:4 }}>Logged: {data.logs[todayStr].steps.toLocaleString()}</div>}
+              </div>
+              {/* Work Output */}
+              <div>
+                <div style={{ fontFamily:'Inter', fontSize:9, color:'#a0aec0', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:6 }}>Work Output /10</div>
+                <input type="number" min="1" max="10" step="0.5"
+                  value={workInput} onChange={e => setWorkInput(e.target.value)}
+                  placeholder={data.logs[todayStr]?.workOutput ? String(data.logs[todayStr].workOutput) : '—'}
+                  style={{ width:'100%', background:'#000000', border:'1px solid #1a2440', borderRadius:6, padding:'8px 12px', fontFamily:'Inter', fontSize:14, color:'white', outline:'none', boxSizing:'border-box' }} />
+                {data.logs[todayStr]?.workOutput && <div style={{ fontFamily:'Inter', fontSize:9, color:'#10b981', marginTop:4 }}>Logged: {data.logs[todayStr].workOutput}/10</div>}
+              </div>
+            </div>
+            <button onClick={saveDailyStats}
+              style={{ marginTop:14, width:'100%', padding:'9px', background:'#c9a84c', color:'#000', border:'none', borderRadius:8, fontFamily:'Inter', fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.12em', cursor:'pointer' }}>
+              Save Daily Stats
+            </button>
+          </div>
 
-            {/* Items */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {taskItems.length === 0 ? (
-                <div style={{ fontFamily: 'Inter', fontSize: 12, color: TEXT2, padding: '12px 0' }}>
-                  No tasks for today.
+          {/* Manage lists panel */}
+          {showManage && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              {/* Non-negotiables management */}
+              <div style={CARD}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />
+                  <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Non-Negotiables</span>
                 </div>
-              ) : taskItems.map(item => {
-                const priority = item.priority || 'MED'
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => toggleItem(item.id)}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+                  {(data.nonNegotiables || []).map(n => (
+                    <div key={n.id} className="group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#000000', border: '1px solid #ef444420', borderLeft: '3px solid #ef4444', borderRadius: 8 }}>
+                      <span style={{ fontFamily: 'Inter', fontSize: 12, color: 'white' }}>{n.title}</span>
+                      <button onClick={() => deleteNonNeg(n.id)} style={{ color: '#a0aec0', background: 'none', border: 'none', cursor: 'pointer', opacity: 0 }} className="group-hover:opacity-100 hover:!text-red-400 transition-all"><Trash2 size={12} /></button>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input value={newNNText} onChange={e => setNewNNText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addNonNeg()} placeholder="Add non-negotiable..." style={{ flex: 1, background: '#000000', border: '1px solid #1a2440', borderRadius: 6, padding: '7px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
+                  <button onClick={addNonNeg} style={{ padding: '7px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer' }}><Plus size={13} /></button>
+                </div>
+              </div>
+
+              {/* Task templates */}
+              <div style={CARD}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#c9a84c' }} />
+                  <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Daily Task Templates</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+                  {(data.taskTemplates || []).map(t => (
+                    <div key={t.id} className="group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#000000', border: '1px solid #1a2440', borderRadius: 8 }}>
+                      <span style={{ fontFamily: 'Inter', fontSize: 12, color: '#d1d5db' }}>{t.title}</span>
+                      <button onClick={() => deleteTask(t.id)} style={{ color: '#a0aec0', background: 'none', border: 'none', cursor: 'pointer', opacity: 0 }} className="group-hover:opacity-100 hover:!text-red-400 transition-all"><Trash2 size={12} /></button>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input value={newTaskText} onChange={e => setNewTaskText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTaskTemplate()} placeholder="Add daily task..." style={{ flex: 1, background: '#000000', border: '1px solid #1a2440', borderRadius: 6, padding: '7px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
+                  <button onClick={addTaskTemplate} style={{ padding: '7px 12px', background: '#c9a84c', color: '#000', border: 'none', borderRadius: 6, cursor: 'pointer' }}><Plus size={13} /></button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Non-negotiables — full width */}
+          <div style={CARD}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />
+                <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Non-Negotiables</span>
+              </div>
+              <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.1em', background: 'rgba(26,36,64,0.3)', border: '1px solid rgba(59,130,246,0.15)', borderRadius: 4, padding: '3px 8px' }}>CANNOT SKIP</span>
+            </div>
+            {nonNegItems.length === 0 ? (
+              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0aec0', textAlign: 'center', padding: '16px 0' }}>Open "Manage Lists" to add non-negotiables</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {nonNegItems.map(item => (
+                  <button key={item.id} onClick={() => toggleItem(item.id)}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 12,
-                      background: SURF,
-                      border: `1px solid ${CARD_BORDER}`,
-                      borderLeft: `2px solid ${GOLD}`,
-                      borderRadius: 8,
-                      padding: '12px 14px',
-                      cursor: 'pointer',
-                      width: '100%',
-                      textAlign: 'left',
-                      transition: 'all 0.15s',
+                      display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px',
+                      background: item.checked ? 'rgba(34,197,94,0.05)' : 'rgba(26,36,64,0.3)',
+                      border: `1px solid ${item.checked ? 'rgba(34,197,94,0.15)' : 'rgba(26,36,64,0.3)'}`,
+                      borderLeft: `3px solid ${item.checked ? '#22c55e' : '#ef4444'}`,
+                      borderRadius: 8, cursor: 'pointer', width: '100%', textAlign: 'left', transition: 'all 0.15s',
                     }}
                   >
-                    {/* Checkbox */}
-                    <div style={{
-                      width: 20, height: 20, borderRadius: 5, flexShrink: 0,
-                      border: `2px solid ${GOLD}`,
-                      background: item.checked ? GOLD : 'transparent',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      transition: 'all 0.15s',
-                    }}>
-                      {item.checked && <Check size={11} strokeWidth={3} color="#000" />}
+                    <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${item.checked ? '#22c55e' : '#ef4444'}`, background: item.checked ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
+                      {item.checked && <Check size={13} strokeWidth={3} color="white" />}
                     </div>
-                    {/* Title */}
-                    <span style={{
-                      fontFamily: 'Inter', fontSize: 13, flex: 1,
-                      color: item.checked ? TEXT2 : 'white',
-                      textDecoration: item.checked ? 'line-through' : 'none',
-                      transition: 'all 0.15s',
-                    }}>
-                      {item.title}
-                    </span>
-                    {/* Priority tag */}
-                    <span style={{
-                      fontFamily: 'Inter', fontSize: 8, fontWeight: 700,
-                      color: priorityColor(priority),
-                      border: `1px solid ${priorityColor(priority)}`,
-                      borderRadius: 4, padding: '2px 5px',
-                      letterSpacing: '0.15em', textTransform: 'uppercase',
-                      flexShrink: 0,
-                    }}>
-                      {priority}
-                    </span>
+                    <span style={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 600, color: item.checked ? '#a0aec0' : 'white', textDecoration: item.checked ? 'line-through' : 'none', transition: 'all 0.15s', flex: 1 }}>{item.title}</span>
+                    {item.checked && <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '0.08em' }}>✓ Done</span>}
                   </button>
-                )
-              })}
-            </div>
+                ))}
+              </div>
+            )}
+          </div>
 
+          {/* Daily tasks — full width */}
+          <div style={CARD}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#c9a84c' }} />
+              <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Daily Tasks</span>
+            </div>
+            {taskItems.length === 0 ? (
+              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0aec0', textAlign: 'center', padding: '16px 0' }}>No tasks yet — open "Manage Lists" to add recurring tasks</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {taskItems.map(item => (
+                  <button key={item.id} onClick={() => toggleItem(item.id)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px',
+                      background: item.checked ? 'rgba(34,197,94,0.04)' : '#000000',
+                      border: `1px solid ${item.checked ? 'rgba(34,197,94,0.12)' : '#1a2440'}`,
+                      borderLeft: `3px solid ${item.checked ? '#22c55e' : '#c9a84c'}`,
+                      borderRadius: 8, cursor: 'pointer', width: '100%', textAlign: 'left', transition: 'all 0.15s',
+                    }}
+                  >
+                    <div style={{ width: 20, height: 20, borderRadius: 5, border: `2px solid ${item.checked ? '#22c55e' : '#a0aec0'}`, background: item.checked ? '#22c55e' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
+                      {item.checked && <Check size={11} strokeWidth={3} color="white" />}
+                    </div>
+                    <span style={{ fontFamily: 'Inter', fontSize: 13, color: item.checked ? '#a0aec0' : '#d1d5db', textDecoration: item.checked ? 'line-through' : 'none', transition: 'all 0.15s', flex: 1 }}>{item.title}</span>
+                  </button>
+                ))}
+              </div>
+            )}
             {/* Add one-time task */}
-            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-              <input
-                value={newOneTimeText}
-                onChange={e => setNewOneTimeText(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && addOneTimeTask()}
-                placeholder="Add task for today..."
-                style={{
-                  flex: 1, background: SURF, border: `1px solid ${CARD_BORDER}`,
-                  borderRadius: 6, padding: '7px 12px',
-                  fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none',
-                }}
-              />
-              <button onClick={addOneTimeTask} style={{
-                padding: '7px 10px', background: GOLD, color: '#000',
-                border: 'none', borderRadius: 6, cursor: 'pointer', display: 'flex',
-              }}>
-                <Plus size={14} />
-              </button>
+            <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+              <input value={newOneTimeText} onChange={e => setNewOneTimeText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addOneTimeTask()} placeholder="Add task for today..."
+                style={{ flex: 1, background: '#000000', border: '1px solid #1a2440', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
+              <button onClick={addOneTimeTask} style={{ padding: '8px 12px', background: '#c9a84c', color: '#000', border: 'none', borderRadius: 6, cursor: 'pointer' }}><Plus size={14} /></button>
             </div>
           </div>
-        </div>
 
-        {/* Weekly Pattern */}
-        {hasWeeklyData && (
-          <div style={{
-            background: SURF,
-            border: `1px solid ${CARD_BORDER}`,
-            borderRadius: 10,
-            padding: 16,
-          }}>
-            <div style={{ ...LBL, marginBottom: 12 }}>7-Day Pattern</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
-              {last7.map(day => {
-                const squareColor =
-                  day.pct === null ? CARD_BORDER
-                  : day.pct >= 80 ? GOLD
-                  : day.pct >= 50 ? BLUE
-                  : RED
-                return (
-                  <div key={day.ds} style={{ textAlign: 'center' }}>
-                    {/* Day abbreviation */}
-                    <div style={{
-                      fontFamily: 'Inter', fontSize: 8, color: TEXT2,
-                      textTransform: 'uppercase', letterSpacing: '0.1em',
-                      fontWeight: day.isToday ? 700 : 400,
-                      marginBottom: 6,
-                    }}>
-                      {day.dayAbbr.slice(0, 3)}
+          {/* Only show weekly section if there are logs for any of the last 7 days */}
+          {last7.some(d => d.pct !== null) && (
+            <div style={CARD}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6' }} />
+                <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>7-Day Pattern</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+                {last7.map(day => {
+                  const pctColor = day.pct === null ? '#1a2440' : day.pct >= 90 ? '#22c55e' : day.pct >= 70 ? '#c9a84c' : day.pct >= 50 ? '#c9a84c' : '#ef4444'
+                  return (
+                    <div key={day.ds} style={{ textAlign: 'center' }}>
+                      <div style={{ fontFamily: 'Inter', fontSize: 9, color: day.isToday ? '#c9a84c' : '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6, fontWeight: day.isToday ? 700 : 400 }}>{day.label}</div>
+                      <div style={{ height: 72, background: '#000000', border: `1px solid ${day.isToday ? '#c9a84c30' : '#1a2440'}`, borderRadius: 8, position: 'relative', overflow: 'hidden' }}>
+                        {day.pct !== null && (
+                          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: `${day.pct}%`, background: pctColor, opacity: 0.25 }} />
+                        )}
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                          <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 20, color: day.pct !== null ? pctColor : '#1a2440', lineHeight: 1 }}>
+                            {day.pct !== null ? `${day.pct}%` : '—'}
+                          </div>
+                          {day.nnFail && <div style={{ fontFamily: 'Inter', fontSize: 6, color: '#ef4444', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>NN FAIL</div>}
+                        </div>
+                      </div>
                     </div>
-                    {/* Color square */}
-                    <div style={{
-                      height: 36,
-                      background: squareColor,
-                      borderRadius: 6,
-                      border: day.isToday ? `2px solid ${GOLD}` : `1px solid ${CARD_BORDER}`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      {day.pct !== null && (
-                        <span style={{
-                          fontFamily: '"Barlow Condensed", sans-serif',
-                          fontSize: 14, fontWeight: 900,
-                          color: day.pct >= 80 ? '#000' : 'white',
-                          lineHeight: 1,
-                        }}>
-                          {day.pct}%
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )
