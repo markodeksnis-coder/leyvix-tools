@@ -1,4 +1,7 @@
 import { CalendarCheck, ClipboardCheck, Dumbbell, Brain, TrendingUp, Activity, Target, BarChart2, Briefcase, Users, Flame, Bot, Settings, Zap } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useLocalStorage } from '../hooks/useLocalStorage'
+import { getWinHistory, computeCurrentWinStreak, getWinDaySettings } from '../utils/winLoss'
 import { daysSinceStart } from '../utils'
 
 const PRIMARY = [
@@ -21,6 +24,12 @@ const SECONDARY = [
 
 export default function Sidebar({ active, onSelect, onSettings }) {
   const day = daysSinceStart()
+  const [dailyData] = useLocalStorage('marko_daily', { logs: {} })
+  const [bodyData]  = useLocalStorage('marko_body',  { liftSessions: [], workouts: [] })
+  const [dietData]  = useLocalStorage('marko_diet',  { history: [] })
+  const winSettings = getWinDaySettings()
+  const winHistory  = getWinHistory(30, winSettings, dailyData, bodyData, dietData)
+  const winStreak   = computeCurrentWinStreak(winHistory)
   const activeColor = [...PRIMARY, ...SECONDARY].find(i => i.id === active)?.color || '#8b5cf6'
 
   return (
@@ -119,6 +128,25 @@ export default function Sidebar({ active, onSelect, onSettings }) {
 
       {/* Spacer */}
       <div style={{ flex: 1 }} />
+
+      {/* Win Streak */}
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+        marginBottom: 6, padding: '6px 4px',
+        background: winStreak > 0 ? 'rgba(201,168,76,0.1)' : 'transparent',
+        border: `1px solid ${winStreak > 0 ? 'rgba(201,168,76,0.3)' : 'rgba(100,116,139,0.15)'}`,
+        borderRadius: 8, width: 'calc(100% - 16px)',
+        transition: 'all 0.3s',
+      }}>
+        <span style={{ fontSize: 16, lineHeight: 1 }}>🔥</span>
+        <span style={{
+          fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 20, lineHeight: 1,
+          color: winStreak > 0 ? '#c9a84c' : '#64748b',
+          textShadow: winStreak > 0 ? '0 0 16px rgba(201,168,76,0.7)' : 'none',
+          transition: 'all 0.3s',
+        }}>{winStreak}</span>
+        <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 5, fontWeight: 700, color: winStreak > 0 ? '#c9a84c' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>WINS</span>
+      </div>
 
       {/* Day counter */}
       <div style={{
