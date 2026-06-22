@@ -147,6 +147,10 @@ async function analyzePhoto(file) {
           })
         })
         const data = await res.json()
+        if (!res.ok || !data.content?.[0]?.text) {
+          const msg = data.error?.message || `API error ${res.status}`
+          throw new Error(msg)
+        }
         const text = data.content[0].text.trim()
         resolve(JSON.parse(text.startsWith('{') ? text : text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)))
       } catch(err) { reject(err) }
