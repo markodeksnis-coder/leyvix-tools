@@ -122,41 +122,55 @@ function ProgressBar({ label, current, target, unit, color }) {
   )
 }
 
+// ─── Convert any image to JPEG via canvas (handles HEIC, HEIF, etc.) ─────────
+function toJpegDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const MAX = 1200
+      let { naturalWidth: w, naturalHeight: h } = img
+      if (w > MAX || h > MAX) {
+        const r = Math.min(MAX / w, MAX / h)
+        w = Math.round(w * r); h = Math.round(h * r)
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = w; canvas.height = h
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h)
+      resolve(canvas.toDataURL('image/jpeg', 0.85))
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not decode image. Try saving it as a JPEG first.')) }
+    img.src = url
+  })
+}
+
 // ─── analyzePhoto ─────────────────────────────────────────────────
 async function analyzePhoto(file) {
   const apiKey = localStorage.getItem('anthropic_key') || import.meta.env.VITE_ANTHROPIC_API_KEY || ''
   if (!apiKey) throw new Error('No API key set')
-  const reader = new FileReader()
-  return new Promise((resolve, reject) => {
-    reader.onload = async (e) => {
-      const base64 = e.target.result.split(',')[1]
-      const mediaType = file.type
-      try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'x-api-key': apiKey, 'anthropic-version': '2023-06-01',
-            'content-type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true',
-          },
-          body: JSON.stringify({
-            model: 'claude-haiku-4-5-20251001', max_tokens: 200,
-            messages: [{ role: 'user', content: [
-              { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
-              { type: 'text', text: 'Estimate calories and protein for this meal. Return ONLY JSON: {"calories": number, "protein": number}' }
-            ]}]
-          })
-        })
-        const data = await res.json()
-        if (!res.ok || !data.content?.[0]?.text) {
-          const msg = data.error?.message || `API error ${res.status}`
-          throw new Error(msg)
-        }
-        const text = data.content[0].text.trim()
-        resolve(JSON.parse(text.startsWith('{') ? text : text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)))
-      } catch(err) { reject(err) }
-    }
-    reader.readAsDataURL(file)
+  const dataUrl = await toJpegDataUrl(file)
+  const base64 = dataUrl.split(',')[1]
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey, 'anthropic-version': '2023-06-01',
+      'content-type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001', max_tokens: 200,
+      messages: [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
+        { type: 'text', text: 'Estimate calories and protein for this meal. Return ONLY JSON: {"calories": number, "protein": number}' }
+      ]}]
+    })
   })
+  const data = await res.json()
+  if (!res.ok || !data.content?.[0]?.text) {
+    throw new Error(data.error?.message || `API error ${res.status}`)
+  }
+  const text = data.content[0].text.trim()
+  return JSON.parse(text.startsWith('{') ? text : text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1))
 }
 
 // ─── Main component ───────────────────────────────────────────────
@@ -312,14 +326,20 @@ export default function Body() {
   }
 
   // ── Photo meal handlers ───────────────────────────────────────
-  const handlePhotoSelect = (e) => {
+  const handlePhotoSelect = async (e) => {
     const file = e.target.files[0]
     if (!file) return
     setPhotoFile(file)
-    setPhotoPreview(URL.createObjectURL(file))
     setPhotoEstimate(null)
     setPhotoError('')
     setPhotoConfirm({ calories: '', protein: '' })
+    try {
+      // Convert to JPEG for preview so HEIC/HEIF works in all browsers
+      const jpegUrl = await toJpegDataUrl(file)
+      setPhotoPreview(jpegUrl)
+    } catch {
+      setPhotoPreview(URL.createObjectURL(file))
+    }
   }
 
   const handlePhotoAnalyze = async () => {
