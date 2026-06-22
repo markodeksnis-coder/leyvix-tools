@@ -15,6 +15,7 @@ const PURPLE      = '#8b5cf6'
 const RED         = '#ef4444'
 const TEXT2       = '#64748b'
 const MUTED       = '#1d1d4a'
+const CYAN        = '#22d3ee'
 
 const CATEGORIES = [
   'Sales Psychology',
@@ -243,20 +244,22 @@ export default function Arsenal() {
           <span style={{ fontSize: 9, fontWeight: 600, color: TEXT2, letterSpacing: '0.3em', textTransform: 'uppercase' }}>{todayLabel}</span>
           <span style={{
             fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
-            fontSize: 22, fontWeight: 900, color: 'white',
+            fontSize: 22, fontWeight: 900,
+            background: 'linear-gradient(135deg, #22d3ee, #3b82f6)',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
             textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1,
           }}>ARSENAL</span>
         </div>
 
         {/* Right: stat pills */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: `rgba(201,168,76,0.08)`, border: `1px solid rgba(201,168,76,0.25)`, borderRadius: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: `rgba(34,211,238,0.08)`, border: `1px solid rgba(34,211,238,0.25)`, borderRadius: 20 }}>
             <span style={{ fontSize: 9, fontWeight: 600, color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.2em' }}>Cards</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: GOLD }}>{total}</span>
+            <span style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 12, fontWeight: 700, color: CYAN }}>{total}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: `rgba(59,130,246,0.08)`, border: `1px solid rgba(59,130,246,0.25)`, borderRadius: 20 }}>
             <span style={{ fontSize: 9, fontWeight: 600, color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.2em' }}>This Month</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: BLUE }}>{monthCount}</span>
+            <span style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 12, fontWeight: 700, color: BLUE }}>{monthCount}</span>
           </div>
         </div>
 
@@ -267,14 +270,14 @@ export default function Arsenal() {
             position: 'absolute', right: 20, top: '50%', transform: 'translateY(-50%)',
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '7px 14px',
-            background: 'transparent', border: `1px solid ${GOLD}`,
-            borderRadius: 6, color: GOLD,
+            background: 'linear-gradient(135deg, #22d3ee, #0891b2)', border: 'none',
+            borderRadius: 6, color: 'white',
             fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700,
             textTransform: 'uppercase', letterSpacing: '0.15em',
             cursor: 'pointer', transition: 'all 0.15s',
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = `rgba(201,168,76,0.1)` }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+          onMouseEnter={e => { e.currentTarget.style.opacity = '0.85' }}
+          onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
         >
           <Plus size={11} strokeWidth={2.5} />
           ADD CARD
@@ -305,7 +308,7 @@ export default function Arsenal() {
             onClick={handleContextSearch}
             disabled={contextSearching}
             style={{
-              padding: '5px 14px', background: contextSearching ? MUTED : BLUE,
+              padding: '5px 14px', background: contextSearching ? MUTED : 'linear-gradient(135deg, #22d3ee, #0891b2)',
               color: 'white', border: 'none', borderRadius: 6,
               fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700,
               textTransform: 'uppercase', letterSpacing: '0.15em',
@@ -325,14 +328,14 @@ export default function Arsenal() {
             )}
             {contextResult && (
               <div style={{
-                background: SURF,
-                border: `1px solid rgba(59,130,246,0.35)`,
-                borderLeft: `3px solid ${BLUE}`,
+                background: 'linear-gradient(135deg, #0d0d28, #091a20)',
+                border: `1px solid rgba(34,211,238,0.35)`,
+                borderLeft: `3px solid ${CYAN}`,
                 borderRadius: 8,
                 padding: 14,
-                boxShadow: `0 0 16px rgba(59,130,246,0.12)`,
+                boxShadow: `0 0 16px rgba(34,211,238,0.12)`,
               }}>
-                <div style={{ fontSize: 9, fontWeight: 600, color: BLUE, textTransform: 'uppercase', letterSpacing: '0.25em', marginBottom: 6 }}>
+                <div style={{ fontSize: 9, fontWeight: 600, color: CYAN, textTransform: 'uppercase', letterSpacing: '0.25em', marginBottom: 6 }}>
                   MOST RELEVANT — {contextResult.category}
                 </div>
                 <div style={{ fontFamily: '"Orbitron", "Space Grotesk", sans-serif', fontSize: 17, fontWeight: 700, color: 'white', marginBottom: 6 }}>{contextResult.title}</div>
@@ -343,7 +346,7 @@ export default function Arsenal() {
                   <ul style={{ margin: '6px 0 0', padding: 0, listStyle: 'none' }}>
                     {contextResult.bullets.map((b, i) => (
                       <li key={i} style={{ display: 'flex', gap: 8, marginBottom: 4, fontSize: 12, color: '#d1d5db' }}>
-                        <span style={{ color: GOLD, flexShrink: 0 }}>→</span><span>{b}</span>
+                        <span style={{ color: CYAN, flexShrink: 0 }}>→</span><span>{b}</span>
                       </li>
                     ))}
                   </ul>
@@ -403,7 +406,7 @@ export default function Arsenal() {
                   paddingTop: 8, paddingBottom: 8,
                   fontSize: 13, borderRadius: 7,
                 }}
-                onFocus={e => e.currentTarget.style.borderColor = GOLD}
+                onFocus={e => e.currentTarget.style.borderColor = CYAN}
                 onBlur={e => e.currentTarget.style.borderColor = CARD_BORDER}
               />
             </div>
@@ -447,8 +450,8 @@ export default function Arsenal() {
                 onClick={() => { setModalTab(tab); setAiError('') }}
                 style={{
                   flex: 1, padding: '7px 0',
-                  background: modalTab === tab ? GOLD : 'transparent',
-                  color: modalTab === tab ? '#000' : TEXT2,
+                  background: modalTab === tab ? 'linear-gradient(135deg, #22d3ee, #0891b2)' : 'transparent',
+                  color: modalTab === tab ? 'white' : TEXT2,
                   fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 700,
                   textTransform: 'uppercase', letterSpacing: '0.1em',
                   border: 'none', borderRadius: 6, cursor: 'pointer',
@@ -488,8 +491,8 @@ export default function Arsenal() {
                 disabled={aiLoading || !rawNotes.trim()}
                 style={{
                   width: '100%', padding: 11,
-                  background: aiLoading || !rawNotes.trim() ? MUTED : GOLD,
-                  color: aiLoading || !rawNotes.trim() ? TEXT2 : '#000',
+                  background: aiLoading || !rawNotes.trim() ? MUTED : 'linear-gradient(135deg, #22d3ee, #0891b2)',
+                  color: aiLoading || !rawNotes.trim() ? TEXT2 : 'white',
                   fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700,
                   textTransform: 'uppercase', letterSpacing: '0.15em',
                   border: 'none', borderRadius: 8,
@@ -578,8 +581,8 @@ export default function Arsenal() {
                   disabled={!form.title.trim()}
                   style={{
                     flex: 1, padding: '10px 0',
-                    background: form.title.trim() ? GOLD : MUTED,
-                    color: form.title.trim() ? '#000' : TEXT2,
+                    background: form.title.trim() ? 'linear-gradient(135deg, #22d3ee, #0891b2)' : MUTED,
+                    color: form.title.trim() ? 'white' : TEXT2,
                     fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 700,
                     textTransform: 'uppercase', letterSpacing: '0.15em',
                     border: 'none', borderRadius: 8,
@@ -616,8 +619,8 @@ function SidebarItem({ label, count, active, onClick }) {
         width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '11px 16px', textAlign: 'left',
         borderBottom: `1px solid ${CARD_BORDER}`,
-        borderLeft: active ? `2px solid ${GOLD}` : '2px solid transparent',
-        background: active ? `rgba(201,168,76,0.06)` : 'transparent',
+        borderLeft: active ? `2px solid ${CYAN}` : '2px solid transparent',
+        background: active ? `rgba(34,211,238,0.06)` : 'transparent',
         cursor: 'pointer', transition: 'all 0.15s',
         outline: 'none',
       }}
@@ -632,9 +635,9 @@ function SidebarItem({ label, count, active, onClick }) {
       {count > 0 && (
         <span style={{
           fontFamily: 'Inter, sans-serif', fontSize: 9,
-          color: active ? GOLD : TEXT2,
-          background: active ? `rgba(201,168,76,0.1)` : `rgba(74,90,122,0.15)`,
-          border: `1px solid ${active ? 'rgba(201,168,76,0.25)' : 'transparent'}`,
+          color: active ? CYAN : TEXT2,
+          background: active ? `rgba(34,211,238,0.1)` : `rgba(74,90,122,0.15)`,
+          border: `1px solid ${active ? 'rgba(34,211,238,0.25)' : 'transparent'}`,
           borderRadius: 10, padding: '1px 7px',
           flexShrink: 0, marginLeft: 4, transition: 'all 0.15s',
         }}>{count}</span>
@@ -650,8 +653,8 @@ function KnowledgeCard({ entry, onDelete }) {
   return (
     <div
       style={{
-        background: SURF,
-        border: `1px solid ${CARD_BORDER}`,
+        background: 'linear-gradient(135deg, #0d0d28, #091a20)',
+        border: `1px solid rgba(34,211,238,0.15)`,
         borderRadius: 10,
         padding: 14,
         display: 'flex', flexDirection: 'column', gap: 0,
@@ -659,10 +662,12 @@ function KnowledgeCard({ entry, onDelete }) {
         position: 'relative',
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.borderColor = 'rgba(201,168,76,0.3)'
+        e.currentTarget.style.borderColor = 'rgba(34,211,238,0.35)'
+        e.currentTarget.style.boxShadow = '0 0 16px rgba(34,211,238,0.08)'
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.borderColor = CARD_BORDER
+        e.currentTarget.style.borderColor = 'rgba(34,211,238,0.15)'
+        e.currentTarget.style.boxShadow = 'none'
       }}
     >
       {/* Top row: category pill + date + delete */}
@@ -705,7 +710,7 @@ function KnowledgeCard({ entry, onDelete }) {
       {/* Key Principle */}
       {entry.keyPrinciple && (
         <div style={{
-          borderLeft: `2px solid ${GOLD}`,
+          borderLeft: `2px solid ${CYAN}`,
           paddingLeft: 8, marginTop: 2, marginBottom: 8,
           fontStyle: 'italic', fontSize: 11, color: TEXT2, lineHeight: 1.5,
         }}>{entry.keyPrinciple}</div>
@@ -716,7 +721,7 @@ function KnowledgeCard({ entry, onDelete }) {
         <ul style={{ margin: '4px 0 8px', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 }}>
           {entry.bullets.slice(0, 4).map((b, i) => (
             <li key={i} style={{ display: 'flex', gap: 8, fontSize: 10, color: TEXT2, lineHeight: 1.5 }}>
-              <span style={{ color: GOLD, flexShrink: 0 }}>→</span>
+              <span style={{ color: CYAN, flexShrink: 0 }}>→</span>
               <span>{b}</span>
             </li>
           ))}
@@ -733,7 +738,7 @@ function KnowledgeCard({ entry, onDelete }) {
         <p style={{
           fontSize: 11, color: TEXT2, lineHeight: 1.5,
           fontStyle: 'italic',
-          borderLeft: `2px solid rgba(201,168,76,0.2)`,
+          borderLeft: `2px solid rgba(34,211,238,0.2)`,
           paddingLeft: 8, margin: '0 0 8px',
         }}>{entry.note}</p>
       )}
