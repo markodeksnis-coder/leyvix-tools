@@ -12,6 +12,7 @@ import Coach from './pages/Coach'
 import GrowthFeed from './pages/GrowthFeed'
 import DailyOS from './pages/DailyOS'
 import LifeCycles from './pages/LifeCycles'
+import CheckIn from './pages/CheckIn'
 import { initSeedData } from './data/seedData'
 
 initSeedData()
@@ -28,6 +29,7 @@ const PAGES = {
   'growth-feed': GrowthFeed,
   daily: DailyOS,
   'life-cycles': LifeCycles,
+  'check-in': CheckIn,
 }
 
 export default function App() {
