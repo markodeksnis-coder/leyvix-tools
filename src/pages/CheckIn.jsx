@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import { ChevronLeft, Plus, Trash2, GripVertical, X, Check } from 'lucide-react'
+import { ChevronLeft, Plus, Trash2, GripVertical, X, Check, Settings, ChevronUp, ChevronDown } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { today } from '../utils'
+import { today, daysSinceStart } from '../utils'
+import { getWinDaySettings, calcDayScore } from '../utils/winLoss'
+import IdentityStatement from '../components/IdentityStatement'
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const GOLD   = '#fbbf24'
@@ -11,6 +13,17 @@ const CARD   = '#0d0d28'
 const BORDER = '#1d1d4a'
 const MUTED  = '#64748b'
 const TEXT2  = '#94a3b8'
+
+// ─── Default belief statements ────────────────────────────────────────────────
+const DEFAULT_BELIEFS = [
+  "I do not binge eat. I eat clean and I stick to my plan every single day.",
+  "I go to the gym and I push my absolute hardest every session.",
+  "I am disciplined. I do what I said I would do regardless of how I feel.",
+  "I am building something real. Every day of work compounds into my future.",
+  "I am becoming the best version of Marko. There is no other option.",
+  "I do not make excuses. I make progress.",
+  "My floor is rising. Every day I raise the standard of what I tolerate from myself.",
+]
 
 // ─── Question types ───────────────────────────────────────────────────────────
 const T = {
@@ -149,6 +162,44 @@ async function generateSummary(tab, answers) {
     return data.content?.[0]?.text?.trim() || 'Day logged successfully.'
   } catch {
     return 'Day logged successfully.'
+  }
+}
+
+// ─── Evening journal entry generator ─────────────────────────────────────────
+async function generateJournalReflection(answers, dayNumber, dateStr) {
+  const apiKey = localStorage.getItem('anthropic_key') || (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ANTHROPIC_API_KEY) || ''
+  const allQs = [...DEFAULT_MORNING, ...DEFAULT_EVENING]
+  const lines = Object.entries(answers)
+    .map(([id, val]) => {
+      const q = allQs.find(q => q.id === id)
+      if (!q) return null
+      return `${q.text}: ${Array.isArray(val) ? val.join(', ') : val}`
+    })
+    .filter(Boolean).join('\n')
+
+  const dayLabel = `Day ${String(dayNumber).padStart(3, '0')}`
+  if (!apiKey) {
+    return `${dayLabel}. Day logged and complete. Review your patterns in Life Cycles to see how today fits your cycle.`
+  }
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 200,
+        messages: [{ role: 'user', content: `You are writing a personal journal entry FOR Marko, in first person, past tense, about his day. Based on this check-in data, write 3-5 tight sentences. Start with "${dayLabel}." then summarize what actually happened — training, diet, work, mood, energy. Be direct, no fluff, no hype. End with one sentence about tomorrow's focus.\n\nData:\n${lines}` }],
+      }),
+    })
+    const data = await res.json()
+    return data.content?.[0]?.text?.trim() || `${dayLabel}. Day complete.`
+  } catch {
+    return `${dayLabel}. Day logged.`
   }
 }
 
@@ -1107,18 +1158,45 @@ export default function CheckIn() {
   const [morningQs, setMorningQs] = useLocalStorage('marko_checkin_morning_qs', DEFAULT_MORNING)
   const [eveningQs, setEveningQs] = useLocalStorage('marko_checkin_evening_qs', DEFAULT_EVENING)
   const [checkInData, setCheckInData] = useLocalStorage('marko_checkin', {})
+  const [, setJournal] = useLocalStorage('marko_journal', [])
+  const [beliefs, setBeliefs] = useLocalStorage('marko_beliefs', {
+    statements: DEFAULT_BELIEFS.map((text, i) => ({ id: i + 1, text, order: i })),
+    lastShownDate: '',
+    lastShownIndex: -1,
+  })
 
-  const [tab,        setTab]        = useState('morning')
-  const [phase,      setPhase]      = useState('tab_select')
-  const [qIndex,     setQIndex]     = useState(0)
-  const [answers,    setAnswers]    = useState({})
-  const [slideDir,   setSlideDir]   = useState('forward')
-  const [slideKey,   setSlideKey]   = useState(0)
-  const [editMode,   setEditMode]   = useState(false)
-  const [aiSummary,  setAiSummary]  = useState('')
-  const [aiLoading,  setAiLoading]  = useState(false)
+  const [tab,              setTab]              = useState('morning')
+  const [phase,            setPhase]            = useState('tab_select')
+  const [qIndex,           setQIndex]           = useState(0)
+  const [answers,          setAnswers]          = useState({})
+  const [slideDir,         setSlideDir]         = useState('forward')
+  const [slideKey,         setSlideKey]         = useState(0)
+  const [editMode,         setEditMode]         = useState(false)
+  const [aiSummary,        setAiSummary]        = useState('')
+  const [aiLoading,        setAiLoading]        = useState(false)
+  const [showIdentity,     setShowIdentity]     = useState(false)
+  const [showManageBeliefs,setShowManageBeliefs]= useState(false)
+  const [editingBeliefId,  setEditingBeliefId]  = useState(null)
+  const [editingBeliefText,setEditingBeliefText]= useState('')
+  const [newBeliefText,    setNewBeliefText]    = useState('')
 
   const todayStr = today()
+
+  // Compute which belief to show today (cycles through by day)
+  const currentBeliefIdx = (() => {
+    const stmts = beliefs.statements || []
+    if (!stmts.length) return 0
+    return Math.abs(Math.floor(Date.now() / 86400000)) % stmts.length
+  })()
+  const currentBelief = beliefs.statements?.[currentBeliefIdx]?.text || DEFAULT_BELIEFS[0]
+
+  // Show identity screen when switching to morning tab if morning not done yet
+  useEffect(() => {
+    if (tab === 'morning') {
+      const todayMorningDone = (checkInData.morning || {})[todayStr]?.completed
+      if (!todayMorningDone) setShowIdentity(true)
+    }
+  }, [tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Active questions filtered by showIf
   const activeQs = useMemo(
@@ -1159,6 +1237,7 @@ export default function CheckIn() {
     const saved = {
       answers,
       completedAt: new Date().toISOString(),
+      completed: true,
     }
     setCheckInData(prev => ({
       ...prev,
@@ -1174,11 +1253,30 @@ export default function CheckIn() {
     // Switch to complete phase
     setPhase('complete')
 
-    // Generate AI summary
+    // Generate AI summary + evening journal entry
     setAiLoading(true)
     try {
       const summary = await generateSummary(tab, answers)
       setAiSummary(summary)
+
+      if (tab === 'evening') {
+        const dayNum = daysSinceStart()
+        const reflection = await generateJournalReflection(answers, dayNum, todayStr)
+        const winSettings = getWinDaySettings()
+        const dailyRaw = localStorage.getItem('marko_daily')
+        const dailyData = dailyRaw ? JSON.parse(dailyRaw) : { logs: {} }
+        const bodyRaw = localStorage.getItem('marko_body')
+        const bodyData = bodyRaw ? JSON.parse(bodyRaw) : {}
+        const dietRaw = localStorage.getItem('marko_diet')
+        const dietData = dietRaw ? JSON.parse(dietRaw) : { history: [] }
+        const result = calcDayScore(todayStr, winSettings, dailyData, bodyData, dietData)
+        setJournal(prev => {
+          const existing = prev.findIndex(e => e.date === todayStr)
+          const entry = { id: Date.now(), date: todayStr, dayNumber: dayNum, isWin: result.isWin, pct: result.pct, aiReflection: reflection, manualNote: '', eveningAnswers: answers }
+          if (existing >= 0) { const n = [...prev]; n[existing] = { ...n[existing], ...entry }; return n }
+          return [...prev, entry]
+        })
+      }
     } finally {
       setAiLoading(false)
     }
@@ -1191,6 +1289,13 @@ export default function CheckIn() {
     setQIndex(0)
     setSlideDir('forward')
     setSlideKey(k => k + 1)
+    if (selectedTab === 'morning') {
+      const morningDone = !!(checkInData?.morning?.[todayStr]?.completed)
+      if (!morningDone) {
+        setShowIdentity(true)
+        return
+      }
+    }
     setPhase('questions')
   }
 
@@ -1201,11 +1306,310 @@ export default function CheckIn() {
     setAiSummary('')
   }
 
+  // ─── Beliefs management handlers ────────────────────────────────────────────
+  function handleBeliefMoveUp(idx) {
+    if (idx === 0) return
+    const stmts = [...(beliefs.statements || [])]
+    ;[stmts[idx - 1], stmts[idx]] = [stmts[idx], stmts[idx - 1]]
+    setBeliefs(prev => ({ ...prev, statements: stmts }))
+  }
+
+  function handleBeliefMoveDown(idx) {
+    const stmts = [...(beliefs.statements || [])]
+    if (idx >= stmts.length - 1) return
+    ;[stmts[idx], stmts[idx + 1]] = [stmts[idx + 1], stmts[idx]]
+    setBeliefs(prev => ({ ...prev, statements: stmts }))
+  }
+
+  function handleBeliefDelete(id) {
+    setBeliefs(prev => ({
+      ...prev,
+      statements: (prev.statements || []).filter(s => s.id !== id),
+    }))
+  }
+
+  function handleBeliefEditStart(stmt) {
+    setEditingBeliefId(stmt.id)
+    setEditingBeliefText(stmt.text)
+  }
+
+  function handleBeliefEditSave(id) {
+    if (!editingBeliefText.trim()) return
+    setBeliefs(prev => ({
+      ...prev,
+      statements: (prev.statements || []).map(s =>
+        s.id === id ? { ...s, text: editingBeliefText.trim() } : s
+      ),
+    }))
+    setEditingBeliefId(null)
+    setEditingBeliefText('')
+  }
+
+  function handleAddBelief() {
+    if (!newBeliefText.trim()) return
+    const stmts = beliefs.statements || []
+    const newId = stmts.length > 0 ? Math.max(...stmts.map(s => s.id)) + 1 : 1
+    setBeliefs(prev => ({
+      ...prev,
+      statements: [
+        ...(prev.statements || []),
+        { id: newId, text: newBeliefText.trim(), order: stmts.length },
+      ],
+    }))
+    setNewBeliefText('')
+  }
+
+  const GOLD2 = '#c9a84c'
+
   return (
     <>
       <style>{STYLES}</style>
 
-      {editMode && (
+      {/* Identity statement interstitial (morning only) */}
+      {showIdentity && (
+        <IdentityStatement
+          statement={currentBelief}
+          dayNumber={daysSinceStart()}
+          dateStr={todayStr}
+          onContinue={() => {
+            setShowIdentity(false)
+            setPhase('questions')
+          }}
+        />
+      )}
+
+      {/* Manage Beliefs full-screen overlay */}
+      {!showIdentity && showManageBeliefs && (
+        <div style={{
+          position: 'fixed', inset: 0,
+          background: BG,
+          zIndex: 200,
+          display: 'flex', flexDirection: 'column',
+          overflowY: 'auto',
+        }}>
+          {/* Header */}
+          <div style={{
+            display: 'flex', alignItems: 'center',
+            padding: '20px 20px 0',
+            gap: 12,
+            flexShrink: 0,
+          }}>
+            <button
+              onClick={() => setShowManageBeliefs(false)}
+              style={{
+                background: 'none', border: 'none', color: MUTED,
+                cursor: 'pointer', display: 'flex', alignItems: 'center',
+                gap: 6, fontFamily: 'Inter, sans-serif', fontSize: 14,
+              }}
+            >
+              <ChevronLeft size={16} /> Back
+            </button>
+            <div style={{ flex: 1 }} />
+            <span style={{
+              fontFamily: '"Orbitron", sans-serif',
+              fontSize: 14, color: GOLD2, letterSpacing: '0.1em',
+            }}>
+              BELIEF STATEMENTS
+            </span>
+            <div style={{ flex: 1 }} />
+          </div>
+
+          {/* Subtitle */}
+          <div style={{
+            fontFamily: 'Inter, sans-serif', fontSize: 12, color: MUTED,
+            textAlign: 'center', padding: '10px 20px 0',
+          }}>
+            Cycles through one statement per day each morning
+          </div>
+
+          {/* Statement list */}
+          <div style={{ margin: '20px 20px 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {(beliefs.statements || []).map((stmt, idx) => (
+              <div
+                key={stmt.id}
+                style={{
+                  background: CARD, border: `1px solid ${BORDER}`,
+                  borderRadius: 12, padding: '12px 14px',
+                  display: 'flex', alignItems: 'flex-start', gap: 10,
+                }}
+              >
+                {/* Up/down arrows */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0, marginTop: 2 }}>
+                  <button
+                    onClick={() => handleBeliefMoveUp(idx)}
+                    style={{
+                      background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer',
+                      color: idx === 0 ? '#1d1d4a' : MUTED, padding: 2, display: 'flex',
+                    }}
+                    disabled={idx === 0}
+                  >
+                    <ChevronUp size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleBeliefMoveDown(idx)}
+                    style={{
+                      background: 'none', border: 'none',
+                      cursor: idx === (beliefs.statements || []).length - 1 ? 'default' : 'pointer',
+                      color: idx === (beliefs.statements || []).length - 1 ? '#1d1d4a' : MUTED,
+                      padding: 2, display: 'flex',
+                    }}
+                    disabled={idx === (beliefs.statements || []).length - 1}
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                </div>
+
+                {/* Day badge */}
+                <div style={{
+                  fontFamily: '"Orbitron", sans-serif',
+                  fontSize: 10, color: GOLD2, fontWeight: 900,
+                  flexShrink: 0, marginTop: 4, minWidth: 32,
+                  letterSpacing: '0.04em',
+                }}>
+                  D{idx + 1}
+                </div>
+
+                {/* Editable text */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {editingBeliefId === stmt.id ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <textarea
+                        value={editingBeliefText}
+                        onChange={e => setEditingBeliefText(e.target.value)}
+                        autoFocus
+                        rows={3}
+                        style={{
+                          background: 'transparent',
+                          border: `1px solid ${GOLD2}`,
+                          borderRadius: 6,
+                          color: '#fff',
+                          fontFamily: 'Inter, sans-serif',
+                          fontSize: 13,
+                          padding: '8px 10px',
+                          outline: 'none',
+                          resize: 'none',
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          caretColor: GOLD2,
+                        }}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault()
+                            handleBeliefEditSave(stmt.id)
+                          }
+                          if (e.key === 'Escape') {
+                            setEditingBeliefId(null)
+                            setEditingBeliefText('')
+                          }
+                        }}
+                      />
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button
+                          onClick={() => handleBeliefEditSave(stmt.id)}
+                          style={{
+                            background: GOLD2, color: '#000', border: 'none',
+                            borderRadius: 6, padding: '6px 14px',
+                            fontFamily: 'Inter, sans-serif', fontSize: 12,
+                            fontWeight: 700, cursor: 'pointer',
+                          }}
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => { setEditingBeliefId(null); setEditingBeliefText('') }}
+                          style={{
+                            background: 'transparent', color: MUTED,
+                            border: `1px solid ${BORDER}`, borderRadius: 6,
+                            padding: '6px 14px',
+                            fontFamily: 'Inter, sans-serif', fontSize: 12,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => handleBeliefEditStart(stmt)}
+                      style={{
+                        fontFamily: 'Inter, sans-serif', fontSize: 13,
+                        color: '#fff', lineHeight: 1.5,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {stmt.text}
+                    </div>
+                  )}
+                </div>
+
+                {/* Delete button */}
+                <button
+                  onClick={() => handleBeliefDelete(stmt.id)}
+                  style={{
+                    background: 'none', border: 'none',
+                    cursor: 'pointer', color: '#ef4444',
+                    padding: 4, flexShrink: 0, display: 'flex', alignItems: 'center',
+                    marginTop: 2,
+                  }}
+                >
+                  <X size={15} />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Add new belief */}
+          <div style={{ margin: '20px 20px 80px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <textarea
+              value={newBeliefText}
+              onChange={e => setNewBeliefText(e.target.value)}
+              placeholder="Add a new belief statement..."
+              rows={2}
+              style={{
+                background: CARD,
+                border: `1px solid ${BORDER}`,
+                borderRadius: 10,
+                color: '#fff',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 14,
+                padding: '12px 14px',
+                outline: 'none',
+                resize: 'none',
+                width: '100%',
+                boxSizing: 'border-box',
+                caretColor: GOLD2,
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  handleAddBelief()
+                }
+              }}
+            />
+            <button
+              onClick={handleAddBelief}
+              disabled={!newBeliefText.trim()}
+              style={{
+                background: newBeliefText.trim() ? GOLD2 : 'transparent',
+                border: `1px solid ${newBeliefText.trim() ? GOLD2 : BORDER}`,
+                borderRadius: 10, padding: '12px 0',
+                color: newBeliefText.trim() ? '#000' : MUTED,
+                fontFamily: '"Orbitron", sans-serif',
+                fontSize: 12, fontWeight: 900,
+                letterSpacing: '0.1em',
+                cursor: newBeliefText.trim() ? 'pointer' : 'default',
+                transition: 'background 0.15s, color 0.15s',
+                width: '100%',
+              }}
+            >
+              + ADD BELIEF
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!showIdentity && !showManageBeliefs && editMode && (
         <EditModeView
           morningQs={morningQs}
           setMorningQs={setMorningQs}
@@ -1215,15 +1619,31 @@ export default function CheckIn() {
         />
       )}
 
-      {!editMode && phase === 'tab_select' && (
-        <TabSelectView
-          checkInData={checkInData}
-          onStart={startTab}
-          onEditMode={() => setEditMode(true)}
-        />
+      {!showIdentity && !showManageBeliefs && !editMode && phase === 'tab_select' && (
+        <div style={{ position: 'relative' }}>
+          {/* Settings / gear icon for managing beliefs */}
+          <button
+            onClick={() => setShowManageBeliefs(true)}
+            title="Manage Belief Statements"
+            style={{
+              position: 'absolute', top: 20, right: 20,
+              background: 'none', border: 'none',
+              color: MUTED, cursor: 'pointer',
+              display: 'flex', alignItems: 'center',
+              zIndex: 10, padding: 6,
+            }}
+          >
+            <Settings size={18} />
+          </button>
+          <TabSelectView
+            checkInData={checkInData}
+            onStart={startTab}
+            onEditMode={() => setEditMode(true)}
+          />
+        </div>
       )}
 
-      {!editMode && phase === 'questions' && (
+      {!showIdentity && !showManageBeliefs && !editMode && phase === 'questions' && (
         <QuestionView
           key={slideKey}
           tab={tab}
@@ -1238,7 +1658,7 @@ export default function CheckIn() {
         />
       )}
 
-      {!editMode && phase === 'complete' && (
+      {!showIdentity && !showManageBeliefs && !editMode && phase === 'complete' && (
         <CompleteView
           tab={tab}
           answers={answers}
