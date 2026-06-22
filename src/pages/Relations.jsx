@@ -9,19 +9,19 @@ const ENERGY = ['builds','neutral','drains']
 const BEH_CATS = ['Body Language','Persuasion','Status','Emotion','Other']
 
 const TYPE_COLORS = {
-  Friend: 'text-blue-400 border-blue-400/30',
-  Mentor: 'text-[#c9a84c] border-[#c9a84c]/30',
-  Family: 'text-green-400 border-green-400/30',
-  Business: 'text-orange-400 border-orange-400/30',
-  God: 'text-purple-400 border-purple-400/30',
-  Other: 'text-[#a0aec0] border-[#444]/30',
+  Friend: 'text-[#22d3ee] border-[#22d3ee]/30',
+  Mentor: 'text-[#fbbf24] border-[#fbbf24]/30',
+  Family: 'text-[#10b981] border-[#10b981]/30',
+  Business: 'text-[#3b82f6] border-[#3b82f6]/30',
+  God: 'text-[#e879f9] border-[#e879f9]/30',
+  Other: 'text-[#94a3b8] border-[#444]/30',
 }
 
 const ENERGY_ICON = { builds: '⚡', neutral: '⚪', drains: '🔻' }
 
 const cls = {
-  input: "w-full bg-[#000000] border border-[#1a2440] px-3 py-2 text-sm text-white placeholder-[#a0aec0] focus:outline-none focus:border-[#c9a84c] transition-colors",
-  label: "block text-[9px] font-mono uppercase tracking-widest text-[#a0aec0] mb-1.5",
+  input: "w-full bg-[#09091f] border border-[#1d1d4a] px-3 py-2 text-sm text-white placeholder-[#94a3b8] focus:outline-none focus:border-[#f43f5e] transition-colors",
+  label: "block text-[9px] font-mono uppercase tracking-widest text-[#94a3b8] mb-1.5",
 }
 
 export default function Relations() {
@@ -87,38 +87,38 @@ export default function Relations() {
   }
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#000000' }}>
+    <div className="h-full flex flex-col" style={{ background: '#030311' }}>
       {/* Header */}
-      <div style={{ background: '#000000', borderBottom: '1px solid #1a2440', padding: '20px 32px', flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+      <div style={{ background: '#030311', borderBottom: '1px solid #1d1d4a', padding: '20px 32px', flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
-            <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#a0aec0', letterSpacing: '0.12em', textTransform: 'uppercase' }}>NETWORK INTELLIGENCE ACTIVE</span>
+            <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#94a3b8', letterSpacing: '0.12em', textTransform: 'uppercase' }}>NETWORK INTELLIGENCE ACTIVE</span>
           </div>
-          <h1 style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(180deg,#c9a84c 0%,#c9a84c 60%,#c9a84c 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>
+          <h1 style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(135deg, #f43f5e, #db2777)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>
             RELATIONS
           </h1>
-          <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>PEOPLE · PSYCHOLOGY · NETWORK MAP</p>
+          <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#94a3b8', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>PEOPLE · PSYCHOLOGY · NETWORK MAP</p>
         </div>
         <div style={{ marginTop: 16 }}>
-          <button onClick={() => setShowPersonModal(true)} style={{ background: '#c9a84c', color: '#000', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button onClick={() => setShowPersonModal(true)} style={{ background: 'linear-gradient(135deg, #f43f5e, #db2777)', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
             <Plus size={11} strokeWidth={2.5} /> Add Person
           </button>
         </div>
       </div>
 
       {/* Stats row */}
-      <div style={{ padding: '8px 32px', borderBottom: '1px solid #1a2440', display: 'flex', gap: 24, flexShrink: 0 }}>
-        <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>People: <span style={{ color: '#a0aec0' }}>{people.length}</span></span>
-        <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Builders: <span style={{ color: '#16a34a' }}>{builders}</span></span>
-        <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Drainers: <span style={{ color: '#ef4444' }}>{drainers}</span></span>
+      <div style={{ padding: '8px 32px', borderBottom: '1px solid #1d1d4a', display: 'flex', gap: 24, flexShrink: 0 }}>
+        <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>People: <span style={{ color: '#94a3b8' }}>{people.length}</span></span>
+        <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Builders: <span style={{ fontFamily: '"Orbitron", sans-serif', fontWeight: 900, color: '#10b981' }}>{builders}</span></span>
+        <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Drainers: <span style={{ fontFamily: '"Orbitron", sans-serif', fontWeight: 900, color: '#f43f5e' }}>{drainers}</span></span>
       </div>
 
       <div className="flex-1 overflow-auto px-8 py-6 space-y-10">
         {/* Search */}
         <div className="relative">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#a0aec0' }} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search people..." style={{ width: '100%', background: '#000000', border: '1px solid #1a2440', paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, fontFamily: 'Inter', fontSize: 14, color: '#d1d5db', outline: 'none' }} className="focus:border-[#c9a84c] transition-colors placeholder-[#a0aec0]" />
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#94a3b8' }} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search people..." style={{ width: '100%', background: '#09091f', border: '1px solid #1d1d4a', paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, fontFamily: 'Inter', fontSize: 14, color: '#d1d5db', outline: 'none' }} className="focus:border-[#f43f5e] transition-colors placeholder-[#94a3b8]" />
         </div>
 
         {/* People grid */}
@@ -128,16 +128,16 @@ export default function Relations() {
             const days = daysSince(lastContact)
             const isExpanded = expanded[p.id]
             const healthScore = days !== null ? Math.max(0, 100 - days * 5) : 50
-            const healthColor = healthScore > 60 ? '#16a34a' : healthScore > 30 ? '#c9a84c' : '#c9a84c'
+            const healthColor = healthScore > 60 ? '#16a34a' : healthScore > 30 ? '#fbbf24' : '#fbbf24'
 
             const energyBorderLeft = p.energyRating === 'builds'
               ? '3px solid #22c55e'
               : p.energyRating === 'drains'
                 ? '3px solid #ef4444'
-                : '3px solid #a0aec0'
+                : '3px solid #94a3b8'
 
             return (
-              <div key={p.id} style={{ background: '#000000', border: '1px solid #1a2440', borderLeft: energyBorderLeft, borderRadius: 8 }} className="transition-all">
+              <div key={p.id} style={{ background: 'linear-gradient(135deg, #0d0d28, #120a14)', border: '1px solid rgba(244,63,94,0.15)', borderLeft: energyBorderLeft, borderRadius: 8 }} className="transition-all">
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex-1">
@@ -148,7 +148,7 @@ export default function Relations() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`text-[8px] font-mono uppercase tracking-widest border px-1.5 py-0.5 ${TYPE_COLORS[p.type] || TYPE_COLORS.Other}`}>{p.type}</span>
                         {days !== null && (
-                          <span className="text-[9px] font-mono" style={{ color: days > 14 ? '#c9a84c' : '#a0aec0' }}>
+                          <span className="text-[9px] font-mono" style={{ color: days > 14 ? '#fbbf24' : '#94a3b8' }}>
                             {days === 0 ? 'today' : `${days}d ago`}
                           </span>
                         )}
@@ -156,48 +156,48 @@ export default function Relations() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <button onClick={() => setExpanded(e => ({ ...e, [p.id]: !e[p.id] }))} style={{ color: '#a0aec0', background: 'none', border: 'none', cursor: 'pointer' }} className="hover:text-[#a0aec0] transition-colors">
+                      <button onClick={() => setExpanded(e => ({ ...e, [p.id]: !e[p.id] }))} style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer' }} className="hover:text-[#94a3b8] transition-colors">
                         {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                       </button>
-                      <button onClick={() => deletePerson(p.id)} style={{ color: '#a0aec0', background: 'none', border: 'none', cursor: 'pointer' }} className="hover:text-[#c9a84c] transition-colors"><X size={12} /></button>
+                      <button onClick={() => deletePerson(p.id)} style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer' }} className="hover:text-[#f43f5e] transition-colors"><X size={12} /></button>
                     </div>
                   </div>
-                  {p.notes && <p className="text-xs text-[#a0aec0] leading-relaxed line-clamp-2">{p.notes}</p>}
+                  {p.notes && <p className="text-xs text-[#94a3b8] leading-relaxed line-clamp-2">{p.notes}</p>}
                 </div>
 
                 {isExpanded && (
-                  <div style={{ borderTop: '1px solid #1a2440' }} className="px-4 pb-4 pt-3 space-y-3">
+                  <div style={{ borderTop: '1px solid rgba(244,63,94,0.1)' }} className="px-4 pb-4 pt-3 space-y-3">
                     {p.notes && (
                       <div>
-                        <div className="text-[8px] font-mono uppercase tracking-widest mb-1" style={{ color: '#a0aec0' }}>Notes</div>
-                        <p className="text-xs text-[#a0aec0] leading-relaxed">{p.notes}</p>
+                        <div className="text-[8px] font-mono uppercase tracking-widest mb-1" style={{ color: '#94a3b8' }}>Notes</div>
+                        <p className="text-xs text-[#94a3b8] leading-relaxed">{p.notes}</p>
                       </div>
                     )}
                     {(p.psychologyNotes || []).length > 0 && (
                       <div>
-                        <div className="text-[8px] font-mono uppercase tracking-widest mb-1" style={{ color: '#a0aec0' }}>Psychology</div>
+                        <div className="text-[8px] font-mono uppercase tracking-widest mb-1" style={{ color: '#94a3b8' }}>Psychology</div>
                         <div className="space-y-1">
                           {(p.psychologyNotes || []).map(n => (
-                            <div key={n.id} className="text-xs text-[#a0aec0] pl-2 py-0.5" style={{ borderLeft: '2px solid #c9a84c40' }}>
+                            <div key={n.id} className="text-xs text-[#94a3b8] pl-2 py-0.5" style={{ borderLeft: '2px solid rgba(244,63,94,0.3)' }}>
                               <span>{n.note}</span>
-                              <span className="text-[9px] font-mono ml-2" style={{ color: '#a0aec0' }}>{fmtShort(n.date)}</span>
+                              <span className="text-[9px] font-mono ml-2" style={{ color: '#94a3b8' }}>{fmtShort(n.date)}</span>
                             </div>
                           ))}
                         </div>
                       </div>
                     )}
                     <div>
-                      <div className="text-[8px] font-mono uppercase tracking-widest mb-1.5" style={{ color: '#a0aec0' }}>Add Psychology Note</div>
+                      <div className="text-[8px] font-mono uppercase tracking-widest mb-1.5" style={{ color: '#94a3b8' }}>Add Psychology Note</div>
                       <div className="flex gap-2">
                         <input
                           value={newPsyNote[p.id] || ''}
                           onChange={e => setNewPsyNote(n => ({ ...n, [p.id]: e.target.value }))}
                           onKeyDown={e => e.key === 'Enter' && addPsyNote(p.id)}
                           placeholder="Observation..."
-                          style={{ flex: 1, background: '#000000', border: '1px solid #1a2440', padding: '6px 8px', fontSize: 12, color: 'white', outline: 'none' }}
-                          className="focus:border-[#c9a84c] transition-colors placeholder-[#a0aec0]"
+                          style={{ flex: 1, background: '#09091f', border: '1px solid #1d1d4a', padding: '6px 8px', fontSize: 12, color: 'white', outline: 'none' }}
+                          className="focus:border-[#f43f5e] transition-colors placeholder-[#94a3b8]"
                         />
-                        <button onClick={() => addPsyNote(p.id)} style={{ padding: '6px 12px', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.3)', color: '#c9a84c', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer' }} className="hover:bg-[rgba(201,168,76,0.2)] transition-colors">Add</button>
+                        <button onClick={() => addPsyNote(p.id)} style={{ padding: '6px 12px', background: 'linear-gradient(135deg, #f43f5e, #db2777)', color: 'white', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', border: 'none' }}>Add</button>
                       </div>
                     </div>
                   </div>
@@ -210,10 +210,10 @@ export default function Relations() {
         {/* Human Behavior Notes */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Human Behavior Notes</span>
-            <button onClick={() => setShowBehModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', border: '1px solid #1a2440', background: 'transparent', color: '#a0aec0', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#c9a84c'; e.currentTarget.style.color = 'white' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#1a2440'; e.currentTarget.style.color = '#a0aec0' }}
+            <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Human Behavior Notes</span>
+            <button onClick={() => setShowBehModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', border: '1px solid #1d1d4a', background: 'transparent', color: '#94a3b8', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#f43f5e'; e.currentTarget.style.color = 'white' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = '#1d1d4a'; e.currentTarget.style.color = '#94a3b8' }}
             >
               <Plus size={9} /> Add Note
             </button>
@@ -228,9 +228,9 @@ export default function Relations() {
                   textTransform: 'uppercase',
                   letterSpacing: '0.1em',
                   cursor: 'pointer',
-                  border: behCat === cat ? '1px solid rgba(201,168,76,0.3)' : '1px solid #1a2440',
-                  background: behCat === cat ? 'rgba(201,168,76,0.12)' : 'transparent',
-                  color: behCat === cat ? '#c9a84c' : '#a0aec0',
+                  border: behCat === cat ? '1px solid rgba(244,63,94,0.3)' : '1px solid #1d1d4a',
+                  background: behCat === cat ? 'rgba(244,63,94,0.12)' : 'transparent',
+                  color: behCat === cat ? '#f43f5e' : '#94a3b8',
                   transition: 'all 0.15s',
                 }}>
                 {cat}
@@ -238,25 +238,25 @@ export default function Relations() {
             ))}
           </div>
           <div className="relative mb-3">
-            <Search size={11} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#a0aec0' }} />
-            <input value={behSearch} onChange={e => setBehSearch(e.target.value)} placeholder="Search observations..." style={{ width: '100%', background: '#000000', border: '1px solid #1a2440', paddingLeft: 32, paddingRight: 12, paddingTop: 6, paddingBottom: 6, fontFamily: 'Inter', fontSize: 14, color: '#d1d5db', outline: 'none' }} className="focus:border-[#c9a84c] transition-colors placeholder-[#a0aec0]" />
+            <Search size={11} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#94a3b8' }} />
+            <input value={behSearch} onChange={e => setBehSearch(e.target.value)} placeholder="Search observations..." style={{ width: '100%', background: '#09091f', border: '1px solid #1d1d4a', paddingLeft: 32, paddingRight: 12, paddingTop: 6, paddingBottom: 6, fontFamily: 'Inter', fontSize: 14, color: '#d1d5db', outline: 'none' }} className="focus:border-[#f43f5e] transition-colors placeholder-[#94a3b8]" />
           </div>
           <div className="space-y-2">
             {filteredBeh.map(n => (
-              <div key={n.id} style={{ background: '#000000', border: '1px solid #1a2440', padding: 16, borderRadius: 8 }} className="group transition-all">
+              <div key={n.id} style={{ background: 'linear-gradient(135deg, #0d0d28, #120a14)', border: '1px solid rgba(244,63,94,0.15)', padding: 16, borderRadius: 8 }} className="group transition-all">
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <div className="flex items-center gap-2">
-                    <span style={{ fontFamily: 'Inter', fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#c9a84c' }}>{n.category}</span>
-                    <span style={{ fontFamily: 'Inter', fontSize: 8, color: '#a0aec0' }}>{fmtShort(n.date)}</span>
+                    <span style={{ fontFamily: 'Inter', fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#f43f5e' }}>{n.category}</span>
+                    <span style={{ fontFamily: 'Inter', fontSize: 8, color: '#94a3b8' }}>{fmtShort(n.date)}</span>
                   </div>
-                  <button onClick={() => deleteBeh(n.id)} style={{ color: '#a0aec0', background: 'none', border: 'none', cursor: 'pointer' }} className="opacity-0 group-hover:opacity-100 hover:text-[#c9a84c] transition-all"><X size={11} /></button>
+                  <button onClick={() => deleteBeh(n.id)} style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer' }} className="opacity-0 group-hover:opacity-100 hover:text-[#f43f5e] transition-all"><X size={11} /></button>
                 </div>
                 <div className="text-sm font-semibold text-white mb-1">{n.observation}</div>
-                {n.detail && <p className="text-xs text-[#a0aec0] leading-relaxed">{n.detail}</p>}
+                {n.detail && <p className="text-xs text-[#94a3b8] leading-relaxed">{n.detail}</p>}
               </div>
             ))}
             {filteredBeh.length === 0 && (
-              <div style={{ background: '#000000', border: '1px solid #1a2440', padding: 24, textAlign: 'center', fontFamily: 'Inter', fontSize: 10, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: 8 }}>No observations yet</div>
+              <div style={{ background: '#030311', border: '1px solid #1d1d4a', padding: 24, textAlign: 'center', fontFamily: 'Inter', fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: 8 }}>No observations yet</div>
             )}
           </div>
         </section>
@@ -280,8 +280,8 @@ export default function Relations() {
             </div>
             <div><label className={cls.label}>Notes</label><textarea value={pf.notes} onChange={e => setPf({ ...pf, notes: e.target.value })} rows={3} placeholder="Who is this person..." className={cls.input + " resize-none"} /></div>
             <div className="flex gap-2 pt-1">
-              <button onClick={addPerson} style={{ background: '#c9a84c', color: '#000', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
-              <button onClick={() => setShowPersonModal(false)} style={{ border: '1px solid #1a2440', color: '#a0aec0', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
+              <button onClick={addPerson} style={{ background: 'linear-gradient(135deg, #f43f5e, #db2777)', color: 'white', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
+              <button onClick={() => setShowPersonModal(false)} style={{ border: '1px solid #1d1d4a', color: '#94a3b8', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
             </div>
           </div>
         </Modal>
@@ -298,8 +298,8 @@ export default function Relations() {
             <div><label className={cls.label}>Observation (headline)</label><input value={bf.observation} onChange={e => setBf({ ...bf, observation: e.target.value })} autoFocus placeholder="What did you notice?" className={cls.input} /></div>
             <div><label className={cls.label}>Detail</label><textarea value={bf.detail} onChange={e => setBf({ ...bf, detail: e.target.value })} rows={4} placeholder="Explain the pattern..." className={cls.input + " resize-none"} /></div>
             <div className="flex gap-2 pt-1">
-              <button onClick={addBehNote} style={{ background: '#c9a84c', color: '#000', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
-              <button onClick={() => setShowBehModal(false)} style={{ border: '1px solid #1a2440', color: '#a0aec0', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
+              <button onClick={addBehNote} style={{ background: 'linear-gradient(135deg, #f43f5e, #db2777)', color: 'white', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
+              <button onClick={() => setShowBehModal(false)} style={{ border: '1px solid #1d1d4a', color: '#94a3b8', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
             </div>
           </div>
         </Modal>

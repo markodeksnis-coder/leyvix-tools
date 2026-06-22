@@ -61,8 +61,8 @@ export default function TopBar({ section }) {
 
   return (
     <div style={{
-      background: '#06090f',
-      borderBottom: '1px solid #0f1628',
+      background: 'linear-gradient(135deg, #070718 0%, #09091f 100%)',
+      borderBottom: '1px solid rgba(139,92,246,0.15)',
       padding: '12px 20px',
       display: 'flex',
       justifyContent: 'space-between',
@@ -74,16 +74,16 @@ export default function TopBar({ section }) {
           fontSize: 9,
           fontFamily: 'Inter, sans-serif',
           fontWeight: 600,
-          color: '#4a5a7a',
+          color: '#64748b',
           textTransform: 'uppercase',
           letterSpacing: '0.3em',
         }}>
           {dateStr}
         </span>
         <span style={{
-          fontFamily: '"Barlow Condensed", sans-serif',
-          fontWeight: 900,
-          fontSize: 22,
+          fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
+          fontWeight: 700,
+          fontSize: 18,
           color: '#ffffff',
           textTransform: 'uppercase',
           lineHeight: 1,
@@ -99,8 +99,8 @@ export default function TopBar({ section }) {
           display: 'flex',
           alignItems: 'center',
           gap: 4,
-          background: 'rgba(201,168,76,0.12)',
-          border: '1px solid rgba(201,168,76,0.25)',
+          background: 'rgba(251,191,36,0.1)',
+          border: '1px solid rgba(251,191,36,0.3)',
           borderRadius: 9999,
           padding: '4px 10px',
         }}>
@@ -109,7 +109,7 @@ export default function TopBar({ section }) {
             fontFamily: 'Inter, sans-serif',
             fontWeight: 600,
             fontSize: 12,
-            color: '#c9a84c',
+            color: '#fbbf24',
           }}>
             {streak}d
           </span>
@@ -120,8 +120,8 @@ export default function TopBar({ section }) {
           display: 'flex',
           alignItems: 'center',
           gap: 4,
-          background: 'rgba(59,130,246,0.12)',
-          border: '1px solid rgba(59,130,246,0.25)',
+          background: 'rgba(139,92,246,0.1)',
+          border: '1px solid rgba(139,92,246,0.3)',
           borderRadius: 9999,
           padding: '4px 10px',
         }}>
@@ -129,7 +129,7 @@ export default function TopBar({ section }) {
             fontFamily: 'Inter, sans-serif',
             fontWeight: 600,
             fontSize: 12,
-            color: '#3b82f6',
+            color: '#8b5cf6',
           }}>
             {score}%
           </span>

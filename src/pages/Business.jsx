@@ -6,25 +6,28 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } fro
 import { today, fmtShort } from '../utils'
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
-const BG         = '#030508'
-const SURF       = '#06090f'
-const CARD_BORDER= '#0f1628'
-const GOLD       = '#c9a84c'
+const BG         = '#030311'
+const SURF       = '#09091f'
+const CARD_BG    = '#0d0d28'
+const CARD_BORDER= '#1d1d4a'
+const GOLD       = '#fbbf24'
+const CYAN       = '#22d3ee'
 const BLUE       = '#3b82f6'
 const GREEN      = '#10b981'
-const PURPLE     = '#a78bfa'
-const RED        = '#ef4444'
-const TEXT2      = '#4a5a7a'
-const MUTED      = '#2a3a5a'
+const PURPLE     = '#8b5cf6'
+const PINK       = '#e879f9'
+const RED        = '#f43f5e'
+const TEXT2      = '#94a3b8'
+const MUTED      = '#64748b'
 
 const STATUSES = ['Lead', 'Appointment Set', 'No Show', 'Closed', 'Lost']
 
 const STATUS_COLOR = {
-  Lead:              { color: MUTED,   border: `${MUTED}66` },
-  'Appointment Set': { color: BLUE,   border: `${BLUE}55`  },
-  'No Show':         { color: GOLD,   border: `${GOLD}55`  },
-  Closed:            { color: GREEN,  border: `${GREEN}55` },
-  Lost:              { color: RED,    border: `${RED}55`   },
+  Lead:              { color: '#64748b', border: 'rgba(100,116,139,0.4)' },
+  'Appointment Set': { color: '#3b82f6', border: 'rgba(59,130,246,0.4)' },
+  'No Show':         { color: '#f43f5e', border: 'rgba(244,63,94,0.4)'  },
+  Closed:            { color: '#10b981', border: 'rgba(16,185,129,0.4)' },
+  Lost:              { color: '#94a3b8', border: 'rgba(148,163,184,0.3)' },
 }
 
 const LABEL_STYLE = {
@@ -37,7 +40,7 @@ const LABEL_STYLE = {
 }
 
 const HEADING_STYLE = (color, size = 40) => ({
-  fontFamily: '"Barlow Condensed", sans-serif',
+  fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
   fontSize: size,
   fontWeight: 900,
   color,
@@ -249,14 +252,21 @@ export default function Business() {
           <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: TEXT2 }}>
             {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()}
           </span>
-          <span style={{ ...HEADING_STYLE('white', 22), letterSpacing: '0.08em' }}>BUSINESS</span>
+          <span style={{
+            ...HEADING_STYLE('white', 22),
+            letterSpacing: '0.08em',
+            background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}>BUSINESS</span>
         </div>
         <div style={{
           background: `${GOLD}22`,
           border: `1px solid ${GOLD}55`,
           borderRadius: 20,
           padding: '3px 12px',
-          fontFamily: '"Barlow Condensed", sans-serif',
+          fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
           fontSize: 13,
           fontWeight: 900,
           color: GOLD,
@@ -299,13 +309,22 @@ export default function Business() {
           },
         ].map(stat => (
           <div key={stat.label} style={{
-            background: SURF,
+            background: 'linear-gradient(135deg, #0d0d28, #090920)',
             border: `1px solid ${CARD_BORDER}`,
             borderTop: `2px solid ${stat.color}`,
             padding: '16px 20px',
+            boxShadow: '0 0 0 1px rgba(59,130,246,0.08)',
           }}>
             <div style={{ ...LABEL_STYLE, marginBottom: 8 }}>{stat.label}</div>
-            <div style={{ ...HEADING_STYLE(stat.color, 40), marginBottom: 4 }}>
+            <div style={{
+              fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
+              fontSize: 40,
+              fontWeight: 900,
+              color: stat.color,
+              lineHeight: 1,
+              textTransform: 'uppercase',
+              marginBottom: 4,
+            }}>
               {stat.value}{stat.suffix}
             </div>
             <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: TEXT2 }}>
@@ -350,10 +369,11 @@ export default function Business() {
 
           {/* Table */}
           <div style={{
-            background: SURF,
+            background: 'linear-gradient(135deg, #0d0d28, #090920)',
             border: `1px solid ${CARD_BORDER}`,
             borderRadius: 10,
             overflow: 'hidden',
+            boxShadow: '0 0 0 1px rgba(59,130,246,0.08)',
           }}>
             {/* Table head */}
             <div style={{
@@ -388,6 +408,7 @@ export default function Business() {
                       alignItems: 'center',
                       background: isHovered ? `${CARD_BORDER}80` : 'transparent',
                       transition: 'background 0.1s',
+                      boxShadow: isHovered ? `inset 0 0 0 1px ${sc.border}` : 'none',
                     }}
                   >
                     {/* Name */}
@@ -424,6 +445,7 @@ export default function Business() {
                           cursor: 'pointer',
                           outline: 'none',
                           letterSpacing: '0.04em',
+                          boxShadow: `0 0 8px ${sc.color}33`,
                         }}
                       >
                         {STATUSES.map(s => <option key={s} value={s} style={{ background: SURF, color: 'white' }}>{s}</option>)}
@@ -459,7 +481,13 @@ export default function Business() {
         </div>
 
         {/* ── SETTER PERFORMANCE TRACKER ─────────────────────────────────── */}
-        <div style={{ background: SURF, border: `1px solid ${CARD_BORDER}`, borderRadius: 10, padding: '20px' }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #0d0d28, #090920)',
+          border: `1px solid ${CARD_BORDER}`,
+          borderRadius: 10,
+          padding: '20px',
+          boxShadow: '0 0 0 1px rgba(59,130,246,0.08)',
+        }}>
           {/* Tracker header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <span style={{ ...LABEL_STYLE, color: BLUE }}>SETTER — BILAL</span>
@@ -571,7 +599,14 @@ export default function Business() {
             ].map(t => (
               <div key={t.label} style={{ textAlign: 'center' }}>
                 <div style={{ ...LABEL_STYLE, marginBottom: 4 }}>{t.label}</div>
-                <div style={{ ...HEADING_STYLE(t.color, 28) }}>{t.value}</div>
+                <div style={{
+                  fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
+                  fontSize: 28,
+                  fontWeight: 900,
+                  color: t.color,
+                  lineHeight: 1,
+                  textTransform: 'uppercase',
+                }}>{t.value}</div>
               </div>
             ))}
           </div>

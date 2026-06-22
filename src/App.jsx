@@ -36,7 +36,7 @@ export default function App() {
   const Page = PAGES[active]
 
   return (
-    <div className="flex flex-row h-screen text-white overflow-hidden" style={{ background: '#000000' }}>
+    <div className="flex flex-row h-screen text-white overflow-hidden" style={{ background: '#030311' }}>
       <Sidebar active={active} onSelect={setActive} onSettings={() => setShowSettings(true)} />
       <main className="flex-1 overflow-auto min-w-0">
         <Page />

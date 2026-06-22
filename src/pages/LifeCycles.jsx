@@ -105,7 +105,7 @@ function OscillationGraph({ points, mean, metricId }) {
     return (
       <div style={{
         height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'Inter', fontSize: 11, color: '#a0aec0', fontStyle: 'italic'
+        fontFamily: 'Inter', fontSize: 11, color: '#94a3b8', fontStyle: 'italic'
       }}>
         Not enough data yet. Keep logging daily.
       </div>
@@ -135,11 +135,11 @@ function OscillationGraph({ points, mean, metricId }) {
         <XAxis dataKey="label" hide />
         <YAxis domain={[domainMin, domainMax]} hide />
         <Tooltip
-          contentStyle={{ background: '#0b0b16', border: '1px solid #1a2440', fontSize: 10, fontFamily: 'Inter' }}
-          labelStyle={{ color: '#a0aec0' }}
+          contentStyle={{ background: '#09091f', border: '1px solid #1d1d4a', fontSize: 10, fontFamily: 'Inter', boxShadow: '0 0 20px rgba(34,211,238,0.1)' }}
+          labelStyle={{ color: '#94a3b8' }}
           formatter={(v) => [v !== null ? (Number.isInteger(v) ? v : v.toFixed(1)) : '—', '']}
         />
-        <ReferenceLine y={mean} stroke="#a0aec0" strokeDasharray="4 3" strokeWidth={1} strokeOpacity={0.5} />
+        <ReferenceLine y={mean} stroke="#94a3b8" strokeDasharray="4 3" strokeWidth={1} strokeOpacity={0.5} />
         <Line
           type="monotone"
           dataKey="value"
@@ -159,10 +159,10 @@ function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
   const low = stats?.low ?? null
 
   return (
-    <div style={{ background: '#0d1427', border: '1px solid #1a2440', borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
+    <div style={{ background: 'linear-gradient(135deg, #0d0d28 0%, #09091f 100%)', border: '1px solid #1d1d4a', borderRadius: 12, overflow: 'hidden', marginBottom: 12, boxShadow: '0 0 0 1px rgba(34,211,238,0.06)' }}>
       <div style={{ padding: '14px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 22, color: '#c9a84c', letterSpacing: '0.04em', lineHeight: 1 }}>
+          <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 22, letterSpacing: '0.04em', lineHeight: 1, background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
             {metric.name.toUpperCase()}
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
@@ -177,7 +177,7 @@ function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
               </span>
             )}
             {stats && (
-              <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0' }}>
+              <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#94a3b8' }}>
                 avg {Number.isInteger(stats.mean) ? stats.mean : stats.mean.toFixed(1)}{metric.unit !== 'binary' && metric.unit !== 'steps' ? metric.unit : ''}
               </span>
             )}
@@ -185,7 +185,7 @@ function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           {onEdit && (
-            <button onClick={onEdit} style={{ padding: '4px 10px', border: '1px solid #1a2440', background: 'transparent', color: '#a0aec0', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', borderRadius: 4 }}>
+            <button onClick={onEdit} style={{ padding: '4px 10px', border: '1px solid rgba(139,92,246,0.3)', background: 'rgba(139,92,246,0.08)', color: '#a78bfa', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', borderRadius: 4 }}>
               Edit
             </button>
           )}
@@ -204,8 +204,8 @@ function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
       <div style={{
         margin: '8px 16px 16px',
         padding: '10px 14px',
-        background: '#000000',
-        borderLeft: `3px solid ${insight.type === 'warning' ? '#ef4444' : insight.type === 'positive' ? '#c9a84c' : '#1a2440'}`,
+        background: 'linear-gradient(135deg, #0d0d28, #090918)',
+        borderLeft: `3px solid ${insight.type === 'warning' ? '#f43f5e' : insight.type === 'positive' ? '#10b981' : '#8b5cf6'}`,
         borderRadius: '0 6px 6px 0',
       }}>
         <span style={{ fontFamily: 'Inter', fontSize: 11, color: 'white', lineHeight: 1.5 }}>{insight.text}</span>
@@ -292,19 +292,21 @@ export default function LifeCycles() {
   }
 
   return (
-    <div style={{ background: '#000000', minHeight: '100%' }}>
+    <div style={{ background: '#030311', minHeight: '100%' }}>
       {/* Header */}
-      <div style={{ background: '#000000', borderBottom: '1px solid #1a2440', padding: '20px 32px', flexShrink: 0 }}>
+      <div style={{ background: '#030311', borderBottom: '1px solid #1d1d4a', padding: '20px 32px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
             <h1 style={{
-              fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9,
-              fontStyle: 'italic', letterSpacing: '0.02em', color: '#c9a84c', margin: 0
+              fontFamily: '"Orbitron",sans-serif', fontSize: 64, fontWeight: 900, lineHeight: 0.9,
+              fontStyle: 'italic', letterSpacing: '0.02em', margin: 0,
+              background: 'linear-gradient(135deg, #22d3ee 0%, #8b5cf6 60%, #e879f9 100%)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text'
             }}>
               LIFE CYCLES
             </h1>
             <p style={{
-              fontFamily: 'Inter', fontSize: 10, color: '#a0aec0', letterSpacing: '0.14em',
+              fontFamily: 'Inter', fontSize: 10, color: '#94a3b8', letterSpacing: '0.14em',
               textTransform: 'uppercase', marginTop: 4
             }}>
               TRACK YOUR OSCILLATIONS · RAISE YOUR FLOOR
@@ -313,9 +315,11 @@ export default function LifeCycles() {
           <button
             onClick={() => setShowAddMetric(!showAddMetric)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#c9a84c',
-              color: '#000', border: 'none', borderRadius: 8, fontFamily: 'Inter', fontSize: 11,
-              fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer', marginTop: 8
+              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
+              background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)',
+              color: '#fff', border: 'none', borderRadius: 8, fontFamily: 'Inter', fontSize: 11,
+              fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer',
+              marginTop: 8, boxShadow: '0 0 20px rgba(34,211,238,0.35)'
             }}
           >
             + Add Metric
@@ -325,11 +329,11 @@ export default function LifeCycles() {
         {/* Add metric panel */}
         {showAddMetric && (
           <div style={{
-            marginTop: 16, padding: '16px', background: '#0d1427', border: '1px solid #1a2440',
-            borderRadius: 10, display: 'flex', gap: 12, alignItems: 'flex-end'
+            marginTop: 16, padding: '16px', background: 'linear-gradient(135deg, #0d0d28, #09091f)', border: '1px solid rgba(34,211,238,0.2)',
+            borderRadius: 10, display: 'flex', gap: 12, alignItems: 'flex-end', boxShadow: '0 0 20px rgba(34,211,238,0.06)'
           }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+              <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
                 Metric Name
               </div>
               <input
@@ -338,13 +342,13 @@ export default function LifeCycles() {
                 onKeyDown={e => e.key === 'Enter' && addCustomMetric()}
                 placeholder="e.g. Morning Energy"
                 style={{
-                  width: '100%', background: '#000000', border: '1px solid #1a2440', borderRadius: 6,
+                  width: '100%', background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6,
                   padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box'
                 }}
               />
             </div>
             <div style={{ width: 120 }}>
-              <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+              <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
                 Max Value
               </div>
               <input
@@ -352,20 +356,20 @@ export default function LifeCycles() {
                 onChange={e => setNewMetricMax(e.target.value)}
                 type="number"
                 style={{
-                  width: '100%', background: '#000000', border: '1px solid #1a2440', borderRadius: 6,
+                  width: '100%', background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6,
                   padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box'
                 }}
               />
             </div>
             <button
               onClick={addCustomMetric}
-              style={{ padding: '8px 18px', background: '#c9a84c', color: '#000', border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: 'Inter', fontSize: 11, fontWeight: 700 }}
+              style={{ padding: '8px 18px', background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: 'Inter', fontSize: 11, fontWeight: 700, boxShadow: '0 0 12px rgba(34,211,238,0.3)' }}
             >
               Add
             </button>
             <button
               onClick={() => setShowAddMetric(false)}
-              style={{ padding: '8px 14px', border: '1px solid #1a2440', background: 'transparent', color: '#a0aec0', borderRadius: 6, cursor: 'pointer', fontFamily: 'Inter', fontSize: 11 }}
+              style={{ padding: '8px 14px', border: '1px solid #1d1d4a', background: 'transparent', color: '#94a3b8', borderRadius: 6, cursor: 'pointer', fontFamily: 'Inter', fontSize: 11 }}
             >
               Cancel
             </button>
@@ -374,17 +378,17 @@ export default function LifeCycles() {
       </div>
 
       {/* Summary stats */}
-      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #1a2440' }}>
+      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #1d1d4a' }}>
         {[
-          { label: 'Current Avg Floor', value: avgFloor !== 0 ? String(avgFloor) : '—', color: '#c9a84c' },
+          { label: 'Current Avg Floor', value: avgFloor !== 0 ? String(avgFloor) : '—', color: '#22d3ee' },
           { label: 'Longest Active Streak', value: longestStreak > 0 ? `${longestStreak}d` : '—', color: '#10b981' },
-          { label: 'Metrics Tracked', value: allMetrics.length, color: '#3b82f6' },
+          { label: 'Metrics Tracked', value: allMetrics.length, color: '#8b5cf6' },
         ].map((s, i) => (
-          <div key={i} style={{ flex: 1, padding: '16px 24px', borderRight: i < 2 ? '1px solid #1a2440' : 'none' }}>
-            <div style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
+          <div key={i} style={{ flex: 1, padding: '16px 24px', borderRight: i < 2 ? '1px solid #1d1d4a' : 'none', background: 'linear-gradient(135deg, #0d0d28, #09091f)' }}>
+            <div style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>
               {s.label}
             </div>
-            <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 36, color: s.color, lineHeight: 1 }}>
+            <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 36, color: s.color, lineHeight: 1 }}>
               {s.value}
             </div>
           </div>
@@ -408,11 +412,11 @@ export default function LifeCycles() {
               {/* Custom metric log input */}
               {isCustom && (
                 <div style={{
-                  marginTop: -6, marginBottom: 12, padding: '10px 20px', background: '#0d1427',
-                  border: '1px solid #1a2440', borderTop: 'none', borderRadius: '0 0 12px 12px',
+                  marginTop: -6, marginBottom: 12, padding: '10px 20px', background: 'linear-gradient(135deg, #0d0d28, #09091f)',
+                  border: '1px solid #1d1d4a', borderTop: 'none', borderRadius: '0 0 12px 12px',
                   display: 'flex', gap: 8, alignItems: 'center'
                 }}>
-                  <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0' }}>Log today's value:</span>
+                  <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#94a3b8' }}>Log today's value:</span>
                   <input
                     type="number"
                     value={customLogInputs[metric.id] || ''}
@@ -420,13 +424,13 @@ export default function LifeCycles() {
                     onKeyDown={e => e.key === 'Enter' && logCustomValue(metric.id)}
                     placeholder={`0–${metric.maxVal}`}
                     style={{
-                      width: 80, background: '#000000', border: '1px solid #1a2440', borderRadius: 6,
+                      width: 80, background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6,
                       padding: '5px 10px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none'
                     }}
                   />
                   <button
                     onClick={() => logCustomValue(metric.id)}
-                    style={{ padding: '5px 14px', background: '#c9a84c', color: '#000', border: 'none', borderRadius: 6, fontFamily: 'Inter', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+                    style={{ padding: '5px 14px', background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)', color: '#fff', border: 'none', borderRadius: 6, fontFamily: 'Inter', fontSize: 11, fontWeight: 700, cursor: 'pointer', boxShadow: '0 0 10px rgba(34,211,238,0.3)' }}
                   >
                     Save
                   </button>

@@ -7,11 +7,11 @@ import feedData from '../data/growthFeedData.json'
 import curatedVideos from '../data/curatedVideos.json'
 
 const PILLAR_COLORS = {
-  Mindset: '#3b82f6',
-  Business: '#c9a84c',
-  'Social Skills': '#3b82f6',
-  Style: '#c9a84c',
-  Health: '#16a34a',
+  Mindset: '#8b5cf6',
+  Business: '#fbbf24',
+  'Social Skills': '#22d3ee',
+  Style: '#e879f9',
+  Health: '#10b981',
 }
 
 const PILLARS = ['Mindset', 'Business', 'Social Skills', 'Style', 'Health']
@@ -59,20 +59,20 @@ function classifyCategory(text) {
 }
 
 const cls = {
-  input: "w-full bg-[#030508] border border-[#0f1628] px-3 py-2 text-sm text-white placeholder-[#4a5a7a] focus:outline-none focus:border-[#c9a84c] transition-colors",
+  input: "w-full bg-[#09091f] border border-[#1d1d4a] px-3 py-2 text-sm text-white placeholder-[#64748b] focus:outline-none focus:border-[#8b5cf6] transition-colors rounded-md",
   label: "block text-[9px] font-mono uppercase tracking-widest text-[#4a5a7a] mb-1.5",
 }
 
 function VideoCard({ video, onWatch, onRate, ratingOpen }) {
-  const color = PILLAR_COLORS[video.pillar] || '#4a5a7a'
+  const color = PILLAR_COLORS[video.pillar] || '#64748b'
 
   return (
     <div
-      style={{ background: '#06090f', border: '1px solid #0f1628', borderRadius: 12 }}
+      style={{ background: 'linear-gradient(135deg, #0d0d28 0%, #090920 100%)', border: '1px solid #1d1d4a', borderRadius: 12, boxShadow: '0 0 0 1px rgba(139,92,246,0.05)' }}
       className="flex flex-col overflow-hidden transition-all"
     >
       {/* Thumbnail — 16:9 */}
-      <div className="relative group/thumb overflow-hidden" style={{ paddingTop: '56.25%', borderBottom: '1px solid #0f1628' }}>
+      <div className="relative group/thumb overflow-hidden" style={{ paddingTop: '56.25%', borderBottom: '1px solid #1d1d4a' }}>
         <img
           src={`https://img.youtube.com/vi/${video.video_id}/maxresdefault.jpg`}
           alt={video.title}
@@ -80,8 +80,8 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
           onError={e => { e.target.src = `https://img.youtube.com/vi/${video.video_id}/hqdefault.jpg` }}
         />
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity bg-black/30">
-          <div style={{ background: '#c9a84c', borderRadius: '50%', padding: 12 }}>
-            <Play size={20} fill="#000" color="#000" />
+          <div style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', borderRadius: '50%', padding: 12, boxShadow: '0 0 20px rgba(139,92,246,0.5)' }}>
+            <Play size={20} fill="white" color="white" />
           </div>
         </div>
       </div>
@@ -89,7 +89,7 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
       <div className="p-3 flex flex-col gap-2 flex-1">
         {/* Pillar badge */}
         <div>
-          <span style={{ background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)', fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: '#c9a84c', padding: '2px 8px', borderRadius: 9999 }}>
+          <span style={{ background: `${color}1a`, border: `1px solid ${color}33`, fontFamily: 'Inter', fontSize: 10, fontWeight: 700, color: color, padding: '2px 8px', borderRadius: 9999 }}>
             {video.pillar}
           </span>
         </div>
@@ -102,18 +102,18 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
           >
             {video.title}
           </div>
-          <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#4a5a7a', whiteSpace: 'nowrap', flexShrink: 0 }}>
+          <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#64748b', whiteSpace: 'nowrap', flexShrink: 0 }}>
             {fmtShort(video.date_added)}
           </div>
         </div>
 
         {/* Channel */}
-        <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#4a5a7a' }}>{video.channel}</div>
+        <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#64748b' }}>{video.channel}</div>
 
         {/* Why recommended pill */}
         {video.whyRecommended && (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.18)', borderRadius: 9999, alignSelf: 'flex-start' }}>
-            <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#c9a84c', letterSpacing: '0.02em' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 9999, alignSelf: 'flex-start' }}>
+            <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#8b5cf6', letterSpacing: '0.02em' }}>
               {video.whyRecommended}
             </span>
           </div>
@@ -122,21 +122,21 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
         {/* Action area */}
         <div className="mt-auto pt-1 flex flex-col gap-2">
           {video.watched ? (
-            <div style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#c9a84c', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', padding: '4px 8px', borderRadius: 4 }}>
+            <div style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', padding: '4px 8px', borderRadius: 4 }}>
               ✓ WATCHED — {video.user_rating}/10
             </div>
           ) : ratingOpen ? (
             <div>
-              <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#4a5a7a', marginBottom: 6 }}>Rate it:</div>
+              <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#64748b', marginBottom: 6 }}>Rate it:</div>
               <div className="flex gap-1 flex-wrap">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                   <button
                     key={n}
                     onClick={() => onRate(video.id, n)}
-                    style={{ width: 26, height: 26, border: '1px solid #0f1628', fontFamily: 'Inter', fontSize: 11, color: '#4a5a7a', background: 'transparent', cursor: 'pointer' }}
+                    style={{ width: 26, height: 26, border: '1px solid #1d1d4a', fontFamily: 'Inter', fontSize: 11, color: '#64748b', background: 'transparent', cursor: 'pointer' }}
                     className="flex items-center justify-center transition-colors"
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#c9a84c'; e.currentTarget.style.color = '#c9a84c'; e.currentTarget.style.background = 'rgba(201,168,76,0.1)' }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#0f1628'; e.currentTarget.style.color = '#4a5a7a'; e.currentTarget.style.background = 'transparent' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.color = '#8b5cf6'; e.currentTarget.style.background = 'rgba(139,92,246,0.1)' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#1d1d4a'; e.currentTarget.style.color = '#64748b'; e.currentTarget.style.background = 'transparent' }}
                   >
                     {n}
                   </button>
@@ -147,17 +147,17 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
             <div className="flex flex-col gap-1.5">
               <button
                 onClick={() => onWatch(video.id, true)}
-                style={{ background: '#c9a84c', fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#000', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: 6 }}
+                style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: 6, boxShadow: '0 0 12px rgba(139,92,246,0.4)' }}
                 className="w-full hover:opacity-90 transition-opacity"
               >
                 ▶ WATCH
               </button>
               <button
                 onClick={() => onWatch(video.id, false)}
-                style={{ border: '1px solid #0f1628', fontFamily: 'Inter', fontSize: 11, color: '#4a5a7a', background: 'transparent', cursor: 'pointer', padding: '6px', borderRadius: 6 }}
+                style={{ border: '1px solid #1d1d4a', fontFamily: 'Inter', fontSize: 11, color: '#64748b', background: 'transparent', cursor: 'pointer', padding: '6px', borderRadius: 6 }}
                 className="w-full transition-colors"
-                onMouseEnter={e => { e.currentTarget.style.borderColor = '#4a5a7a'; e.currentTarget.style.color = '#4a5a7a' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#0f1628'; e.currentTarget.style.color = '#4a5a7a' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.color = '#8b5cf6' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#1d1d4a'; e.currentTarget.style.color = '#64748b' }}
               >
                 Rate It
               </button>
@@ -289,12 +289,12 @@ function WeeklyGoalTracker({ goal, setGoal }) {
 
   return (
     <>
-      <div style={{ background: '#06090f', border: '1px solid #0f1628', borderRadius: 10, padding: 16 }}>
+      <div style={{ background: 'linear-gradient(135deg, #0d0d28 0%, #090920 100%)', border: '1px solid #1d1d4a', borderRadius: 10, padding: 16, boxShadow: '0 0 0 1px rgba(139,92,246,0.05)' }}>
         {/* Header row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Target size={12} color="#10b981" />
-            <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#4a5a7a', letterSpacing: '0.3em', textTransform: 'uppercase' }}>
+            <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#64748b', letterSpacing: '0.3em', textTransform: 'uppercase' }}>
               WEEKLY LEARNING GOAL
             </span>
           </div>
@@ -305,16 +305,16 @@ function WeeklyGoalTracker({ goal, setGoal }) {
                 onChange={e => setGoalInput(e.target.value)}
                 placeholder="hours"
                 autoFocus
-                style={{ width: 60, background: '#030508', border: '1px solid #0f1628', borderRadius: 4, padding: '3px 8px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }}
+                style={{ width: 60, background: '#030311', border: '1px solid #1d1d4a', borderRadius: 4, padding: '3px 8px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }}
                 onKeyDown={e => { if (e.key === 'Enter') handleSaveGoal(); if (e.key === 'Escape') { setEditingGoal(false); setGoalInput('') } }}
               />
               <button onClick={handleSaveGoal} style={{ padding: '3px 10px', background: '#10b981', color: '#000', border: 'none', borderRadius: 4, fontFamily: 'Inter', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>Save</button>
-              <button onClick={() => { setEditingGoal(false); setGoalInput('') }} style={{ padding: '3px 8px', background: 'transparent', color: '#4a5a7a', border: '1px solid #0f1628', borderRadius: 4, fontFamily: 'Inter', fontSize: 10, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { setEditingGoal(false); setGoalInput('') }} style={{ padding: '3px 8px', background: 'transparent', color: '#64748b', border: '1px solid #1d1d4a', borderRadius: 4, fontFamily: 'Inter', fontSize: 10, cursor: 'pointer' }}>Cancel</button>
             </div>
           ) : (
             <button
               onClick={() => { setEditingGoal(true); setGoalInput(String(goalHours)) }}
-              style={{ padding: '3px 10px', background: 'transparent', color: '#4a5a7a', border: '1px solid #0f1628', borderRadius: 4, fontFamily: 'Inter', fontSize: 9, fontWeight: 600, cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase' }}
+              style={{ padding: '3px 10px', background: 'transparent', color: '#64748b', border: '1px solid #1d1d4a', borderRadius: 4, fontFamily: 'Inter', fontSize: 9, fontWeight: 600, cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase' }}
             >
               Set Goal
             </button>
@@ -322,7 +322,7 @@ function WeeklyGoalTracker({ goal, setGoal }) {
         </div>
 
         {/* Progress bar */}
-        <div style={{ height: 4, background: '#0f1628', borderRadius: 2, marginBottom: 8, overflow: 'hidden' }}>
+        <div style={{ height: 4, background: '#1d1d4a', borderRadius: 2, marginBottom: 8, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${progressPct}%`, background: '#10b981', borderRadius: 2, transition: 'width 0.4s ease' }} />
         </div>
 
@@ -330,11 +330,11 @@ function WeeklyGoalTracker({ goal, setGoal }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontFamily: 'Inter', fontSize: 12, color: 'white' }}>
             <span style={{ color: '#10b981', fontWeight: 700 }}>{weekHours.toFixed(1)}h</span>
-            <span style={{ color: '#4a5a7a' }}> / {goalHours}h this week</span>
+            <span style={{ color: '#64748b' }}> / {goalHours}h this week</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {remainingHours > 0 && (
-              <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#4a5a7a' }}>
+              <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#64748b' }}>
                 {remainingHours.toFixed(1)}h remaining
               </span>
             )}
@@ -343,7 +343,7 @@ function WeeklyGoalTracker({ goal, setGoal }) {
             )}
             <button
               onClick={() => setShowLogModal(true)}
-              style={{ padding: '4px 12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 4, fontFamily: 'Inter', fontSize: 9, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase' }}
+              style={{ padding: '4px 12px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff', border: 'none', borderRadius: 4, fontFamily: 'Inter', fontSize: 9, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', boxShadow: '0 0 12px rgba(139,92,246,0.4)' }}
             >
               Log Watch Session
             </button>
@@ -354,12 +354,12 @@ function WeeklyGoalTracker({ goal, setGoal }) {
       {/* Log Session Modal */}
       {showLogModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(3,5,8,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#06090f', border: '1px solid #0f1628', borderRadius: 12, padding: 24, minWidth: 300, maxWidth: 360 }}>
-            <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontSize: 16, fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
+          <div style={{ background: 'linear-gradient(135deg, #0d0d28 0%, #090920 100%)', border: '1px solid #1d1d4a', borderRadius: 12, padding: 24, minWidth: 300, maxWidth: 360, boxShadow: '0 0 0 1px rgba(139,92,246,0.05)' }}>
+            <div style={{ fontFamily: '"Orbitron", "Space Grotesk", sans-serif', fontSize: 16, fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
               Log Watch Session
             </div>
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#4a5a7a', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: 6 }}>
+              <label style={{ display: 'block', fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#64748b', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: 6 }}>
                 Duration (minutes)
               </label>
               <input
@@ -369,15 +369,15 @@ function WeeklyGoalTracker({ goal, setGoal }) {
                 min="1"
                 placeholder="e.g. 30"
                 autoFocus
-                style={{ width: '100%', background: '#030508', border: '1px solid #0f1628', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 14, color: 'white', outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 14, color: 'white', outline: 'none', boxSizing: 'border-box' }}
                 onKeyDown={e => { if (e.key === 'Enter') handleLogSession() }}
               />
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={handleLogSession} style={{ flex: 1, padding: '9px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 6, fontFamily: 'Inter', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer' }}>
+              <button onClick={handleLogSession} style={{ flex: 1, padding: '9px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff', border: 'none', borderRadius: 6, fontFamily: 'Inter', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', boxShadow: '0 0 12px rgba(139,92,246,0.4)' }}>
                 Log Session
               </button>
-              <button onClick={() => { setShowLogModal(false); setLogMinutes('') }} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid #0f1628', color: '#4a5a7a', borderRadius: 6, fontFamily: 'Inter', fontSize: 10, cursor: 'pointer' }}>
+              <button onClick={() => { setShowLogModal(false); setLogMinutes('') }} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid #1d1d4a', color: '#64748b', borderRadius: 6, fontFamily: 'Inter', fontSize: 10, cursor: 'pointer' }}>
                 Cancel
               </button>
             </div>
@@ -419,17 +419,17 @@ function LearnLogPanel({ onSave }) {
     <div style={{ marginBottom: 4 }}>
       <button
         onClick={() => setOpen(o => !o)}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: 'transparent', border: '1px solid rgba(201,168,76,0.35)', borderRadius: 8, cursor: 'pointer', color: '#c9a84c', fontFamily: '"Barlow Condensed", sans-serif', fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em' }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(201,168,76,0.08)'}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: 'transparent', border: '1px solid rgba(139,92,246,0.35)', borderRadius: 8, cursor: 'pointer', color: '#8b5cf6', fontFamily: '"Orbitron", "Space Grotesk", sans-serif', fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em' }}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(139,92,246,0.08)'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
-        <BookOpen size={13} color="#c9a84c" />
+        <BookOpen size={13} color="#8b5cf6" />
         What did I learn?
       </button>
 
       {open && (
-        <div style={{ marginTop: 10, background: '#06090f', border: '1px solid #0f1628', borderRadius: 10, padding: 16 }}>
-          <div style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#4a5a7a', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: 10 }}>
+        <div style={{ marginTop: 10, background: 'linear-gradient(135deg, #0d0d28 0%, #090920 100%)', border: '1px solid #1d1d4a', borderRadius: 10, padding: 16 }}>
+          <div style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#64748b', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: 10 }}>
             Quick Learning Log
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -438,25 +438,25 @@ function LearnLogPanel({ onSave }) {
               onChange={e => setTakeaway(e.target.value)}
               placeholder="Main takeaway from what you just watched/read..."
               rows={3}
-              style={{ width: '100%', background: '#030508', border: '1px solid #0f1628', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', resize: 'vertical', boxSizing: 'border-box', placeholder: '#4a5a7a' }}
+              style={{ width: '100%', background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', resize: 'vertical', boxSizing: 'border-box', placeholder: '#64748b' }}
             />
             <input
               value={source}
               onChange={e => setSource(e.target.value)}
               placeholder="Source (video title, book, etc.)"
-              style={{ width: '100%', background: '#030508', border: '1px solid #0f1628', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }}
+              style={{ width: '100%', background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }}
             />
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 onClick={handleSave}
                 disabled={!takeaway.trim()}
-                style={{ padding: '8px 18px', background: '#c9a84c', color: '#000', border: 'none', borderRadius: 6, fontFamily: 'Inter', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: takeaway.trim() ? 'pointer' : 'not-allowed', opacity: takeaway.trim() ? 1 : 0.5 }}
+                style={{ padding: '8px 18px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: 'white', border: 'none', borderRadius: 6, fontFamily: 'Inter', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: takeaway.trim() ? 'pointer' : 'not-allowed', opacity: takeaway.trim() ? 1 : 0.5, boxShadow: '0 0 12px rgba(139,92,246,0.4)' }}
               >
                 Save to Arsenal
               </button>
               <button
                 onClick={() => { setOpen(false); setTakeaway(''); setSource('') }}
-                style={{ padding: '8px 14px', background: 'transparent', border: '1px solid #0f1628', color: '#4a5a7a', borderRadius: 6, fontFamily: 'Inter', fontSize: 10, cursor: 'pointer' }}
+                style={{ padding: '8px 14px', background: 'transparent', border: '1px solid #1d1d4a', color: '#64748b', borderRadius: 6, fontFamily: 'Inter', fontSize: 10, cursor: 'pointer' }}
               >
                 Cancel
               </button>
@@ -596,65 +596,76 @@ export default function GrowthFeed() {
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#030508' }}>
+    <div className="h-full flex flex-col" style={{ background: '#030311' }}>
 
       {/* ── TopBar ───────────────────────────────────────────────────────────── */}
-      <div style={{ background: '#06090f', borderBottom: '1px solid #0f1628', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+      <div style={{ background: '#09091f', borderBottom: '1px solid #1d1d4a', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#4a5a7a' }}>{dateStr}</span>
-          <span style={{ color: '#2a3a5a' }}>·</span>
-          <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontSize: 22, fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em', lineHeight: 1 }}>
+          <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#64748b' }}>{dateStr}</span>
+          <span style={{ color: '#1d1d4a' }}>·</span>
+          <span style={{
+            fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
+            fontSize: 22,
+            fontWeight: 900,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            lineHeight: 1,
+            background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}>
             GROWTH FEED
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* Videos watched pill */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 12px', background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)', borderRadius: 9999 }}>
-            <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: '#c9a84c' }}>{totalWatched}</span>
-            <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#c9a84c', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>watched</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 12px', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: 9999 }}>
+            <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: '#fbbf24' }}>{totalWatched}</span>
+            <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#fbbf24', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>watched</span>
           </div>
           {/* Week goal pill */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 12px', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 9999 }}>
-            <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: '#3b82f6' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 12px', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 9999 }}>
+            <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: '#8b5cf6' }}>
               {(Math.min(getCurrentWeekDays().reduce((s, d) => s + ((learningGoal.logs || {})[d] || 0), 0) / 60, learningGoal.weeklyGoalHours || 5)).toFixed(1)}h
             </span>
-            <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#3b82f6', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>/ {learningGoal.weeklyGoalHours || 5}h goal</span>
+            <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#8b5cf6', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>/ {learningGoal.weeklyGoalHours || 5}h goal</span>
           </div>
         </div>
       </div>
 
       {/* ── Page Header ──────────────────────────────────────────────────────── */}
-      <div style={{ background: '#030508', borderBottom: '1px solid #0f1628', padding: '20px 32px', flexShrink: 0 }}>
+      <div style={{ background: '#030311', borderBottom: '1px solid #1d1d4a', padding: '20px 32px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
-              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#4a5a7a', letterSpacing: '0.12em', textTransform: 'uppercase' }}>INTELLIGENCE FEED STREAMING</span>
+              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#64748b', letterSpacing: '0.12em', textTransform: 'uppercase' }}>INTELLIGENCE FEED STREAMING</span>
             </div>
-            <h1 style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(180deg,#c9a84c 0%,#c9a84c 60%,#c9a84c 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>
+            <h1 style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>
               GROWTH FEED
             </h1>
-            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#4a5a7a', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>MEDIA INTELLIGENCE // CURATED FOR ELITE OPERATORS</p>
+            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#64748b', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>MEDIA INTELLIGENCE // CURATED FOR ELITE OPERATORS</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-            {dropError && <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#c9a84c' }}>{dropError}</span>}
+            {dropError && <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#fbbf24' }}>{dropError}</span>}
             <button
               onClick={handleDrop}
               disabled={dropping}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: dropping ? '#0f1628' : '#c9a84c', color: dropping ? '#4a5a7a' : '#000', border: '1px solid #c9a84c', cursor: dropping ? 'not-allowed' : 'pointer', opacity: dropping ? 0.4 : 1, fontWeight: 700 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: dropping ? '#1d1d4a' : 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: dropping ? '#64748b' : 'white', border: dropping ? '1px solid #1d1d4a' : '1px solid #8b5cf6', cursor: dropping ? 'not-allowed' : 'pointer', opacity: dropping ? 0.4 : 1, fontWeight: 700, boxShadow: dropping ? 'none' : '0 0 12px rgba(139,92,246,0.4)' }}
             >
-              <Zap size={9} fill={dropping ? 'none' : '#000'} />
+              <Zap size={9} fill={dropping ? 'none' : 'white'} />
               {dropping ? 'Dropping...' : 'Drop 3 Videos'}
             </button>
             <button
               onClick={() => { setKeyInput(localStorage.getItem('anthropic_key') || ''); setShowKeyModal(true) }}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #0f1628', color: '#4a5a7a', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #1d1d4a', color: '#64748b', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
             >
               <Key size={9} /> API Key
             </button>
             <button
               onClick={() => setShowAddModal(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #0f1628', color: '#4a5a7a', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #1d1d4a', color: '#64748b', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
             >
               <Plus size={9} /> Add Video
             </button>
@@ -666,53 +677,53 @@ export default function GrowthFeed() {
         <div className="space-y-6">
 
           {/* ── Taste Signals Panel ────────────────────────────────────────────── */}
-          <div style={{ background: '#06090f', border: '1px solid #0f1628', borderRadius: 12 }}>
+          <div style={{ background: 'linear-gradient(135deg, #0d0d28 0%, #090920 100%)', border: '1px solid #1d1d4a', borderRadius: 12, boxShadow: '0 0 0 1px rgba(139,92,246,0.05)' }}>
             <button onClick={() => setShowSeedPanel(!showSeedPanel)}
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer' }}>
               <span style={{ fontSize: 14 }}>🎯</span>
-              <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: '#c9a84c', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Taste Signals</span>
-              <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#4a5a7a', marginLeft: 4 }}>{(tasteProfile.seedVideos || []).length} seed videos saved</span>
-              <span style={{ marginLeft: 'auto', fontFamily: 'Inter', fontSize: 9, color: '#4a5a7a', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: '#8b5cf6', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Taste Signals</span>
+              <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#64748b', marginLeft: 4 }}>{(tasteProfile.seedVideos || []).length} seed videos saved</span>
+              <span style={{ marginLeft: 'auto', fontFamily: 'Inter', fontSize: 9, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                 {showSeedPanel ? '▲ collapse' : '▼ expand — teach the feed your taste'}
               </span>
             </button>
 
             {showSeedPanel && (
               <div style={{ padding: '0 20px 20px' }}>
-                <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#4a5a7a', marginBottom: 16 }}>
+                <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#64748b', marginBottom: 16 }}>
                   Paste a YouTube video you liked. The feed learns your taste and recommends similar content.
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
                   <input value={seedUrl} onChange={e => setSeedUrl(e.target.value)} placeholder="YouTube URL (youtube.com/watch?v=...)"
-                    style={{ width: '100%', background: '#030508', border: '1px solid #0f1628', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }} />
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                     <input value={seedTitle} onChange={e => setSeedTitle(e.target.value)} placeholder="Video title"
-                      style={{ background: '#030508', border: '1px solid #0f1628', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none' }} />
+                      style={{ background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none' }} />
                     <input value={seedChannel} onChange={e => setSeedChannel(e.target.value)} placeholder="Channel name"
-                      style={{ background: '#030508', border: '1px solid #0f1628', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none' }} />
+                      style={{ background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none' }} />
                   </div>
-                  {seedError && <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#ef4444', margin: 0 }}>{seedError}</p>}
+                  {seedError && <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#f43f5e', margin: 0 }}>{seedError}</p>}
                   <button onClick={handleSeedVideo} disabled={seedLoading || !seedUrl.trim() || !seedTitle.trim()}
-                    style={{ padding: '9px 20px', background: seedLoading ? '#0f1628' : '#c9a84c', color: seedLoading ? '#4a5a7a' : '#000', border: 'none', cursor: seedLoading ? 'not-allowed' : 'pointer', fontFamily: 'Inter', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: 6 }}>
+                    style={{ padding: '9px 20px', background: seedLoading ? '#1d1d4a' : 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: seedLoading ? '#64748b' : 'white', border: 'none', cursor: seedLoading ? 'not-allowed' : 'pointer', fontFamily: 'Inter', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: 6, boxShadow: seedLoading ? 'none' : '0 0 12px rgba(139,92,246,0.4)' }}>
                     {seedLoading ? 'Saving...' : '+ Add Taste Signal'}
                   </button>
                 </div>
 
                 {(tasteProfile.seedVideos || []).length > 0 && (
                   <div>
-                    <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#4a5a7a', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Saved Taste Signals</div>
+                    <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Saved Taste Signals</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {(tasteProfile.seedVideos || []).slice(0, 10).map(sv => (
-                        <div key={sv.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#030508', border: '1px solid #0f1628', borderRadius: 8 }}>
+                        <div key={sv.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#030311', border: '1px solid #1d1d4a', borderRadius: 8 }}>
                           <img src={`https://img.youtube.com/vi/${sv.video_id}/default.jpg`} alt="" style={{ width: 40, height: 30, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontFamily: 'Inter', fontSize: 12, color: 'white', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sv.title}</div>
-                            <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#4a5a7a' }}>{sv.channel}{sv.topic ? ` · ${sv.topic}` : ''}</div>
+                            <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#64748b' }}>{sv.channel}{sv.topic ? ` · ${sv.topic}` : ''}</div>
                           </div>
                           {sv.tags && sv.tags.length > 0 && (
                             <div style={{ display: 'flex', gap: 4 }}>
                               {sv.tags.slice(0, 2).map(tag => (
-                                <span key={tag} style={{ fontFamily: 'Inter', fontSize: 9, color: '#c9a84c', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 4, padding: '2px 6px' }}>{tag}</span>
+                                <span key={tag} style={{ fontFamily: 'Inter', fontSize: 9, color: '#8b5cf6', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 4, padding: '2px 6px' }}>{tag}</span>
                               ))}
                             </div>
                           )}
@@ -720,13 +731,13 @@ export default function GrowthFeed() {
                       ))}
                     </div>
                     {Object.keys(tasteProfile.channelAffinities || {}).length > 0 && (
-                      <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.1)', borderRadius: 8 }}>
-                        <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#4a5a7a', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Your Taste Profile</div>
+                      <div style={{ marginTop: 12, padding: '10px 14px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.12)', borderRadius: 8 }}>
+                        <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Your Taste Profile</div>
                         <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#d1d5db' }}>
-                          Top channels: <span style={{ color: '#c9a84c' }}>{Object.entries(tasteProfile.channelAffinities || {}).sort((a,b) => b[1]-a[1]).slice(0,3).map(([k]) => k).join(', ') || '—'}</span>
+                          Top channels: <span style={{ color: '#8b5cf6' }}>{Object.entries(tasteProfile.channelAffinities || {}).sort((a,b) => b[1]-a[1]).slice(0,3).map(([k]) => k).join(', ') || '—'}</span>
                         </div>
                         <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#d1d5db', marginTop: 3 }}>
-                          Top topics: <span style={{ color: '#c9a84c' }}>{Object.entries(tasteProfile.topicAffinities || {}).sort((a,b) => b[1]-a[1]).slice(0,4).map(([k]) => k).join(', ') || '—'}</span>
+                          Top topics: <span style={{ color: '#8b5cf6' }}>{Object.entries(tasteProfile.topicAffinities || {}).sort((a,b) => b[1]-a[1]).slice(0,4).map(([k]) => k).join(', ') || '—'}</span>
                         </div>
                       </div>
                     )}
@@ -743,7 +754,7 @@ export default function GrowthFeed() {
           <LearnLogPanel onSave={handleSaveLearnLog} />
 
           {/* ── Stats bar ─────────────────────────────────────────────────────── */}
-          <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', paddingBottom: 20, borderBottom: '1px solid #0f1628' }}>
+          <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', paddingBottom: 20, borderBottom: '1px solid #1d1d4a' }}>
             {[
               { label: 'Total Watched', value: totalWatched },
               { label: 'Avg Rating', value: avgRating },
@@ -751,37 +762,43 @@ export default function GrowthFeed() {
               { label: 'This Week', value: thisWeek },
             ].map(s => (
               <div key={s.label}>
-                <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 32, lineHeight: 1, color: '#c9a84c' }}>{s.value}</div>
-                <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#4a5a7a', marginTop: 3 }}>{s.label}</div>
+                <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 32, lineHeight: 1, color: '#fbbf24' }}>{s.value}</div>
+                <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#64748b', marginTop: 3 }}>{s.label}</div>
               </div>
             ))}
           </div>
 
           {/* ── Filter bar ────────────────────────────────────────────────────── */}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {FILTER_LABELS.map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                style={filter === f
-                  ? { background: '#c9a84c', color: '#000', fontFamily: 'Inter', fontSize: 10, fontWeight: 700, padding: '5px 12px', border: '1px solid #c9a84c', cursor: 'pointer', borderRadius: 4 }
-                  : { background: '#06090f', border: '1px solid #0f1628', color: '#4a5a7a', fontFamily: 'Inter', fontSize: 10, padding: '5px 12px', cursor: 'pointer', borderRadius: 4 }
-                }
-                onMouseEnter={e => { if (filter !== f) { e.currentTarget.style.borderColor = '#c9a84c'; e.currentTarget.style.color = '#fff' } }}
-                onMouseLeave={e => { if (filter !== f) { e.currentTarget.style.borderColor = '#0f1628'; e.currentTarget.style.color = '#4a5a7a' } }}
-              >
-                {f}
-              </button>
-            ))}
+            {FILTER_LABELS.map(f => {
+              const pillarKey = f === 'ALL' ? null : f.charAt(0) + f.slice(1).toLowerCase().replace(' skills', ' Skills')
+              const pillarNorm = f === 'ALL' ? null : Object.keys(PILLAR_COLORS).find(k => k.toUpperCase() === f)
+              const activeColor = pillarNorm ? PILLAR_COLORS[pillarNorm] : '#8b5cf6'
+              const isActive = filter === f
+              return (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  style={isActive
+                    ? { background: `${activeColor}33`, color: activeColor, fontFamily: 'Inter', fontSize: 10, fontWeight: 700, padding: '5px 12px', border: `1px solid ${activeColor}`, cursor: 'pointer', borderRadius: 4 }
+                    : { background: '#09091f', border: '1px solid #1d1d4a', color: '#64748b', fontFamily: 'Inter', fontSize: 10, padding: '5px 12px', cursor: 'pointer', borderRadius: 4 }
+                  }
+                  onMouseEnter={e => { if (!isActive) { e.currentTarget.style.borderColor = activeColor; e.currentTarget.style.color = '#fff' } }}
+                  onMouseLeave={e => { if (!isActive) { e.currentTarget.style.borderColor = '#1d1d4a'; e.currentTarget.style.color = '#64748b' } }}
+                >
+                  {f}
+                </button>
+              )
+            })}
           </div>
 
           {/* ── Current Drop ──────────────────────────────────────────────────── */}
           <section>
-            <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 20, color: '#fff', borderLeft: '2px solid #c9a84c', paddingLeft: 12, marginBottom: 16 }}>
+            <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 20, color: '#fff', borderLeft: '2px solid #8b5cf6', paddingLeft: 12, marginBottom: 16 }}>
               Current Drop
             </div>
             {unwatched.length === 0 ? (
-              <div style={{ background: 'rgba(201,168,76,0.08)', border: '2px dashed rgba(201,168,76,0.18)', fontFamily: 'Inter', fontSize: 12, color: '#4a5a7a', padding: '32px', textAlign: 'center', borderRadius: 12 }}>
+              <div style={{ background: 'rgba(139,92,246,0.08)', border: '2px dashed rgba(139,92,246,0.2)', fontFamily: 'Inter', fontSize: 12, color: '#64748b', padding: '32px', textAlign: 'center', borderRadius: 12 }}>
                 {filter !== 'ALL' ? `No unwatched videos in ${filter.toLowerCase()}` : 'All caught up — add more videos above'}
               </div>
             ) : (
@@ -794,24 +811,24 @@ export default function GrowthFeed() {
           </section>
 
           {/* Divider */}
-          <div style={{ height: 1, background: '#0f1628' }} />
+          <div style={{ height: 1, background: '#1d1d4a' }} />
 
           {/* ── Watched ───────────────────────────────────────────────────────── */}
           <section>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 20, color: '#fff', borderLeft: '2px solid #c9a84c', paddingLeft: 12 }}>
+              <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 20, color: '#fff', borderLeft: '2px solid #8b5cf6', paddingLeft: 12 }}>
                 Watched ({videos.filter(v => v.watched).length})
               </div>
               <button
                 onClick={() => setShowWatched(!showWatched)}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'Inter', fontSize: 11, color: '#4a5a7a', background: 'none', border: 'none', cursor: 'pointer' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: 'Inter', fontSize: 11, color: '#64748b', background: 'none', border: 'none', cursor: 'pointer' }}
               >
                 {showWatched ? <><ChevronUp size={13} /> Collapse</> : <><ChevronDown size={13} /> Expand</>}
               </button>
             </div>
             {showWatched && (
               watched.length === 0 ? (
-                <div style={{ background: '#06090f', border: '1px solid #0f1628', fontFamily: 'Inter', fontSize: 12, color: '#4a5a7a', padding: '32px', textAlign: 'center', borderRadius: 12 }}>
+                <div style={{ background: 'linear-gradient(135deg, #0d0d28 0%, #090920 100%)', border: '1px solid #1d1d4a', fontFamily: 'Inter', fontSize: 12, color: '#64748b', padding: '32px', textAlign: 'center', borderRadius: 12 }}>
                   No watched videos{filter !== 'ALL' ? ' in this category' : ''} yet
                 </div>
               ) : (
@@ -850,8 +867,8 @@ export default function GrowthFeed() {
               </select>
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={handleAddVideo} style={{ flex: 1, padding: '10px', background: '#c9a84c', color: '#000', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer' }}>Add to Feed</button>
-              <button onClick={() => setShowAddModal(false)} style={{ padding: '10px 16px', border: '1px solid #0f1628', color: '#4a5a7a', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleAddVideo} style={{ flex: 1, padding: '10px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: 'white', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer', boxShadow: '0 0 12px rgba(139,92,246,0.4)' }}>Add to Feed</button>
+              <button onClick={() => setShowAddModal(false)} style={{ padding: '10px 16px', border: '1px solid #1d1d4a', color: '#64748b', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
             </div>
           </div>
         </Modal>
@@ -861,8 +878,8 @@ export default function GrowthFeed() {
       {showKeyModal && (
         <Modal title="Set Anthropic API Key" onClose={() => setShowKeyModal(false)}>
           <div className="space-y-4">
-            <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#4a5a7a' }}>
-              Paste your key from <span style={{ color: '#c9a84c' }}>console.anthropic.com</span>. Saved to your browser only.
+            <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#64748b' }}>
+              Paste your key from <span style={{ color: '#8b5cf6' }}>console.anthropic.com</span>. Saved to your browser only.
             </p>
             <div>
               <label className={cls.label}>API Key</label>
@@ -876,8 +893,8 @@ export default function GrowthFeed() {
               />
             </div>
             <div className="flex gap-2 pt-1">
-              <button onClick={handleSaveKey} style={{ flex: 1, padding: '10px', background: '#c9a84c', color: '#000', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer' }}>Save Key</button>
-              <button onClick={() => setShowKeyModal(false)} style={{ padding: '10px 16px', border: '1px solid #0f1628', color: '#4a5a7a', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={handleSaveKey} style={{ flex: 1, padding: '10px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: 'white', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer', boxShadow: '0 0 12px rgba(139,92,246,0.4)' }}>Save Key</button>
+              <button onClick={() => setShowKeyModal(false)} style={{ padding: '10px 16px', border: '1px solid #1d1d4a', color: '#64748b', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
             </div>
           </div>
         </Modal>
