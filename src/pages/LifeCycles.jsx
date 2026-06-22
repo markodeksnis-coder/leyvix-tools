@@ -165,7 +165,7 @@ function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
     <div style={{ background: 'linear-gradient(135deg, #080e1a 0%, #040810 100%)', border: '1px solid #1e3050', borderRadius: 12, overflow: 'hidden', marginBottom: 12, boxShadow: '0 0 0 1px rgba(34,211,238,0.06)' }}>
       <div style={{ padding: '14px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 22, letterSpacing: '0.04em', lineHeight: 1, background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+          <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 24, letterSpacing: '0.04em', lineHeight: 1, background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
             {metric.name.toUpperCase()}
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
@@ -427,7 +427,7 @@ export default function LifeCycles() {
         <div style={{ background: 'linear-gradient(135deg, #080e1a 0%, #040810 100%)', border: '1px solid rgba(240,192,64,0.3)', borderRadius: 12, overflow: 'hidden', marginBottom: 12, boxShadow: '0 0 0 1px rgba(240,192,64,0.08)' }}>
           <div style={{ padding: '14px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 22, letterSpacing: '0.04em', lineHeight: 1, background: 'linear-gradient(135deg, #f0c040, #f0c040)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 24, letterSpacing: '0.04em', lineHeight: 1, background: 'linear-gradient(135deg, #f0c040, #f0c040)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                 DAILY WIN RATE
               </div>
               <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
