@@ -1157,7 +1157,7 @@ function CompleteView({ tab, answers, checkInData, aiSummary, aiLoading, onDone 
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function CheckIn({ startTab = null }) {
+export default function CheckIn({ initialTab = null }) {
   const [morningQs, setMorningQs] = useLocalStorage('marko_checkin_morning_qs', DEFAULT_MORNING)
   const [eveningQs, setEveningQs] = useLocalStorage('marko_checkin_evening_qs', DEFAULT_EVENING)
   const [checkInData, setCheckInData] = useLocalStorage('marko_checkin', {})
@@ -1168,7 +1168,7 @@ export default function CheckIn({ startTab = null }) {
     lastShownIndex: -1,
   })
 
-  const [tab,              setTab]              = useState(startTab || 'morning')
+  const [tab,              setTab]              = useState(initialTab || 'morning')
   const [phase,            setPhase]            = useState('tab_select')
   const [qIndex,           setQIndex]           = useState(0)
   const [answers,          setAnswers]          = useState({})
@@ -1187,16 +1187,16 @@ export default function CheckIn({ startTab = null }) {
 
   // Auto-start the correct flow when opened from dedicated morning/evening nav
   useEffect(() => {
-    if (!startTab) return
-    const alreadyDone = !!(checkInData?.[startTab]?.[todayStr]?.completed)
+    if (!initialTab) return
+    const alreadyDone = !!(checkInData?.[initialTab]?.[todayStr]?.completed)
     if (alreadyDone) {
-      const existing = checkInData[startTab][todayStr].answers || {}
+      const existing = checkInData[initialTab][todayStr].answers || {}
       setAnswers(existing)
       setPhase('complete')
-    } else if (startTab === 'evening') {
+    } else if (initialTab === 'evening') {
       setPhase('questions')
     }
-    // morning is handled below by the existing useEffect([tab])
+    // morning: the useEffect([tab]) below handles showing the identity screen
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Compute which belief to show today (cycles through by day)
