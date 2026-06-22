@@ -5,16 +5,16 @@ import Modal from '../components/Modal'
 import { fmtShort } from '../utils'
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
-const BG          = '#030508'
-const SURF        = '#06090f'
-const CARD_BORDER = '#0f1628'
-const GOLD        = '#c9a84c'
+const BG          = '#030311'
+const SURF        = '#09091f'
+const CARD_BORDER = '#1d1d4a'
+const GOLD        = '#fbbf24'
 const BLUE        = '#3b82f6'
 const GREEN       = '#10b981'
-const PURPLE      = '#a78bfa'
+const PURPLE      = '#8b5cf6'
 const RED         = '#ef4444'
-const TEXT2       = '#4a5a7a'
-const MUTED       = '#2a3a5a'
+const TEXT2       = '#64748b'
+const MUTED       = '#1d1d4a'
 
 const CATEGORIES = [
   'Sales Psychology',
@@ -242,7 +242,7 @@ export default function Arsenal() {
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
           <span style={{ fontSize: 9, fontWeight: 600, color: TEXT2, letterSpacing: '0.3em', textTransform: 'uppercase' }}>{todayLabel}</span>
           <span style={{
-            fontFamily: '"Barlow Condensed", "Barlow", sans-serif',
+            fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
             fontSize: 22, fontWeight: 900, color: 'white',
             textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1,
           }}>ARSENAL</span>
@@ -335,7 +335,7 @@ export default function Arsenal() {
                 <div style={{ fontSize: 9, fontWeight: 600, color: BLUE, textTransform: 'uppercase', letterSpacing: '0.25em', marginBottom: 6 }}>
                   MOST RELEVANT — {contextResult.category}
                 </div>
-                <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontSize: 17, fontWeight: 700, color: 'white', marginBottom: 6 }}>{contextResult.title}</div>
+                <div style={{ fontFamily: '"Orbitron", "Space Grotesk", sans-serif', fontSize: 17, fontWeight: 700, color: 'white', marginBottom: 6 }}>{contextResult.title}</div>
                 {contextResult.keyPrinciple && (
                   <p style={{ fontSize: 12, color: '#d1d5db', margin: '0 0 8px', fontStyle: 'italic' }}>{contextResult.keyPrinciple}</p>
                 )}
@@ -697,7 +697,7 @@ function KnowledgeCard({ entry, onDelete }) {
 
       {/* Title */}
       <div style={{
-        fontFamily: '"Barlow Condensed", "Barlow", sans-serif',
+        fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
         fontSize: 16, fontWeight: 700,
         color: 'white', lineHeight: 1.2, marginBottom: 6,
       }}>{entry.title}</div>

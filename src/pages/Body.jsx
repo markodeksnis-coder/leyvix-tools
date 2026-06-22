@@ -4,20 +4,27 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today as getToday } from '../utils'
 
 // ─── Design tokens ───────────────────────────────────────────────
-const BG          = '#030508'
-const SURF        = '#06090f'
-const CARD_BORDER = '#0f1628'
-const GOLD        = '#c9a84c'
+const BG          = '#030311'
+const SURF        = '#09091f'
+const CARD_BG     = '#0d0d28'
+const CARD_BORDER = '#1d1d4a'
+const GOLD        = '#fbbf24'
+const CYAN        = '#22d3ee'
 const BLUE        = '#3b82f6'
 const GREEN       = '#10b981'
-const PURPLE      = '#a78bfa'
-const RED         = '#ef4444'
-const TEXT2       = '#4a5a7a'
-const MUTED       = '#2a3a5a'
+const PURPLE      = '#8b5cf6'
+const PINK        = '#e879f9'
+const RED         = '#f43f5e'
+const TEXT2       = '#94a3b8'
+const MUTED       = '#64748b'
+
+const HEADING_STYLE = {
+  fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
+}
 
 const S = {
   sectionLabel: {
-    fontFamily: 'Inter',
+    fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
     fontSize: 9,
     fontWeight: 600,
     letterSpacing: '0.3em',
@@ -37,8 +44,8 @@ const S = {
     boxSizing: 'border-box',
   },
   goldBtn: {
-    background: GOLD,
-    color: '#000',
+    background: 'linear-gradient(135deg, #10b981, #059669)',
+    color: 'white',
     border: 'none',
     borderRadius: 6,
     padding: '7px 16px',
@@ -47,6 +54,7 @@ const S = {
     fontWeight: 700,
     cursor: 'pointer',
     letterSpacing: '0.04em',
+    boxShadow: '0 0 16px rgba(16,185,129,0.35)',
   },
   blueBtn: {
     background: BLUE,
@@ -72,7 +80,7 @@ const S = {
 }
 
 // ─── Sub-components ───────────────────────────────────────────────
-function SectionLabel({ children, color = TEXT2 }) {
+function SectionLabel({ children, color = GREEN }) {
   return (
     <div style={{ ...S.sectionLabel, color, marginBottom: 12 }}>{children}</div>
   )
@@ -388,16 +396,19 @@ export default function Body() {
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
           <span style={{ fontFamily: 'Inter', fontSize: 11, color: TEXT2, letterSpacing: '0.05em' }}>{dateLabel}</span>
           <span style={{
-            fontFamily: '"Barlow Condensed", sans-serif',
-            fontSize: 22,
+            fontFamily: '"Orbitron", sans-serif',
             fontWeight: 900,
-            color: 'white',
+            fontSize: 22,
             textTransform: 'uppercase',
             letterSpacing: '0.06em',
+            background: 'linear-gradient(135deg, #10b981, #22d3ee)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
           }}>BODY</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <Pill color={BLUE}>{body.currentWeight ? `${body.currentWeight} KG` : '— KG'}</Pill>
+          <Pill color={CYAN}>{body.currentWeight ? `${body.currentWeight} KG` : '— KG'}</Pill>
           <Pill color={GREEN}>{proteinPct}% PROTEIN</Pill>
         </div>
       </div>
@@ -416,7 +427,7 @@ export default function Body() {
         <div style={{ flex: '0 0 55%', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
           {/* Section header */}
-          <SectionLabel color={BLUE}>MAIN LIFTS</SectionLabel>
+          <SectionLabel color={GREEN}>MAIN LIFTS</SectionLabel>
 
           {/* Lift rows */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -424,7 +435,13 @@ export default function Body() {
               const pr = prs[lift]
               const isOpen = openLift === lift
               return (
-                <div key={lift} style={{ background: SURF, border: `1px solid ${CARD_BORDER}`, borderRadius: 8, overflow: 'hidden' }}>
+                <div key={lift} style={{
+                  background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a20 100%)',
+                  border: '1px solid #1d1d4a',
+                  boxShadow: '0 0 0 1px rgba(16,185,129,0.08)',
+                  borderRadius: 8,
+                  overflow: 'hidden',
+                }}>
                   {/* Row */}
                   <div
                     onClick={() => handleLiftRowClick(lift)}
@@ -442,16 +459,16 @@ export default function Body() {
                       {pr ? (
                         <>
                           <div style={{
-                            fontFamily: '"Barlow Condensed", sans-serif',
+                            fontFamily: '"Orbitron", sans-serif',
                             fontSize: 24,
                             fontWeight: 900,
-                            color: GOLD,
+                            color: GREEN,
                             lineHeight: 1,
                           }}>{pr.weight}</div>
                           <div style={{ fontFamily: 'Inter', fontSize: 7, color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.2em', marginTop: 1 }}>PR</div>
                         </>
                       ) : (
-                        <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontSize: 24, fontWeight: 900, color: MUTED }}>—</div>
+                        <div style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 24, fontWeight: 900, color: MUTED }}>—</div>
                       )}
                     </div>
                   </div>
@@ -504,9 +521,9 @@ export default function Body() {
                                 flex: 1,
                                 padding: '6px 0',
                                 borderRadius: 6,
-                                border: `1px solid ${liftForm.feel >= n ? GOLD : CARD_BORDER}`,
-                                background: liftForm.feel >= n ? `${GOLD}20` : 'transparent',
-                                color: liftForm.feel >= n ? GOLD : TEXT2,
+                                border: `1px solid ${liftForm.feel >= n ? GREEN : CARD_BORDER}`,
+                                background: liftForm.feel >= n ? `${GREEN}20` : 'transparent',
+                                color: liftForm.feel >= n ? GREEN : TEXT2,
                                 fontFamily: 'Inter',
                                 fontSize: 14,
                                 cursor: 'pointer',
@@ -543,7 +560,13 @@ export default function Body() {
                 <Plus size={13} strokeWidth={2} /> LOG SESSION
               </button>
             ) : (
-              <div style={{ background: SURF, border: `1px solid ${CARD_BORDER}`, borderRadius: 8, padding: '12px 16px' }}>
+              <div style={{
+                background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a20 100%)',
+                border: '1px solid #1d1d4a',
+                boxShadow: '0 0 0 1px rgba(16,185,129,0.08)',
+                borderRadius: 8,
+                padding: '12px 16px',
+              }}>
                 <div style={{ marginBottom: 8 }}>
                   <div style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 4 }}>LIFT NAME</div>
                   <input
@@ -578,9 +601,9 @@ export default function Body() {
                         onClick={() => setCustomLiftForm(f => ({ ...f, feel: n }))}
                         style={{
                           flex: 1, padding: '6px 0', borderRadius: 6,
-                          border: `1px solid ${customLiftForm.feel >= n ? GOLD : CARD_BORDER}`,
-                          background: customLiftForm.feel >= n ? `${GOLD}20` : 'transparent',
-                          color: customLiftForm.feel >= n ? GOLD : TEXT2,
+                          border: `1px solid ${customLiftForm.feel >= n ? GREEN : CARD_BORDER}`,
+                          background: customLiftForm.feel >= n ? `${GREEN}20` : 'transparent',
+                          color: customLiftForm.feel >= n ? GREEN : TEXT2,
                           fontFamily: 'Inter', fontSize: 14, cursor: 'pointer',
                         }}
                       >★</button>
@@ -597,19 +620,20 @@ export default function Body() {
 
           {/* AI Coach Card */}
           <div style={{
-            background: '#0a1428',
-            border: `1px solid #1a2440`,
+            background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a20 100%)',
+            border: '1px solid #1d1d4a',
+            boxShadow: '0 0 0 1px rgba(16,185,129,0.08)',
             borderRadius: 8,
             padding: 14,
             marginTop: 4,
           }}>
-            <div style={{ fontFamily: 'Inter', fontSize: 8, fontWeight: 600, color: BLUE, textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 8 }}>AI COACH</div>
+            <div style={{ fontFamily: '"Orbitron", "Space Grotesk", sans-serif', fontSize: 8, fontWeight: 600, color: CYAN, textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 8 }}>AI COACH</div>
             {coachNudge ? (
               <div style={{ fontFamily: 'Inter', fontSize: 13, color: 'white', lineHeight: 1.5 }}>
                 Energy high today. Attempt{' '}
-                <span style={{ color: GOLD, fontWeight: 700 }}>{coachNudge.lift}</span>{' '}
+                <span style={{ color: GREEN, fontWeight: 700 }}>{coachNudge.lift}</span>{' '}
                 PR — try{' '}
-                <span style={{ color: GOLD, fontWeight: 700 }}>{coachNudge.suggested}kg</span>.{' '}
+                <span style={{ color: CYAN, fontWeight: 700 }}>{coachNudge.suggested}kg</span>.{' '}
                 <span style={{ color: TEXT2, fontSize: 11 }}>Last PR: {coachNudge.pr.weight}kg ({coachNudge.daysSince}d ago)</span>
               </div>
             ) : Object.keys(prs).length === 0 ? (
@@ -632,7 +656,13 @@ export default function Body() {
           <SectionLabel color={PURPLE}>NUTRITION TODAY</SectionLabel>
 
           {/* Progress bars */}
-          <div style={{ background: SURF, border: `1px solid ${CARD_BORDER}`, borderRadius: 8, padding: '14px 16px' }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a20 100%)',
+            border: '1px solid #1d1d4a',
+            boxShadow: '0 0 0 1px rgba(16,185,129,0.08)',
+            borderRadius: 8,
+            padding: '14px 16px',
+          }}>
             <ProgressBar
               label="Calories"
               current={Math.round(todayDiet.calories || 0)}
@@ -650,8 +680,14 @@ export default function Body() {
           </div>
 
           {/* Photo Meal Log */}
-          <div style={{ background: SURF, border: `1px solid ${CARD_BORDER}`, borderRadius: 8, padding: '14px 16px' }}>
-            <div style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: PURPLE, textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 10 }}>LOG MEAL</div>
+          <div style={{
+            background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a20 100%)',
+            border: '1px solid #1d1d4a',
+            boxShadow: '0 0 0 1px rgba(16,185,129,0.08)',
+            borderRadius: 8,
+            padding: '14px 16px',
+          }}>
+            <div style={{ fontFamily: '"Orbitron", "Space Grotesk", sans-serif', fontSize: 9, fontWeight: 600, color: PURPLE, textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 10 }}>LOG MEAL</div>
 
             {!photoPreview ? (
               <div
@@ -711,7 +747,7 @@ export default function Body() {
                           type="number"
                           value={photoConfirm.calories}
                           onChange={e => setPhotoConfirm(p => ({ ...p, calories: e.target.value }))}
-                          style={{ ...S.input, color: GOLD, fontWeight: 700, fontSize: 16 }}
+                          style={{ ...S.input, color: CYAN, fontWeight: 700, fontSize: 16 }}
                         />
                       </div>
                       <div>
@@ -741,7 +777,13 @@ export default function Body() {
           </div>
 
           {/* Nutrition Settings (collapsible) */}
-          <div style={{ background: SURF, border: `1px solid ${CARD_BORDER}`, borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a20 100%)',
+            border: '1px solid #1d1d4a',
+            boxShadow: '0 0 0 1px rgba(16,185,129,0.08)',
+            borderRadius: 8,
+            overflow: 'hidden',
+          }}>
             <button
               onClick={() => setShowNutrSettings(s => !s)}
               style={{
@@ -785,14 +827,14 @@ export default function Body() {
 
           {/* Progress Photos */}
           <div>
-            <div style={{ ...S.sectionLabel, color: GOLD, marginBottom: 10 }}>PROGRESS PHOTOS</div>
+            <div style={{ ...S.sectionLabel, color: GREEN, marginBottom: 10 }}>PROGRESS PHOTOS</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
               {/* Upload button */}
               <div
                 onClick={() => progressPhotoInputRef.current?.click()}
                 style={{
                   aspectRatio: '3/4',
-                  background: SURF,
+                  background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a20 100%)',
                   border: `1px dashed ${MUTED}`,
                   borderRadius: 8,
                   display: 'flex',
@@ -802,7 +844,7 @@ export default function Body() {
                   cursor: 'pointer',
                   gap: 4,
                 }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = GOLD}
+                onMouseEnter={e => e.currentTarget.style.borderColor = GREEN}
                 onMouseLeave={e => e.currentTarget.style.borderColor = MUTED}
               >
                 <Plus size={18} color={MUTED} strokeWidth={1.5} />

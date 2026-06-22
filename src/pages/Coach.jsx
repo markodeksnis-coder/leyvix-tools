@@ -203,11 +203,11 @@ export default function Coach() {
 
   const KeyModal = () => (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.92)' }}>
-      <div style={{ background: '#0d1427', border: '1px solid #1a2440', width: '100%', maxWidth: 448, margin: '0 16px', padding: 32, borderRadius: 12 }}>
+      <div style={{ background: '#0d0d28', border: '1px solid #1d1d4a', width: '100%', maxWidth: 448, margin: '0 16px', padding: 32, borderRadius: 12 }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={{ color: '#c9a84c', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>⚡</div>
+          <div style={{ color: '#a78bfa', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>⚡</div>
           <h2 style={{ fontFamily: 'Inter', fontSize: 18, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#fff', marginBottom: 8 }}>Anthropic API Key Required</h2>
-          <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0aec0' }}>Stored locally. Never sent anywhere except Anthropic.</p>
+          <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#94a3b8' }}>Stored locally. Never sent anywhere except Anthropic.</p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <input
@@ -217,11 +217,11 @@ export default function Coach() {
             onKeyDown={e => e.key === 'Enter' && saveKey()}
             placeholder="sk-ant-..."
             autoFocus
-            style={{ width: '100%', background: '#000000', border: '1px solid #1a2440', padding: '12px', fontSize: 14, color: '#fff', fontFamily: 'monospace', outline: 'none', boxSizing: 'border-box', borderRadius: 6 }}
-            onFocus={e => e.target.style.borderColor = '#c9a84c'}
-            onBlur={e => e.target.style.borderColor = '#1a2440'}
+            style={{ width: '100%', background: '#030311', border: '1px solid #1d1d4a', padding: '12px', fontSize: 14, color: '#fff', fontFamily: 'monospace', outline: 'none', boxSizing: 'border-box', borderRadius: 6 }}
+            onFocus={e => e.target.style.borderColor = '#a78bfa'}
+            onBlur={e => e.target.style.borderColor = '#1d1d4a'}
           />
-          <button onClick={saveKey} style={{ width: '100%', padding: '12px', background: '#c9a84c', color: '#000', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer', borderRadius: 6 }}>
+          <button onClick={saveKey} style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: 'white', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer', borderRadius: 6, boxShadow: '0 0 20px rgba(139,92,246,0.4)' }}>
             Save & Start
           </button>
         </div>
@@ -230,43 +230,43 @@ export default function Coach() {
   )
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#000000' }}>
+    <div className="h-full flex flex-col" style={{ background: '#030311' }}>
       {showKeyModal && <KeyModal />}
 
       {/* Page Header */}
-      <div style={{ background: '#000000', borderBottom: '1px solid #1a2440', padding: '20px 32px', flexShrink: 0 }}>
+      <div style={{ background: '#030311', borderBottom: '1px solid #1d1d4a', padding: '20px 32px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
-              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#a0aec0', letterSpacing: '0.12em', textTransform: 'uppercase' }}>AI COMMAND LINK ACTIVE</span>
+              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#94a3b8', letterSpacing: '0.12em', textTransform: 'uppercase' }}>AI COMMAND LINK ACTIVE</span>
             </div>
-            <h1 style={{ fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(180deg,#c9a84c 0%,#c9a84c 60%,#c9a84c 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>
+            <h1 style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em', background: 'linear-gradient(135deg, #a78bfa, #6366f1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>
               COACH
             </h1>
-            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>OPERATOR AI // STRATEGIC ADVISOR</p>
+            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#94a3b8', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>OPERATOR AI // STRATEGIC ADVISOR</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {messages.length > 0 && (
               <button
                 onClick={() => { if (window.confirm('Start new session?')) setMessages([]) }}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', border: '1px solid #1a2440', color: '#a0aec0', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', border: '1px solid #1d1d4a', color: '#94a3b8', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
               >
                 <Plus size={9} /> New Session
               </button>
             )}
             <button
               onClick={() => { setKeyDraft(apiKey); setShowKeyModal(true) }}
-              style={{ color: '#a0aec0', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 6 }}
+              style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 6 }}
               onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-              onMouseLeave={e => e.currentTarget.style.color = '#a0aec0'}
+              onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
             >
               <Settings size={14} strokeWidth={1.5} />
             </button>
             {apiKey ? (
               <span style={{ fontSize: 9, fontFamily: 'Inter', color: 'rgba(34,197,94,0.7)', border: '1px solid rgba(34,197,94,0.2)', padding: '4px 8px', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Key ✓</span>
             ) : (
-              <span style={{ fontSize: 9, fontFamily: 'Inter', color: 'rgba(201,168,76,0.7)', border: '1px solid rgba(201,168,76,0.2)', padding: '4px 8px', textTransform: 'uppercase', letterSpacing: '0.12em' }}>No Key</span>
+              <span style={{ fontSize: 9, fontFamily: 'Inter', color: 'rgba(167,139,250,0.7)', border: '1px solid rgba(167,139,250,0.2)', padding: '4px 8px', textTransform: 'uppercase', letterSpacing: '0.12em' }}>No Key</span>
             )}
           </div>
         </div>
@@ -276,10 +276,10 @@ export default function Coach() {
       <div className="flex-1 overflow-auto" style={{ padding: '24px 32px' }}>
         {messages.length === 0 && !loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 24, textAlign: 'center', maxWidth: 448, margin: '0 auto' }}>
-            <Bot size={28} style={{ color: '#1a2440' }} strokeWidth={1} />
+            <Bot size={28} style={{ color: '#1d1d4a' }} strokeWidth={1} />
             <div>
-              <p style={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 500, color: '#a0aec0' }}>Your coach is ready</p>
-              <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0aec0', marginTop: 4 }}>
+              <p style={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 500, color: '#94a3b8' }}>Your coach is ready</p>
+              <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#94a3b8', marginTop: 4 }}>
                 {apiKey ? 'Full context loaded from all your data.' : 'Set your API key to start.'}
               </p>
             </div>
@@ -288,9 +288,9 @@ export default function Coach() {
                 <button
                   key={p}
                   onClick={() => { setInput(p); textareaRef.current?.focus() }}
-                  style={{ width: '100%', textAlign: 'left', padding: '12px 16px', border: '1px solid #1a2440', fontSize: 12, color: '#a0aec0', background: '#0d1427', cursor: 'pointer', borderRadius: 8, fontFamily: 'Inter', transition: 'all 0.15s' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#c9a84c'; e.currentTarget.style.color = '#fff' }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#1a2440'; e.currentTarget.style.color = '#a0aec0' }}
+                  style={{ width: '100%', textAlign: 'left', padding: '12px 16px', border: '1px solid #1d1d4a', fontSize: 12, color: '#94a3b8', background: '#0d0d28', cursor: 'pointer', borderRadius: 8, fontFamily: 'Inter', transition: 'all 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#a78bfa'; e.currentTarget.style.color = '#fff' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#1d1d4a'; e.currentTarget.style.color = '#94a3b8' }}
                 >
                   {p}
                 </button>
@@ -304,18 +304,19 @@ export default function Coach() {
                 <div style={{
                   width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2,
                   fontSize: 10, fontFamily: 'monospace', fontWeight: 900,
-                  background: msg.role === 'user' ? '#fff' : '#0d1427',
-                  color: msg.role === 'user' ? '#000' : '#a0aec0',
-                  border: msg.role === 'user' ? '1px solid #fff' : '1px solid #1a2440',
+                  background: msg.role === 'user' ? '#fff' : '#0d0d28',
+                  color: msg.role === 'user' ? '#000' : '#94a3b8',
+                  border: msg.role === 'user' ? '1px solid #fff' : '1px solid rgba(167,139,250,0.2)',
                   borderRadius: 4,
                 }}>
                   {msg.role === 'user' ? 'M' : <Bot size={11} />}
                 </div>
                 <div style={{
                   maxWidth: '85%', padding: '12px 16px', fontSize: 14, lineHeight: 1.6,
-                  background: msg.role === 'user' ? 'rgba(201,168,76,0.12)' : '#0d1427',
-                  border: msg.role === 'user' ? '1px solid rgba(201,168,76,0.2)' : '1px solid #1a2440',
-                  borderLeft: msg.role === 'assistant' ? '2px solid #c9a84c' : undefined,
+                  background: msg.role === 'user' ? 'rgba(167,139,250,0.1)' : 'linear-gradient(135deg, #0d0d28, #0a0a1e)',
+                  border: msg.role === 'user' ? '1px solid rgba(167,139,250,0.2)' : '1px solid rgba(167,139,250,0.2)',
+                  borderLeft: msg.role === 'assistant' ? '2px solid #a78bfa' : undefined,
+                  boxShadow: msg.role === 'assistant' ? '0 0 20px rgba(99,102,241,0.1)' : undefined,
                   color: msg.role === 'user' ? '#fff' : '#999',
                   borderRadius: 8,
                 }}>
@@ -325,14 +326,14 @@ export default function Coach() {
             ))}
             {loading && (
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                <div style={{ width: 24, height: 24, border: '1px solid #1a2440', background: '#0d1427', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2, borderRadius: 4 }}>
-                  <Bot size={11} style={{ color: '#a0aec0' }} />
+                <div style={{ width: 24, height: 24, border: '1px solid rgba(167,139,250,0.2)', background: '#0d0d28', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2, borderRadius: 4 }}>
+                  <Bot size={11} style={{ color: '#94a3b8' }} />
                 </div>
-                <div style={{ background: '#0d1427', border: '1px solid #1a2440', borderLeft: '2px solid #c9a84c', padding: '12px 16px', borderRadius: 8 }}>
+                <div style={{ background: 'linear-gradient(135deg, #0d0d28, #0a0a1e)', border: '1px solid rgba(167,139,250,0.2)', borderLeft: '2px solid #a78bfa', padding: '12px 16px', borderRadius: 8, boxShadow: '0 0 20px rgba(99,102,241,0.1)' }}>
                   <div style={{ display: 'flex', gap: 4 }}>
-                    <div className="w-1 h-1 animate-bounce" style={{ width: 4, height: 4, background: '#a0aec0', animationDelay: '0ms' }} />
-                    <div className="w-1 h-1 animate-bounce" style={{ width: 4, height: 4, background: '#a0aec0', animationDelay: '150ms' }} />
-                    <div className="w-1 h-1 animate-bounce" style={{ width: 4, height: 4, background: '#a0aec0', animationDelay: '300ms' }} />
+                    <div className="w-1 h-1 animate-bounce" style={{ width: 4, height: 4, background: '#94a3b8', animationDelay: '0ms' }} />
+                    <div className="w-1 h-1 animate-bounce" style={{ width: 4, height: 4, background: '#94a3b8', animationDelay: '150ms' }} />
+                    <div className="w-1 h-1 animate-bounce" style={{ width: 4, height: 4, background: '#94a3b8', animationDelay: '300ms' }} />
                   </div>
                 </div>
               </div>
@@ -346,7 +347,7 @@ export default function Coach() {
       </div>
 
       {/* Chat input area */}
-      <div style={{ padding: '16px 32px', borderTop: '1px solid #1a2440', flexShrink: 0, background: '#0d1427' }}>
+      <div style={{ padding: '16px 32px', borderTop: '1px solid #1d1d4a', flexShrink: 0, background: '#0d0d28' }}>
         <div style={{ maxWidth: 768, margin: '0 auto' }}>
           <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
             <textarea
@@ -357,19 +358,19 @@ export default function Coach() {
               placeholder={apiKey ? 'Ask your coach...' : 'Set API key first...'}
               rows={1}
               disabled={!apiKey}
-              style={{ flex: 1, background: '#000000', border: '1px solid #1a2440', padding: '12px 16px', fontSize: 14, color: '#fff', resize: 'none', outline: 'none', overflow: 'hidden', fontFamily: 'Inter', opacity: apiKey ? 1 : 0.3, borderRadius: 8, transition: 'border-color 0.15s' }}
-              onFocus={e => e.target.style.borderColor = '#c9a84c'}
-              onBlur={e => e.target.style.borderColor = '#1a2440'}
+              style={{ flex: 1, background: '#030311', border: '1px solid #1d1d4a', padding: '12px 16px', fontSize: 14, color: '#fff', resize: 'none', outline: 'none', overflow: 'hidden', fontFamily: 'Inter', opacity: apiKey ? 1 : 0.3, borderRadius: 8, transition: 'border-color 0.15s' }}
+              onFocus={e => e.target.style.borderColor = '#a78bfa'}
+              onBlur={e => e.target.style.borderColor = '#1d1d4a'}
             />
             <button
               onClick={sendMessage}
               disabled={loading || !input.trim() || !apiKey}
-              style={{ padding: '12px 20px', background: '#c9a84c', color: '#000', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0, borderRadius: 8, opacity: (loading || !input.trim() || !apiKey) ? 0.2 : 1, transition: 'opacity 0.15s' }}
+              style={{ padding: '12px 20px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0, borderRadius: 8, opacity: (loading || !input.trim() || !apiKey) ? 0.2 : 1, transition: 'opacity 0.15s', boxShadow: '0 0 20px rgba(139,92,246,0.4)' }}
             >
               <Send size={14} />
             </button>
           </div>
-          <div style={{ fontSize: 9, fontFamily: 'Inter', color: '#1a2440', marginTop: 8, display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: 9, fontFamily: 'Inter', color: '#1d1d4a', marginTop: 8, display: 'flex', justifyContent: 'space-between' }}>
             <span>Context built from all sections in real-time</span>
             <span>{messages.length} messages</span>
           </div>

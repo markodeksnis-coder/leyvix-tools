@@ -3,17 +3,19 @@ import { today } from '../utils'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
-const BG          = '#030508'
-const SURF        = '#06090f'
-const CARD_BG     = '#06090f'
-const CARD_BORDER = '#0f1628'
-const GOLD        = '#c9a84c'
+const BG          = '#030311'
+const SURF        = '#09091f'
+const CARD_BG     = '#0d0d28'
+const CARD_BORDER = '#1d1d4a'
+const GOLD        = '#fbbf24'
+const CYAN        = '#22d3ee'
 const BLUE        = '#3b82f6'
 const GREEN       = '#10b981'
-const PURPLE      = '#a78bfa'
-const RED         = '#ef4444'
-const TEXT2       = '#4a5a7a'
-const MUTED       = '#2a3a5a'
+const PURPLE      = '#8b5cf6'
+const PINK        = '#e879f9'
+const RED         = '#f43f5e'
+const TEXT2       = '#94a3b8'
+const MUTED       = '#64748b'
 
 const LABEL_STYLE = {
   fontFamily: 'Inter, sans-serif',
@@ -25,19 +27,19 @@ const LABEL_STYLE = {
 }
 
 const HEADING_STYLE = {
-  fontFamily: '"Barlow Condensed", "Barlow", sans-serif',
-  fontWeight: 900,
+  fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
+  fontWeight: 700,
   textTransform: 'uppercase',
 }
 
 const TOOLTIP_PROPS = {
   contentStyle: {
-    background: '#06090f',
-    border: '1px solid #0f1628',
+    background: '#0d0d28',
+    border: '1px solid #1d1d4a',
     fontSize: 10,
     fontFamily: 'Inter, sans-serif',
   },
-  labelStyle: { color: '#4a5a7a' },
+  labelStyle: { color: '#94a3b8' },
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -175,8 +177,9 @@ function Pill({ children, color }) {
 function StatBlock({ accent, label, value, delta }) {
   return (
     <div style={{
-      background: CARD_BG,
-      border: `1px solid ${CARD_BORDER}`,
+      background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a24 100%)',
+      border: '1px solid #1d1d4a',
+      boxShadow: '0 0 0 1px rgba(139,92,246,0.1), inset 0 1px 0 rgba(139,92,246,0.05)',
       borderTop: `2px solid ${accent}`,
       padding: 16,
       flex: 1,
@@ -184,7 +187,9 @@ function StatBlock({ accent, label, value, delta }) {
     }}>
       <div style={{ ...LABEL_STYLE, marginBottom: 8 }}>{label}</div>
       <div style={{
-        ...HEADING_STYLE,
+        fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
+        fontWeight: 900,
+        textTransform: 'uppercase',
         fontSize: 40,
         lineHeight: 1,
         color: accent,
@@ -207,8 +212,9 @@ function StatBlock({ accent, label, value, delta }) {
 function GraphBox({ title, footer, children }) {
   return (
     <div style={{
-      background: CARD_BG,
-      border: `1px solid ${CARD_BORDER}`,
+      background: 'linear-gradient(135deg, #0d0d28 0%, #0a0a24 100%)',
+      border: '1px solid #1d1d4a',
+      boxShadow: '0 0 0 1px rgba(139,92,246,0.1), inset 0 1px 0 rgba(139,92,246,0.05)',
       padding: 16,
       display: 'flex',
       flexDirection: 'column',
@@ -401,9 +407,14 @@ export default function Record() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <div style={{ ...LABEL_STYLE }}>{dateDisplay}</div>
           <div style={{
-            ...HEADING_STYLE,
+            fontFamily: '"Orbitron", sans-serif',
+            fontWeight: 900,
             fontSize: 22,
-            color: '#ffffff',
+            textTransform: 'uppercase',
+            background: 'linear-gradient(135deg, #8b5cf6, #22d3ee)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
             lineHeight: 1,
           }}>
             THE RECORD
@@ -413,7 +424,7 @@ export default function Record() {
         {/* Right: pills */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <Pill color={GOLD}>🔥 {streak}d</Pill>
-          <Pill color={BLUE}>{todayTotal > 0 ? `${todayPct}%` : '—'}</Pill>
+          <Pill color={CYAN}>{todayTotal > 0 ? `${todayPct}%` : '—'}</Pill>
         </div>
       </div>
 
@@ -430,7 +441,7 @@ export default function Record() {
           delta={`longest: ${longestStreak}d`}
         />
         <StatBlock
-          accent={BLUE}
+          accent={CYAN}
           label="BODY WEIGHT"
           value={latestWeight != null ? `${latestWeight}` : '—'}
           delta={latestWeight != null ? 'kg' : '—'}
@@ -485,7 +496,7 @@ export default function Record() {
                   <Tooltip {...TOOLTIP_PROPS} />
                   <Bar dataKey="weight" radius={[1, 1, 0, 0]}>
                     {weightData.map((entry, i) => (
-                      <Cell key={i} fill={entry.isToday ? GOLD : BLUE} />
+                      <Cell key={i} fill={entry.isToday ? GOLD : CYAN} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -493,7 +504,7 @@ export default function Record() {
               <div style={{
                 ...HEADING_STYLE,
                 fontSize: 24,
-                color: BLUE,
+                color: CYAN,
                 marginTop: 4,
               }}>
                 {latestWeight != null ? `${latestWeight} kg` : '—'}

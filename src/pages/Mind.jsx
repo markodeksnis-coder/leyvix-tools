@@ -7,8 +7,8 @@ import { fmtShort } from '../utils'
 const CATEGORIES = ['Sales Psychology','Human Behavior','Theology','Business Frameworks','Fitness Science','Relationships','Door-to-Door','Reading People','Other']
 
 const cls = {
-  input: "w-full bg-[#000000] border border-[#1a2440] px-3 py-2 text-sm text-white placeholder-[#a0aec0] focus:outline-none focus:border-[#c9a84c] transition-colors",
-  label: "block text-[9px] font-mono uppercase tracking-widest text-[#a0aec0] mb-1.5",
+  input: "w-full bg-[#09091f] border border-[#1d1d4a] px-3 py-2 text-sm text-white placeholder-[#94a3b8] focus:outline-none focus:border-[#e879f9] transition-colors",
+  label: "block text-[9px] font-mono uppercase tracking-widest text-[#94a3b8] mb-1.5",
 }
 
 async function formatWithAI(rawNotes, source) {
@@ -151,64 +151,64 @@ export default function Mind() {
   const lastEntry = [...entries].sort((a, b) => b.date > a.date ? 1 : -1)[0]
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#000000' }}>
+    <div className="h-full flex flex-col" style={{ background: '#030311' }}>
       {/* Header */}
-      <div style={{ background: '#000000', borderBottom: '1px solid #1a2440', padding: '20px 32px', flexShrink: 0, position: 'relative' }}>
+      <div style={{ background: '#030311', borderBottom: '1px solid #1d1d4a', padding: '20px 32px', flexShrink: 0, position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
-          <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#a0aec0', letterSpacing: '0.12em', textTransform: 'uppercase' }}>KNOWLEDGE ACQUISITION ACTIVE</span>
+          <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#94a3b8', letterSpacing: '0.12em', textTransform: 'uppercase' }}>KNOWLEDGE ACQUISITION ACTIVE</span>
         </div>
         <h1 style={{
-          fontFamily: '"Bebas Neue",cursive', fontSize: 64, fontWeight: 400, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em',
-          background: 'linear-gradient(180deg,#c9a84c 0%,#c9a84c 60%,#c9a84c 100%)',
+          fontFamily: '"Orbitron", sans-serif', fontWeight: 900, fontSize: 64, lineHeight: 0.9, fontStyle: 'italic', letterSpacing: '0.02em',
+          background: 'linear-gradient(135deg, #e879f9, #a78bfa)',
           WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0
         }}>
           MIND
         </h1>
-        <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0aec0', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>KNOWLEDGE BASE // LEARNING VAULT</p>
+        <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#94a3b8', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>KNOWLEDGE BASE // LEARNING VAULT</p>
         {/* Add Entry button */}
         <button
           onClick={() => setShowModal(true)}
-          style={{ position: 'absolute', right: 32, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#c9a84c', color: '#000', border: 'none', borderRadius: 8, fontFamily: 'Inter', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}
+          style={{ position: 'absolute', right: 32, top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: 'linear-gradient(135deg, #e879f9, #a855f7)', color: 'white', border: 'none', borderRadius: 8, fontFamily: 'Inter', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 16px rgba(232,121,249,0.4)' }}
         >
           <Plus size={11} strokeWidth={2.5} /> Add Entry
         </button>
       </div>
 
       {/* Stats bar */}
-      <div style={{ padding: '8px 32px', borderBottom: '1px solid #1a2440', display: 'flex', gap: 20, flexWrap: 'wrap', flexShrink: 0 }}>
-        <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-          Total: <span style={{ color: '#a0aec0' }}>{total}</span>
+      <div style={{ padding: '8px 32px', borderBottom: '1px solid #1d1d4a', display: 'flex', gap: 20, flexWrap: 'wrap', flexShrink: 0 }}>
+        <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+          Total: <span style={{ fontFamily: '"Orbitron", sans-serif', fontWeight: 900, color: '#e879f9' }}>{total}</span>
         </span>
-        <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-          This month: <span style={{ color: '#a0aec0' }}>{monthCount}</span>
+        <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+          This month: <span style={{ fontFamily: '"Orbitron", sans-serif', fontWeight: 900, color: '#e879f9' }}>{monthCount}</span>
         </span>
-        <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-          Top: <span style={{ color: '#c9a84c' }}>{topCat}</span>
+        <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+          Top: <span style={{ fontFamily: '"Orbitron", sans-serif', fontWeight: 900, color: '#e879f9' }}>{topCat}</span>
         </span>
         {lastEntry && (
-          <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-            Last: <span style={{ color: '#a0aec0' }}>{fmtShort(lastEntry.date)}</span>
+          <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+            Last: <span style={{ color: '#94a3b8' }}>{fmtShort(lastEntry.date)}</span>
           </span>
         )}
       </div>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left panel: categories */}
-        <div style={{ width: 208, borderRight: '1px solid #1a2440', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto', background: '#0d1427' }}>
+        <div style={{ width: 208, borderRight: '1px solid #1d1d4a', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto', background: '#0d0d28' }}>
           <button
             onClick={() => setActiveCat('All')}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               padding: '12px 20px', textAlign: 'left',
-              borderBottom: '1px solid #1a2440',
-              borderLeft: activeCat === 'All' ? '2px solid #c9a84c' : '2px solid transparent',
-              background: activeCat === 'All' ? 'rgba(201,168,76,0.08)' : 'transparent',
+              borderBottom: '1px solid #1d1d4a',
+              borderLeft: activeCat === 'All' ? '2px solid #e879f9' : '2px solid transparent',
+              background: activeCat === 'All' ? 'rgba(232,121,249,0.08)' : 'transparent',
               cursor: 'pointer', transition: 'all 0.15s',
             }}
           >
-            <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: activeCat === 'All' ? 'white' : '#a0aec0' }}>All</span>
-            <span style={{ fontFamily: 'Inter', fontSize: 9, background: '#000000', padding: '2px 6px', color: '#a0aec0' }}>{total}</span>
+            <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: activeCat === 'All' ? '#e879f9' : '#94a3b8' }}>All</span>
+            <span style={{ fontFamily: 'Inter', fontSize: 9, background: '#030311', padding: '2px 6px', color: '#94a3b8' }}>{total}</span>
           </button>
           {CATEGORIES.map(cat => (
             <button
@@ -217,43 +217,43 @@ export default function Mind() {
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '12px 20px', textAlign: 'left',
-                borderBottom: '1px solid #1a2440',
-                borderLeft: activeCat === cat ? '2px solid #c9a84c' : '2px solid transparent',
-                background: activeCat === cat ? 'rgba(201,168,76,0.08)' : 'transparent',
+                borderBottom: '1px solid #1d1d4a',
+                borderLeft: activeCat === cat ? '2px solid #e879f9' : '2px solid transparent',
+                background: activeCat === cat ? 'rgba(232,121,249,0.08)' : 'transparent',
                 cursor: 'pointer', transition: 'all 0.15s',
               }}
-              onMouseEnter={e => { if (activeCat !== cat) e.currentTarget.querySelector('span').style.color = '#a0aec0' }}
-              onMouseLeave={e => { if (activeCat !== cat) e.currentTarget.querySelector('span').style.color = '#a0aec0' }}
+              onMouseEnter={e => { if (activeCat !== cat) e.currentTarget.querySelector('span').style.color = '#94a3b8' }}
+              onMouseLeave={e => { if (activeCat !== cat) e.currentTarget.querySelector('span').style.color = '#94a3b8' }}
             >
-              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', lineHeight: 1.3, color: activeCat === cat ? 'white' : '#a0aec0' }}>{cat}</span>
-              {counts[cat] > 0 && <span style={{ fontFamily: 'Inter', fontSize: 9, background: '#000000', padding: '2px 6px', color: '#a0aec0', flexShrink: 0, marginLeft: 4 }}>{counts[cat]}</span>}
+              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', lineHeight: 1.3, color: activeCat === cat ? '#e879f9' : '#94a3b8' }}>{cat}</span>
+              {counts[cat] > 0 && <span style={{ fontFamily: 'Inter', fontSize: 9, background: '#030311', padding: '2px 6px', color: '#94a3b8', flexShrink: 0, marginLeft: 4 }}>{counts[cat]}</span>}
             </button>
           ))}
         </div>
 
         {/* Right panel: entries */}
         <div className="flex-1 overflow-auto flex flex-col">
-          <div style={{ padding: '12px 24px', borderBottom: '1px solid #1a2440', flexShrink: 0 }}>
+          <div style={{ padding: '12px 24px', borderBottom: '1px solid #1d1d4a', flexShrink: 0 }}>
             <div style={{ position: 'relative' }}>
-              <Search size={13} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#a0aec0' }} />
+              <Search size={13} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search entries..."
-                style={{ width: '100%', background: '#000000', border: '1px solid #1a2440', paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, fontSize: 14, color: '#a0aec0', outline: 'none', fontFamily: 'Inter', borderRadius: 8, boxSizing: 'border-box' }}
-                onFocus={e => e.currentTarget.style.borderColor = '#c9a84c'}
-                onBlur={e => e.currentTarget.style.borderColor = '#1a2440'}
+                style={{ width: '100%', background: '#030311', border: '1px solid #1d1d4a', paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, fontSize: 14, color: '#94a3b8', outline: 'none', fontFamily: 'Inter', borderRadius: 8, boxSizing: 'border-box' }}
+                onFocus={e => e.currentTarget.style.borderColor = '#e879f9'}
+                onBlur={e => e.currentTarget.style.borderColor = '#1d1d4a'}
               />
             </div>
           </div>
 
           {/* Contextual Search Panel */}
-          <div style={{ margin: '12px 24px 0', background: '#0d1427', border: '1px solid #1a2440', borderRadius: 10, flexShrink: 0 }}>
+          <div style={{ margin: '12px 24px 0', background: '#0d0d28', border: '1px solid #1d1d4a', borderRadius: 10, flexShrink: 0 }}>
             <button onClick={() => setShowContextSearch(!showContextSearch)}
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', background: 'none', border: 'none', cursor: 'pointer' }}>
               <span style={{ fontSize: 14 }}>🧠</span>
-              <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 600, color: '#c9a84c', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Find Relevant Card</span>
-              <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', marginLeft: 'auto' }}>Describe a problem you're facing</span>
+              <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 600, color: '#e879f9', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Find Relevant Card</span>
+              <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#94a3b8', marginLeft: 'auto' }}>Describe a problem you're facing</span>
             </button>
             {showContextSearch && (
               <div style={{ padding: '0 16px 16px' }}>
@@ -261,24 +261,24 @@ export default function Mind() {
                   <input value={contextQuery} onChange={e => setContextQuery(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleContextSearch()}
                     placeholder="e.g. I'm struggling with staying consistent..."
-                    style={{ flex: 1, background: '#000000', border: '1px solid #1a2440', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
+                    style={{ flex: 1, background: '#030311', border: '1px solid #1d1d4a', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
                   <button onClick={handleContextSearch} disabled={contextSearching}
-                    style={{ padding: '8px 14px', background: contextSearching ? '#1a2440' : '#c9a84c', color: contextSearching ? '#a0aec0' : '#000', border: 'none', borderRadius: 6, cursor: contextSearching ? 'not-allowed' : 'pointer', fontFamily: 'Inter', fontSize: 11, fontWeight: 700 }}>
+                    style={{ padding: '8px 14px', background: contextSearching ? '#1d1d4a' : 'linear-gradient(135deg, #e879f9, #a855f7)', color: contextSearching ? '#94a3b8' : 'white', border: 'none', borderRadius: 6, cursor: contextSearching ? 'not-allowed' : 'pointer', fontFamily: 'Inter', fontSize: 11, fontWeight: 700, boxShadow: contextSearching ? 'none' : '0 0 16px rgba(232,121,249,0.4)' }}>
                     {contextSearching ? '...' : 'Find'}
                   </button>
                 </div>
                 {contextError && <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#ef4444', margin: '0 0 8px' }}>{contextError}</p>}
                 {contextResult && (
-                  <div style={{ background: '#000000', border: '1px solid rgba(201,168,76,0.3)', borderLeft: '3px solid #c9a84c', borderRadius: 8, padding: 14 }}>
-                    <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#c9a84c', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>MOST RELEVANT — {contextResult.category}</div>
+                  <div style={{ background: '#030311', border: '1px solid rgba(232,121,249,0.3)', borderLeft: '3px solid #e879f9', borderRadius: 8, padding: 14 }}>
+                    <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#e879f9', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>MOST RELEVANT — {contextResult.category}</div>
                     <div style={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 600, color: 'white', marginBottom: 6 }}>{contextResult.title}</div>
-                    {contextResult.source && <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#a0aec0', marginBottom: 8 }}>Source: {contextResult.source}</div>}
+                    {contextResult.source && <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#94a3b8', marginBottom: 8 }}>Source: {contextResult.source}</div>}
                     {contextResult.keyPrinciple && <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#d1d5db', margin: 0 }}>{contextResult.keyPrinciple}</p>}
                     {contextResult.bullets && contextResult.bullets.length > 0 && (
                       <ul style={{ margin: '8px 0 0', padding: 0, listStyle: 'none' }}>
                         {contextResult.bullets.map((b, i) => (
                           <li key={i} style={{ display: 'flex', gap: 8, marginBottom: 4, fontFamily: 'Inter', fontSize: 12, color: '#d1d5db' }}>
-                            <span style={{ color: '#c9a84c' }}>→</span><span>{b}</span>
+                            <span style={{ color: '#e879f9' }}>→</span><span>{b}</span>
                           </li>
                         ))}
                       </ul>
@@ -291,42 +291,42 @@ export default function Mind() {
 
           <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
             {filtered.length === 0 ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 192, fontFamily: 'Inter', fontSize: 10, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.12em' }}>No entries</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 192, fontFamily: 'Inter', fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.12em' }}>No entries</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {filtered.map(entry => (
                   <div
                     key={entry.id}
-                    style={{ background: '#0d1427', border: '1px solid #1a2440', borderRadius: 8, padding: 16 }}
+                    style={{ background: 'linear-gradient(135deg, #0d0d28, #120a1f)', border: '1px solid rgba(232,121,249,0.15)', borderRadius: 12, padding: 16 }}
                     className="group"
-                    onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 12px rgba(201,168,76,0.08)'}
+                    onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 12px rgba(232,121,249,0.1)'}
                     onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
                   >
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                          <span style={{ fontFamily: 'Inter', fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#c9a84c' }}>{entry.category}</span>
-                          <span style={{ fontFamily: 'Inter', fontSize: 8, color: '#a0aec0' }}>{fmtShort(entry.date)}</span>
+                          <span style={{ fontFamily: 'Inter', fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#e879f9' }}>{entry.category}</span>
+                          <span style={{ fontFamily: 'Inter', fontSize: 8, color: '#94a3b8' }}>{fmtShort(entry.date)}</span>
                         </div>
                         <h3 style={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 600, color: 'white', margin: 0 }}>{entry.title}</h3>
                       </div>
                       <button
                         onClick={() => del(entry.id)}
-                        style={{ color: '#1a2440', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: 2 }}
-                        onMouseEnter={e => e.currentTarget.style.color = '#c9a84c'}
-                        onMouseLeave={e => e.currentTarget.style.color = '#1a2440'}
+                        style={{ color: '#1d1d4a', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: 2 }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#e879f9'}
+                        onMouseLeave={e => e.currentTarget.style.color = '#1d1d4a'}
                       >
                         <X size={12} />
                       </button>
                     </div>
                     {entry.keyPrinciple && (
-                      <div style={{ display: 'inline-block', marginBottom: 8, fontFamily: 'Inter', fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#c9a84c', border: '1px solid rgba(201,168,76,0.3)', padding: '2px 6px', borderRadius: 4 }}>{entry.keyPrinciple}</div>
+                      <div style={{ display: 'inline-block', marginBottom: 8, fontFamily: 'Inter', fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#e879f9', borderLeft: '3px solid #e879f9', paddingLeft: 8, paddingRight: 6, paddingTop: 2, paddingBottom: 2, borderRadius: 2 }}>{entry.keyPrinciple}</div>
                     )}
                     {entry.bullets && entry.bullets.length > 0 && (
                       <ul style={{ margin: '8px 0 0', padding: 0, listStyle: 'none' }}>
                         {entry.bullets.map((b, i) => (
                           <li key={i} style={{ display: 'flex', gap: 8, marginBottom: 4, fontFamily: 'Inter', fontSize: 12, color: '#d1d5db' }}>
-                            <span style={{ color: '#c9a84c', flexShrink: 0 }}>→</span>
+                            <span style={{ color: '#e879f9', flexShrink: 0 }}>→</span>
                             <span>{b}</span>
                           </li>
                         ))}
@@ -335,15 +335,15 @@ export default function Mind() {
                     {entry.tags && entry.tags.length > 0 && (
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
                         {entry.tags.map(tag => (
-                          <span key={tag} style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 700, color: '#c9a84c', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: 4, padding: '2px 7px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          <span key={tag} style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 700, color: '#e879f9', background: 'rgba(232,121,249,0.08)', border: '1px solid rgba(232,121,249,0.2)', borderRadius: 4, padding: '2px 7px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                             {tag}
                           </span>
                         ))}
                       </div>
                     )}
-                    {entry.summary && <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0aec0', lineHeight: 1.6, margin: '0 0 4px' }}>{entry.summary}</p>}
-                    {entry.note && <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#a0aec0', lineHeight: 1.6, fontStyle: 'italic', borderLeft: '2px solid rgba(201,168,76,0.25)', paddingLeft: 8, marginTop: 8, marginBottom: 0 }}>{entry.note}</p>}
-                    {entry.source && <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', marginTop: 8 }}>Source: {entry.source}</div>}
+                    {entry.summary && <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#94a3b8', lineHeight: 1.6, margin: '0 0 4px' }}>{entry.summary}</p>}
+                    {entry.note && <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#94a3b8', lineHeight: 1.6, fontStyle: 'italic', borderLeft: '2px solid rgba(232,121,249,0.35)', paddingLeft: 8, marginTop: 8, marginBottom: 0 }}>{entry.note}</p>}
+                    {entry.source && <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#94a3b8', marginTop: 8 }}>Source: {entry.source}</div>}
                   </div>
                 ))}
               </div>
@@ -356,12 +356,13 @@ export default function Mind() {
         <Modal title="New Entry" onClose={() => { setShowModal(false); setAiMode(false); setRawNotes(''); setRawSource(''); setAiError('') }}>
           <div className="space-y-4">
             {/* AI / Manual toggle */}
-            <div style={{ display: 'flex', gap: 1, marginBottom: 16, background: '#000000', borderRadius: 8, padding: 4, border: '1px solid #1a2440' }}>
+            <div style={{ display: 'flex', gap: 1, marginBottom: 16, background: '#030311', borderRadius: 8, padding: 4, border: '1px solid #1d1d4a' }}>
               {[['raw', 'Manual'], ['ai', 'AI Format ✨']].map(([mode, label]) => (
                 <button key={mode} onClick={() => { setAiMode(mode === 'ai'); setAiError('') }}
                   style={{ flex: 1, padding: '7px', fontFamily: 'Inter', fontSize: 11, fontWeight: 600, border: 'none', cursor: 'pointer', borderRadius: 6, transition: 'all 0.15s',
-                    background: (mode === 'ai') === aiMode ? '#c9a84c' : 'transparent',
-                    color: (mode === 'ai') === aiMode ? '#000' : '#a0aec0'
+                    background: (mode === 'ai') === aiMode ? 'linear-gradient(135deg, #e879f9, #a855f7)' : 'transparent',
+                    color: (mode === 'ai') === aiMode ? 'white' : '#94a3b8',
+                    boxShadow: (mode === 'ai') === aiMode && mode === 'ai' ? '0 0 16px rgba(232,121,249,0.4)' : 'none'
                   }}>{label}</button>
               ))}
             </div>
@@ -369,19 +370,19 @@ export default function Mind() {
             {aiMode ? (
               <div className="space-y-4">
                 <div>
-                  <label style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>Raw Notes / Takeaways</label>
+                  <label style={{ fontFamily: 'Inter', fontSize: 9, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>Raw Notes / Takeaways</label>
                   <textarea value={rawNotes} onChange={e => setRawNotes(e.target.value)} rows={6}
                     placeholder="Paste your raw notes, takeaways, or summary from any video, book, or podcast..."
-                    style={{ width: '100%', background: '#000000', border: '1px solid #1a2440', borderRadius: 8, padding: '10px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', background: '#030311', border: '1px solid #1d1d4a', borderRadius: 8, padding: '10px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }} />
                 </div>
                 <div>
-                  <label style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0aec0', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>Source</label>
+                  <label style={{ fontFamily: 'Inter', fontSize: 9, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>Source</label>
                   <input value={rawSource} onChange={e => setRawSource(e.target.value)} placeholder="Book title, video name, podcast episode..."
-                    style={{ width: '100%', background: '#000000', border: '1px solid #1a2440', borderRadius: 8, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', background: '#030311', border: '1px solid #1d1d4a', borderRadius: 8, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 {aiError && <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#ef4444', margin: 0 }}>{aiError}</p>}
                 <button onClick={handleAIFormat} disabled={aiFormatting || !rawNotes.trim()}
-                  style={{ width: '100%', padding: '11px', background: aiFormatting ? '#1a2440' : '#c9a84c', color: aiFormatting ? '#a0aec0' : '#000', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', borderRadius: 8, cursor: aiFormatting ? 'not-allowed' : 'pointer', fontFamily: 'Inter' }}>
+                  style={{ width: '100%', padding: '11px', background: aiFormatting ? '#1d1d4a' : 'linear-gradient(135deg, #e879f9, #a855f7)', color: aiFormatting ? '#94a3b8' : 'white', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', borderRadius: 8, cursor: aiFormatting ? 'not-allowed' : 'pointer', fontFamily: 'Inter', boxShadow: aiFormatting ? 'none' : '0 0 16px rgba(232,121,249,0.4)' }}>
                   {aiFormatting ? 'Formatting...' : '✨ Format with AI'}
                 </button>
               </div>
@@ -401,8 +402,8 @@ export default function Mind() {
                 </div>
                 <div><label className={cls.label}>Date</label><input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={cls.input} /></div>
                 <div className="flex gap-2 pt-1">
-                  <button onClick={addEntry} style={{ flex: 1, padding: '10px 0', background: '#c9a84c', color: '#000', fontFamily: 'Inter', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', borderRadius: 8, cursor: 'pointer' }}>Save Entry</button>
-                  <button onClick={() => { setShowModal(false); setAiMode(false); setRawNotes(''); setRawSource(''); setAiError('') }} style={{ padding: '10px 16px', background: 'transparent', color: '#a0aec0', fontFamily: 'Inter', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', border: '1px solid #1a2440', borderRadius: 8, cursor: 'pointer' }}>Cancel</button>
+                  <button onClick={addEntry} style={{ flex: 1, padding: '10px 0', background: 'linear-gradient(135deg, #e879f9, #a855f7)', color: 'white', fontFamily: 'Inter', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', borderRadius: 8, cursor: 'pointer', boxShadow: '0 0 16px rgba(232,121,249,0.4)' }}>Save Entry</button>
+                  <button onClick={() => { setShowModal(false); setAiMode(false); setRawNotes(''); setRawSource(''); setAiError('') }} style={{ padding: '10px 16px', background: 'transparent', color: '#94a3b8', fontFamily: 'Inter', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', border: '1px solid #1d1d4a', borderRadius: 8, cursor: 'pointer' }}>Cancel</button>
                 </div>
               </>
             )}
