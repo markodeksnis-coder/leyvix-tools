@@ -1,8 +1,9 @@
-import { CalendarCheck, Dumbbell, Brain, TrendingUp, Activity, Target, BarChart2, Briefcase, Users, Flame, Bot, Settings, Zap } from 'lucide-react'
+import { CalendarCheck, ClipboardCheck, Dumbbell, Brain, TrendingUp, Activity, Target, BarChart2, Briefcase, Users, Flame, Bot, Settings, Zap } from 'lucide-react'
 import { daysSinceStart } from '../utils'
 
 const PRIMARY = [
   { id: 'daily', label: 'Daily', Icon: CalendarCheck, color: '#8b5cf6' },
+  { id: 'check-in', label: 'Check-In', Icon: ClipboardCheck, color: '#fbbf24' },
   { id: 'body', label: 'Body', Icon: Dumbbell, color: '#10b981' },
   { id: 'mind', label: 'Mind', Icon: Brain, color: '#e879f9' },
   { id: 'growth-feed', label: 'Growth', Icon: TrendingUp, color: '#fbbf24' },
