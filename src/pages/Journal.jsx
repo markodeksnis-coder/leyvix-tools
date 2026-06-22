@@ -4,16 +4,16 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const C = {
-  BG:     '#030311',
-  SURF:   '#09091f',
-  CARD:   '#0d0d28',
-  BORDER: '#1d1d4a',
-  GOLD:   '#c9a84c',
-  RED:    '#ef4444',
+  BG:     '#020609',
+  SURF:   '#040810',
+  CARD:   '#080e1a',
+  BORDER: '#1e3050',
+  GOLD:   '#f0c040',
+  RED:    '#ff5555',
   PURPLE: '#8b5cf6',
-  GREEN:  '#10b981',
-  TEXT2:  '#94a3b8',
-  MUTED:  '#64748b',
+  GREEN:  '#1ad9a0',
+  TEXT2:  '#a0bcdf',
+  MUTED:  '#7a95c0',
   WHITE:  '#ffffff',
 }
 
@@ -63,9 +63,9 @@ function WinBadge({ isWin }) {
       fontWeight: 700,
       letterSpacing: '0.08em',
       fontFamily: 'Inter, sans-serif',
-      background: isWin ? 'rgba(201,168,76,0.15)' : 'rgba(239,68,68,0.15)',
-      color: isWin ? C.GOLD : C.RED,
-      border: `1px solid ${isWin ? 'rgba(201,168,76,0.35)' : 'rgba(239,68,68,0.35)'}`,
+      background: isWin ? C.GOLD : C.RED,
+      color: isWin ? '#000000' : '#ffffff',
+      border: 'none',
     }}>
       {isWin ? '★ WIN' : '✕ LOSS'}
     </span>
@@ -77,7 +77,7 @@ function ScorePill({ pct, isWin }) {
     <span style={{
       fontFamily: "'Barlow Condensed', sans-serif",
       fontWeight: 900,
-      fontSize: 20,
+      fontSize: 22,
       color: isWin ? C.GOLD : C.RED,
       letterSpacing: '0.02em',
     }}>
@@ -157,7 +157,7 @@ function NoteEditor({ note, onSave, onCancel }) {
           boxSizing: 'border-box',
           transition: 'border-color 0.15s',
         }}
-        onFocus={e => { e.target.style.borderColor = C.PURPLE }}
+        onFocus={e => { e.target.style.borderColor = C.GOLD }}
         onBlur={e => { e.target.style.borderColor = C.BORDER }}
       />
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
@@ -177,7 +177,7 @@ function NoteEditor({ note, onSave, onCancel }) {
           style={{
             display: 'flex', alignItems: 'center', gap: 4,
             padding: '6px 14px', borderRadius: 6, border: 'none',
-            background: C.PURPLE, color: C.WHITE, cursor: 'pointer',
+            background: C.GOLD, color: '#000', cursor: 'pointer',
             fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 700,
           }}
         >
@@ -225,7 +225,7 @@ function EntryCard({ entry, onSaveNote }) {
           <div style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 900,
-            fontSize: 32,
+            fontSize: 35,
             lineHeight: 1,
             color: C.GOLD,
             letterSpacing: '0.04em',
@@ -268,7 +268,7 @@ function EntryCard({ entry, onSaveNote }) {
             padding: '14px 16px',
             background: 'rgba(255,255,255,0.03)',
             borderRadius: 8,
-            borderLeft: `2px solid rgba(139,92,246,0.4)`,
+            borderLeft: `2px solid #1e3050`,
           }}>
             {entry.aiReflection}
           </p>
@@ -341,7 +341,7 @@ function EntryCard({ entry, onSaveNote }) {
                 letterSpacing: '0.05em',
                 transition: 'color 0.15s, border-color 0.15s',
               }}
-              onMouseEnter={e => { e.currentTarget.style.color = C.PURPLE; e.currentTarget.style.borderColor = C.PURPLE }}
+              onMouseEnter={e => { e.currentTarget.style.color = C.GOLD; e.currentTarget.style.borderColor = C.GOLD }}
               onMouseLeave={e => { e.currentTarget.style.color = C.MUTED; e.currentTarget.style.borderColor = C.BORDER }}
             >
               <Edit3 size={11} />
@@ -413,13 +413,13 @@ function EmptyState() {
         width: 72,
         height: 72,
         borderRadius: 20,
-        background: 'rgba(139,92,246,0.1)',
-        border: `1px solid rgba(139,92,246,0.25)`,
+        background: 'rgba(30,48,80,0.4)',
+        border: `1px solid #1e3050`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
       }}>
-        <BookOpen size={30} color={C.PURPLE} />
+        <BookOpen size={30} color={C.TEXT2} />
       </div>
       <div>
         <div style={{
@@ -477,13 +477,13 @@ export default function Journal() {
               width: 40,
               height: 40,
               borderRadius: 10,
-              background: 'rgba(139,92,246,0.15)',
-              border: `1px solid rgba(139,92,246,0.3)`,
+              background: 'rgba(30,48,80,0.4)',
+              border: `1px solid #1e3050`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-              <BookOpen size={20} color={C.PURPLE} />
+              <BookOpen size={20} color={C.TEXT2} />
             </div>
 
             {/* Entry count badge */}
@@ -494,8 +494,8 @@ export default function Journal() {
                 gap: 6,
                 padding: '4px 12px',
                 borderRadius: 99,
-                background: 'rgba(201,168,76,0.1)',
-                border: `1px solid rgba(201,168,76,0.25)`,
+                background: 'rgba(240,192,64,0.1)',
+                border: `1px solid rgba(240,192,64,0.3)`,
               }}>
                 <span style={{
                   fontFamily: 'Inter, sans-serif',
@@ -517,7 +517,7 @@ export default function Journal() {
             fontSize: 28,
             letterSpacing: '0.06em',
             margin: '12px 0 4px',
-            background: 'linear-gradient(135deg, #8b5cf6 0%, #c9a84c 100%)',
+            background: 'linear-gradient(135deg, #4d9fff 0%, #f0c040 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -549,22 +549,22 @@ export default function Journal() {
                 label: 'WIN DAYS',
                 value: journal.filter(e => e.isWin).length,
                 color: C.GOLD,
-                bg: 'rgba(201,168,76,0.08)',
-                border: 'rgba(201,168,76,0.2)',
+                bg: 'rgba(240,192,64,0.08)',
+                border: 'rgba(240,192,64,0.2)',
               },
               {
                 label: 'LOSS DAYS',
                 value: journal.filter(e => !e.isWin).length,
                 color: C.RED,
-                bg: 'rgba(239,68,68,0.08)',
-                border: 'rgba(239,68,68,0.2)',
+                bg: 'rgba(255,85,85,0.08)',
+                border: 'rgba(255,85,85,0.2)',
               },
               {
                 label: 'WIN RATE',
                 value: `${Math.round((journal.filter(e => e.isWin).length / journal.length) * 100)}%`,
-                color: C.PURPLE,
-                bg: 'rgba(139,92,246,0.08)',
-                border: 'rgba(139,92,246,0.2)',
+                color: C.TEXT2,
+                bg: 'rgba(30,48,80,0.2)',
+                border: '#1e3050',
               },
             ].map(stat => (
               <div key={stat.label} style={{
@@ -578,7 +578,7 @@ export default function Journal() {
                 <div style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 900,
-                  fontSize: 24,
+                  fontSize: 26,
                   color: stat.color,
                   lineHeight: 1,
                 }}>

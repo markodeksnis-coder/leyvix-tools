@@ -6,13 +6,13 @@ import { getWinDaySettings, calcDayScore } from '../utils/winLoss'
 import IdentityStatement from '../components/IdentityStatement'
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
-const GOLD   = '#fbbf24'
-const BG     = '#030311'
+const GOLD   = '#f0c040'
+const BG     = '#020609'
 const Q_BG   = '#000000'
-const CARD   = '#0d0d28'
-const BORDER = '#1d1d4a'
-const MUTED  = '#64748b'
-const TEXT2  = '#94a3b8'
+const CARD   = '#080e1a'
+const BORDER = '#1e3050'
+const MUTED  = '#7a95c0'
+const TEXT2  = '#a0bcdf'
 
 // ─── Default belief statements ────────────────────────────────────────────────
 const DEFAULT_BELIEFS = [
@@ -260,7 +260,7 @@ const STYLES = `
     appearance: none;
     width: 100%;
     height: 4px;
-    background: #1d1d4a;
+    background: #1e3050;
     outline: none;
     border-radius: 2px;
     cursor: pointer;
@@ -271,18 +271,18 @@ const STYLES = `
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: #fbbf24;
+    background: #f0c040;
     cursor: pointer;
-    box-shadow: 0 0 16px rgba(251,191,36,0.6);
+    box-shadow: 0 0 16px rgba(240,192,64,0.6);
   }
   .checkin-slider::-moz-range-thumb {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: #fbbf24;
+    background: #f0c040;
     cursor: pointer;
     border: none;
-    box-shadow: 0 0 16px rgba(251,191,36,0.6);
+    box-shadow: 0 0 16px rgba(240,192,64,0.6);
   }
 
   .ci-pill {
@@ -291,22 +291,22 @@ const STYLES = `
     font-size: 13px;
     font-family: Inter, sans-serif;
     cursor: pointer;
-    border: 1px solid #1a2440;
-    background: #0d0d28;
-    color: #fff;
+    border: 1px solid #2a4a7a;
+    background: #0d1628;
+    color: #a0bcdf;
     transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
     white-space: nowrap;
   }
-  .ci-pill:hover { border-color: #fbbf24; }
+  .ci-pill:hover { border-color: #f0c040; }
   .ci-pill.selected {
-    background: #fbbf24;
-    border-color: #fbbf24;
-    color: #000;
+    background: #f0c040;
+    border: none;
+    color: #000000;
     font-weight: 700;
   }
 
   .ci-btn-gold {
-    background: #fbbf24;
+    background: #f0c040;
     color: #000;
     font-weight: 700;
     font-family: Inter, sans-serif;
@@ -323,21 +323,21 @@ const STYLES = `
 
   .ci-btn-muted {
     background: transparent;
-    color: #64748b;
+    color: #7a95c0;
     font-family: Inter, sans-serif;
-    border: 1px solid #1d1d4a;
+    border: 1px solid #1e3050;
     border-radius: 10px;
     padding: 14px 40px;
     font-size: 15px;
     cursor: pointer;
     transition: border-color 0.15s;
   }
-  .ci-btn-muted:hover { border-color: #64748b; }
+  .ci-btn-muted:hover { border-color: #7a95c0; }
 
   .ci-textarea {
     background: transparent;
     border: none;
-    border-bottom: 1px solid #1d1d4a;
+    border-bottom: 1px solid #1e3050;
     color: #fff;
     font-family: Inter, sans-serif;
     font-size: 20px;
@@ -347,16 +347,16 @@ const STYLES = `
     resize: none;
     text-align: center;
     padding: 8px 0;
-    caret-color: #fbbf24;
+    caret-color: #f0c040;
     transition: border-color 0.15s;
   }
-  .ci-textarea::placeholder { color: #334155; }
-  .ci-textarea:focus { border-bottom-color: #fbbf24; }
+  .ci-textarea::placeholder { color: #5a7aaa; }
+  .ci-textarea:focus { border-bottom-color: #f0c040; }
 
   .ci-input {
     background: transparent;
     border: none;
-    border-bottom: 1px solid #1d1d4a;
+    border-bottom: 1px solid #1e3050;
     color: #fff;
     font-family: '"Orbitron", sans-serif';
     font-size: 24px;
@@ -365,14 +365,16 @@ const STYLES = `
     outline: none;
     text-align: center;
     padding: 8px 0;
-    caret-color: #fbbf24;
+    caret-color: #f0c040;
     transition: border-color 0.15s;
   }
-  .ci-input::placeholder { color: #334155; }
-  .ci-input:focus { border-bottom-color: #fbbf24; }
+  .ci-input::placeholder { color: #5a7aaa; }
+  .ci-input:focus { border-bottom-color: #f0c040; }
 
   .edit-row:hover { background: rgba(255,255,255,0.03); }
   .edit-row[draggable]:active { opacity: 0.5; }
+
+  .ci-card:hover { border-color: #2a4a7a !important; background: #0d1628 !important; }
 `
 
 // ─── Answer type renderers ────────────────────────────────────────────────────
@@ -445,7 +447,7 @@ function SliderAnswer({ q, value, onChange, onAutoAdvance }) {
         fontWeight: 900,
         color: GOLD,
         lineHeight: 1,
-        filter: 'drop-shadow(0 0 24px rgba(251,191,36,0.5))',
+        filter: 'drop-shadow(0 0 24px rgba(240,192,64,0.5))',
         minWidth: 120,
         textAlign: 'center',
       }}>
@@ -507,7 +509,7 @@ function NumericAnswer({ q, value, onChange, onContinue }) {
           minWidth: 140,
           textAlign: 'center',
           lineHeight: 1,
-          filter: 'drop-shadow(0 0 16px rgba(251,191,36,0.4))',
+          filter: 'drop-shadow(0 0 16px rgba(240,192,64,0.4))',
         }}>
           {displayVal}
         </div>
@@ -578,7 +580,7 @@ function BinaryAnswer({ q, value, onChange, onAutoAdvance }) {
   const base = {
     width: 160, height: 64,
     borderRadius: 12,
-    border: `1px solid #1a2440`,
+    border: `1px solid #2a4a7a`,
     background: CARD,
     fontFamily: '"Orbitron", sans-serif',
     fontSize: 18,
@@ -594,7 +596,7 @@ function BinaryAnswer({ q, value, onChange, onAutoAdvance }) {
         style={{
           ...base,
           background: yesActive ? GOLD : CARD,
-          borderColor: yesActive ? GOLD : '#1a2440',
+          borderColor: yesActive ? GOLD : '#2a4a7a',
           color: yesActive ? '#000' : '#fff',
           transform: yesActive ? 'scale(1.05)' : 'scale(1)',
         }}
@@ -605,8 +607,8 @@ function BinaryAnswer({ q, value, onChange, onAutoAdvance }) {
       <button
         style={{
           ...base,
-          background: noActive ? '#ef4444' : CARD,
-          borderColor: noActive ? '#ef4444' : '#1a2440',
+          background: noActive ? '#ff5555' : CARD,
+          borderColor: noActive ? '#ff5555' : '#2a4a7a',
           color: noActive ? '#fff' : '#fff',
           transform: noActive ? 'scale(1.05)' : 'scale(1)',
         }}
@@ -660,7 +662,7 @@ function EditModeView({ morningQs, setMorningQs, eveningQs, setEveningQs, onBack
   }
 
   const inputStyle = {
-    background: '#0d0d28', border: `1px solid ${BORDER}`, borderRadius: 8,
+    background: '#080e1a', border: `1px solid ${BORDER}`, borderRadius: 8,
     color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: 14, padding: '10px 14px',
     outline: 'none', width: '100%', boxSizing: 'border-box',
   }
@@ -719,7 +721,7 @@ function EditModeView({ morningQs, setMorningQs, eveningQs, setEveningQs, onBack
             style={{
               display: 'flex', alignItems: 'center', gap: 12,
               padding: '12px 8px', borderRadius: 8,
-              borderBottom: `1px solid rgba(29,29,74,0.5)`,
+              borderBottom: `1px solid rgba(30,48,80,0.5)`,
               cursor: 'grab',
             }}
           >
@@ -734,7 +736,7 @@ function EditModeView({ morningQs, setMorningQs, eveningQs, setEveningQs, onBack
             </div>
             <button
               onClick={() => handleDelete(q.id)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: 4, flexShrink: 0, display: 'flex' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ff5555', padding: 4, flexShrink: 0, display: 'flex' }}
             >
               <Trash2 size={16} />
             </button>
@@ -764,7 +766,7 @@ function EditModeView({ morningQs, setMorningQs, eveningQs, setEveningQs, onBack
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20,
         }}>
-          <div style={{ background: '#0d0d28', border: `1px solid ${BORDER}`, borderRadius: 16, padding: 28, width: '100%', maxWidth: 460 }}>
+          <div style={{ background: '#080e1a', border: `1px solid ${BORDER}`, borderRadius: 16, padding: 28, width: '100%', maxWidth: 460 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
               <span style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 14, color: GOLD }}>ADD QUESTION</span>
               <button onClick={() => setShowAdd(false)} style={{ background: 'none', border: 'none', color: MUTED, cursor: 'pointer' }}>
@@ -846,6 +848,7 @@ function TabSelectView({ checkInData, onStart, onEditMode }) {
     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
     position: 'relative',
     boxShadow: '0 4px 32px rgba(0,0,0,0.4)',
+    transition: 'border-color 0.15s, background 0.15s',
   }
 
   const dateLabel = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
@@ -872,7 +875,7 @@ function TabSelectView({ checkInData, onStart, onEditMode }) {
       {/* Cards */}
       <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center', width: '100%', maxWidth: 640 }}>
         {/* Morning */}
-        <div style={{ ...cardBase, borderColor: morningDone ? GOLD : BORDER }}>
+        <div className="ci-card" style={{ ...cardBase, borderColor: morningDone ? GOLD : BORDER }}>
           <div style={{ fontSize: 40 }}>☀️</div>
           <div style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 16, color: GOLD, letterSpacing: '0.1em' }}>MORNING</div>
           <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: MUTED, textAlign: 'center' }}>
@@ -881,7 +884,7 @@ function TabSelectView({ checkInData, onStart, onEditMode }) {
           {morningDone ? (
             <div style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: 'rgba(251,191,36,0.12)', border: `1px solid ${GOLD}`,
+              background: '#2a1f00', border: `1px solid ${GOLD}`,
               borderRadius: 100, padding: '6px 14px',
               fontFamily: 'Inter, sans-serif', fontSize: 12, color: GOLD, fontWeight: 600,
             }}>
@@ -895,18 +898,18 @@ function TabSelectView({ checkInData, onStart, onEditMode }) {
         </div>
 
         {/* Evening */}
-        <div style={{ ...cardBase, borderColor: eveningDone ? '#818cf8' : BORDER }}>
+        <div className="ci-card" style={{ ...cardBase, borderColor: eveningDone ? '#b8a0ff' : BORDER }}>
           <div style={{ fontSize: 40 }}>🌙</div>
-          <div style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 16, color: '#818cf8', letterSpacing: '0.1em' }}>EVENING</div>
+          <div style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 16, color: '#b8a0ff', letterSpacing: '0.1em' }}>EVENING</div>
           <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: MUTED, textAlign: 'center' }}>
             {DEFAULT_EVENING.length} questions · Execution, Nutrition, Reflection
           </div>
           {eveningDone ? (
             <div style={{
               display: 'flex', alignItems: 'center', gap: 6,
-              background: 'rgba(129,140,248,0.12)', border: '1px solid #818cf8',
+              background: '#1a0d3a', border: '1px solid #b8a0ff',
               borderRadius: 100, padding: '6px 14px',
-              fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#818cf8', fontWeight: 600,
+              fontFamily: 'Inter, sans-serif', fontSize: 12, color: '#b8a0ff', fontWeight: 600,
             }}>
               <Check size={12} /> Completed
             </div>
@@ -914,7 +917,7 @@ function TabSelectView({ checkInData, onStart, onEditMode }) {
             <button
               onClick={() => onStart('evening')}
               style={{
-                background: '#818cf8', color: '#000', fontWeight: 700,
+                background: '#b8a0ff', color: '#000', fontWeight: 700,
                 fontFamily: 'Inter, sans-serif', border: 'none',
                 borderRadius: 10, padding: '14px 40px', fontSize: 15, cursor: 'pointer',
               }}
@@ -956,7 +959,7 @@ function QuestionView({ tab, qIndex, activeQs, answers, slideDir, onAnswer, onNe
   return (
     <div style={{ background: Q_BG, minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
       {/* Progress bar */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: '#1a1a2e', zIndex: 10 }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: '#1e3050', zIndex: 10 }}>
         <div style={{ height: '100%', background: GOLD, width: `${progress}%`, transition: 'width 0.35s ease', borderRadius: 2 }} />
       </div>
 
@@ -998,7 +1001,7 @@ function QuestionView({ tab, qIndex, activeQs, answers, slideDir, onAnswer, onNe
         }}
       >
         {/* Category */}
-        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 9, fontWeight: 600, color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.14em', textAlign: 'center' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 9, fontWeight: 600, color: '#b8a0ff', textTransform: 'uppercase', letterSpacing: '0.14em', textAlign: 'center' }}>
           {q.category}
         </div>
 
@@ -1080,7 +1083,7 @@ function CompleteView({ tab, answers, checkInData, aiSummary, aiLoading, onDone 
           color: GOLD,
           lineHeight: 1,
           textAlign: 'center',
-          filter: 'drop-shadow(0 0 32px rgba(251,191,36,0.5))',
+          filter: 'drop-shadow(0 0 32px rgba(240,192,64,0.5))',
           letterSpacing: '0.06em',
         }}>
           DAY {dayLabel}
@@ -1122,7 +1125,7 @@ function CompleteView({ tab, answers, checkInData, aiSummary, aiLoading, onDone 
         )}
         {tab === 'evening' && (
           <div style={statPillStyle}>
-            <span style={{ fontSize: 22, color: nonNegs === 'YES' ? '#22c55e' : '#ef4444' }}>
+            <span style={{ fontSize: 22, color: nonNegs === 'YES' ? '#1ad9a0' : '#ff5555' }}>
               {nonNegs === 'YES' ? '✓' : '✗'}
             </span>
             <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -1132,7 +1135,7 @@ function CompleteView({ tab, answers, checkInData, aiSummary, aiLoading, onDone 
         )}
         {callCount != null && (
           <div style={statPillStyle}>
-            <span style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 22, color: '#818cf8', fontWeight: 900 }}>
+            <span style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 22, color: '#b8a0ff', fontWeight: 900 }}>
               {callCount}
             </span>
             <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -1154,7 +1157,7 @@ function CompleteView({ tab, answers, checkInData, aiSummary, aiLoading, onDone 
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function CheckIn() {
+export default function CheckIn({ startTab = null }) {
   const [morningQs, setMorningQs] = useLocalStorage('marko_checkin_morning_qs', DEFAULT_MORNING)
   const [eveningQs, setEveningQs] = useLocalStorage('marko_checkin_evening_qs', DEFAULT_EVENING)
   const [checkInData, setCheckInData] = useLocalStorage('marko_checkin', {})
@@ -1165,7 +1168,7 @@ export default function CheckIn() {
     lastShownIndex: -1,
   })
 
-  const [tab,              setTab]              = useState('morning')
+  const [tab,              setTab]              = useState(startTab || 'morning')
   const [phase,            setPhase]            = useState('tab_select')
   const [qIndex,           setQIndex]           = useState(0)
   const [answers,          setAnswers]          = useState({})
@@ -1181,6 +1184,20 @@ export default function CheckIn() {
   const [newBeliefText,    setNewBeliefText]    = useState('')
 
   const todayStr = today()
+
+  // Auto-start the correct flow when opened from dedicated morning/evening nav
+  useEffect(() => {
+    if (!startTab) return
+    const alreadyDone = !!(checkInData?.[startTab]?.[todayStr]?.completed)
+    if (alreadyDone) {
+      const existing = checkInData[startTab][todayStr].answers || {}
+      setAnswers(existing)
+      setPhase('complete')
+    } else if (startTab === 'evening') {
+      setPhase('questions')
+    }
+    // morning is handled below by the existing useEffect([tab])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Compute which belief to show today (cycles through by day)
   const currentBeliefIdx = (() => {
@@ -1359,7 +1376,7 @@ export default function CheckIn() {
     setNewBeliefText('')
   }
 
-  const GOLD2 = '#c9a84c'
+  const GOLD2 = '#f0c040'
 
   return (
     <>
@@ -1439,7 +1456,7 @@ export default function CheckIn() {
                     onClick={() => handleBeliefMoveUp(idx)}
                     style={{
                       background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer',
-                      color: idx === 0 ? '#1d1d4a' : MUTED, padding: 2, display: 'flex',
+                      color: idx === 0 ? MUTED : MUTED, padding: 2, display: 'flex',
                     }}
                     disabled={idx === 0}
                   >
@@ -1450,7 +1467,7 @@ export default function CheckIn() {
                     style={{
                       background: 'none', border: 'none',
                       cursor: idx === (beliefs.statements || []).length - 1 ? 'default' : 'pointer',
-                      color: idx === (beliefs.statements || []).length - 1 ? '#1d1d4a' : MUTED,
+                      color: idx === (beliefs.statements || []).length - 1 ? MUTED : MUTED,
                       padding: 2, display: 'flex',
                     }}
                     disabled={idx === (beliefs.statements || []).length - 1}
@@ -1548,7 +1565,7 @@ export default function CheckIn() {
                   onClick={() => handleBeliefDelete(stmt.id)}
                   style={{
                     background: 'none', border: 'none',
-                    cursor: 'pointer', color: '#ef4444',
+                    cursor: 'pointer', color: '#ff5555',
                     padding: 4, flexShrink: 0, display: 'flex', alignItems: 'center',
                     marginTop: 2,
                   }}

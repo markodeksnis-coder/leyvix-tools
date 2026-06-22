@@ -3,15 +3,15 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today } from '../utils'
 
 // ── Color constants ────────────────────────────────────────────────────────────
-const GOLD = '#c9a84c'
-const BLUE = '#3b82f6'
-const GREEN = '#10b981'
-const RED = '#ef4444'
-const TEXT2 = '#94a3b8'
-const MUTED = '#64748b'
-const BORDER = '#1d1d4a'
-const CARD = '#0d0d28'
-const BG = '#030311'
+const GOLD = '#f0c040'
+const BLUE = '#4d9fff'
+const GREEN = '#1ad9a0'
+const RED = '#ff5555'
+const TEXT2 = '#a0bcdf'
+const MUTED = '#7a95c0'
+const BORDER = '#1e3050'
+const CARD = '#080e1a'
+const BG = '#020609'
 
 const CATEGORIES = ['Body', 'Business', 'Mind', 'Daily', 'Custom']
 
@@ -25,8 +25,8 @@ const CATEGORY_COLORS = {
 
 // ── Input / label class helpers ────────────────────────────────────────────────
 const INPUT_CLS =
-  'w-full bg-[#09091f] border border-[#1d1d4a] rounded px-3 py-2 text-sm text-white placeholder-[#64748b] focus:outline-none focus:border-[#c9a84c] transition-colors'
-const LABEL_CLS = 'block text-[9px] font-mono uppercase tracking-widest text-[#94a3b8] mb-1.5'
+  'w-full bg-[#040810] border border-[#1e3050] rounded px-3 py-2 text-sm text-white placeholder-[#7a95c0] focus:outline-none focus:border-[#f0c040] transition-colors'
+const LABEL_CLS = 'block text-[9px] font-mono uppercase tracking-widest text-[#a0bcdf] mb-1.5'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 let _nextId = Date.now()
@@ -529,7 +529,7 @@ function GoalModal({ goal, onSave, onClose }) {
             onChange={e => setField('title', e.target.value)}
             style={{
               width: '100%',
-              background: '#09091f',
+              background: '#040810',
               border: `1px solid ${BORDER}`,
               borderRadius: 6,
               padding: '8px 12px',
@@ -552,7 +552,7 @@ function GoalModal({ goal, onSave, onClose }) {
             onChange={e => setField('category', e.target.value)}
             style={{
               width: '100%',
-              background: '#09091f',
+              background: '#040810',
               border: `1px solid ${BORDER}`,
               borderRadius: 6,
               padding: '8px 12px',
@@ -579,7 +579,7 @@ function GoalModal({ goal, onSave, onClose }) {
             onChange={e => setField('target', e.target.value)}
             style={{
               width: '100%',
-              background: '#09091f',
+              background: '#040810',
               border: `1px solid ${BORDER}`,
               borderRadius: 6,
               padding: '8px 12px',
@@ -604,7 +604,7 @@ function GoalModal({ goal, onSave, onClose }) {
               onChange={e => setField('startDate', e.target.value)}
               style={{
                 width: '100%',
-                background: '#09091f',
+                background: '#040810',
                 border: `1px solid ${BORDER}`,
                 borderRadius: 6,
                 padding: '8px 10px',
@@ -627,7 +627,7 @@ function GoalModal({ goal, onSave, onClose }) {
               onChange={e => setField('endDate', e.target.value)}
               style={{
                 width: '100%',
-                background: '#09091f',
+                background: '#040810',
                 border: `1px solid ${BORDER}`,
                 borderRadius: 6,
                 padding: '8px 10px',
@@ -673,7 +673,7 @@ function GoalModal({ goal, onSave, onClose }) {
                   value={m.date}
                   onChange={e => updateMilestone(m.id, 'date', e.target.value)}
                   style={{
-                    background: '#09091f',
+                    background: '#040810',
                     border: `1px solid ${BORDER}`,
                     borderRadius: 6,
                     padding: '6px 8px',
@@ -693,7 +693,7 @@ function GoalModal({ goal, onSave, onClose }) {
                   onChange={e => updateMilestone(m.id, 'description', e.target.value)}
                   style={{
                     flex: 1,
-                    background: '#09091f',
+                    background: '#040810',
                     border: `1px solid ${BORDER}`,
                     borderRadius: 6,
                     padding: '6px 10px',
@@ -754,7 +754,7 @@ function GoalModal({ goal, onSave, onClose }) {
                   onChange={e => updateTask(t.id, 'text', e.target.value)}
                   style={{
                     flex: 1,
-                    background: '#09091f',
+                    background: '#040810',
                     border: `1px solid ${BORDER}`,
                     borderRadius: 6,
                     padding: '6px 10px',
@@ -768,7 +768,7 @@ function GoalModal({ goal, onSave, onClose }) {
                   value={t.frequency}
                   onChange={e => updateTask(t.id, 'frequency', e.target.value)}
                   style={{
-                    background: '#09091f',
+                    background: '#040810',
                     border: `1px solid ${BORDER}`,
                     borderRadius: 6,
                     padding: '6px 8px',
@@ -914,8 +914,8 @@ export default function Goals() {
       {/* Pulse keyframe injection */}
       <style>{`
         @keyframes goalPulse {
-          0%, 100% { box-shadow: 0 0 0 3px #c9a84c55, 0 0 8px 2px #c9a84c66; }
-          50%       { box-shadow: 0 0 0 5px #c9a84c33, 0 0 14px 4px #c9a84c99; }
+          0%, 100% { box-shadow: 0 0 0 3px #f0c04055, 0 0 8px 2px #f0c04066; }
+          50%       { box-shadow: 0 0 0 5px #f0c04033, 0 0 14px 4px #f0c04099; }
         }
       `}</style>
 

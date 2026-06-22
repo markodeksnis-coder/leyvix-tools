@@ -5,16 +5,16 @@ import Modal from '../components/Modal'
 import { fmtShort } from '../utils'
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
-const BG          = '#030311'
-const SURF        = '#09091f'
-const CARD_BORDER = '#1d1d4a'
-const GOLD        = '#fbbf24'
-const BLUE        = '#3b82f6'
-const GREEN       = '#10b981'
+const BG          = '#020609'
+const SURF        = '#040810'
+const CARD_BORDER = '#1e3050'
+const GOLD        = '#f0c040'
+const BLUE        = '#4d9fff'
+const GREEN       = '#1ad9a0'
 const PURPLE      = '#8b5cf6'
-const RED         = '#ef4444'
-const TEXT2       = '#64748b'
-const MUTED       = '#1d1d4a'
+const RED         = '#ff5555'
+const TEXT2       = '#7a95c0'
+const MUTED       = '#1e3050'
 const CYAN        = '#22d3ee'
 
 const CATEGORIES = [
@@ -245,7 +245,7 @@ export default function Arsenal() {
           <span style={{
             fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
             fontSize: 22, fontWeight: 900,
-            background: 'linear-gradient(135deg, #22d3ee, #3b82f6)',
+            background: 'linear-gradient(135deg, #22d3ee, #4d9fff)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
             textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1,
           }}>ARSENAL</span>
@@ -257,7 +257,7 @@ export default function Arsenal() {
             <span style={{ fontSize: 9, fontWeight: 600, color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.2em' }}>Cards</span>
             <span style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 12, fontWeight: 700, color: CYAN }}>{total}</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: `rgba(59,130,246,0.08)`, border: `1px solid rgba(59,130,246,0.25)`, borderRadius: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: `rgba(77,159,255,0.12)`, border: `1px solid rgba(77,159,255,0.45)`, borderRadius: 20 }}>
             <span style={{ fontSize: 9, fontWeight: 600, color: TEXT2, textTransform: 'uppercase', letterSpacing: '0.2em' }}>This Month</span>
             <span style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 12, fontWeight: 700, color: BLUE }}>{monthCount}</span>
           </div>
@@ -328,7 +328,7 @@ export default function Arsenal() {
             )}
             {contextResult && (
               <div style={{
-                background: 'linear-gradient(135deg, #0d0d28, #091a20)',
+                background: 'linear-gradient(135deg, #080e1a, #091a20)',
                 border: `1px solid rgba(34,211,238,0.35)`,
                 borderLeft: `3px solid ${CYAN}`,
                 borderRadius: 8,
@@ -340,12 +340,12 @@ export default function Arsenal() {
                 </div>
                 <div style={{ fontFamily: '"Orbitron", "Space Grotesk", sans-serif', fontSize: 17, fontWeight: 700, color: 'white', marginBottom: 6 }}>{contextResult.title}</div>
                 {contextResult.keyPrinciple && (
-                  <p style={{ fontSize: 12, color: '#d1d5db', margin: '0 0 8px', fontStyle: 'italic' }}>{contextResult.keyPrinciple}</p>
+                  <p style={{ fontSize: 12, color: '#c8d8f0', margin: '0 0 8px', fontStyle: 'italic' }}>{contextResult.keyPrinciple}</p>
                 )}
                 {contextResult.bullets?.length > 0 && (
                   <ul style={{ margin: '6px 0 0', padding: 0, listStyle: 'none' }}>
                     {contextResult.bullets.map((b, i) => (
-                      <li key={i} style={{ display: 'flex', gap: 8, marginBottom: 4, fontSize: 12, color: '#d1d5db' }}>
+                      <li key={i} style={{ display: 'flex', gap: 8, marginBottom: 4, fontSize: 12, color: '#c8d8f0' }}>
                         <span style={{ color: CYAN, flexShrink: 0 }}>→</span><span>{b}</span>
                       </li>
                     ))}
@@ -653,7 +653,7 @@ function KnowledgeCard({ entry, onDelete }) {
   return (
     <div
       style={{
-        background: 'linear-gradient(135deg, #0d0d28, #091a20)',
+        background: 'linear-gradient(135deg, #080e1a, #091a20)',
         border: `1px solid rgba(34,211,238,0.15)`,
         borderRadius: 10,
         padding: 14,
