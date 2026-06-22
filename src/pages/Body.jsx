@@ -122,10 +122,18 @@ function ProgressBar({ label, current, target, unit, color }) {
   )
 }
 
-// ─── Convert any image to JPEG via canvas (handles HEIC, HEIF, etc.) ─────────
-function toJpegDataUrl(file) {
+// ─── Convert any image to JPEG (handles HEIC/HEIF via heic2any) ──────────────
+async function toJpegDataUrl(file) {
+  let blob = file
+  const isHeic = file.type === 'image/heic' || file.type === 'image/heif' ||
+                 /\.(heic|heif)$/i.test(file.name) || file.type === ''
+  if (isHeic) {
+    const { default: heic2any } = await import('heic2any')
+    const result = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 })
+    blob = Array.isArray(result) ? result[0] : result
+  }
   return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file)
+    const url = URL.createObjectURL(blob)
     const img = new Image()
     img.onload = () => {
       URL.revokeObjectURL(url)
@@ -140,7 +148,7 @@ function toJpegDataUrl(file) {
       canvas.getContext('2d').drawImage(img, 0, 0, w, h)
       resolve(canvas.toDataURL('image/jpeg', 0.85))
     }
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not decode image. Try saving it as a JPEG first.')) }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not decode image')) }
     img.src = url
   })
 }
