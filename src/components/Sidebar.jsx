@@ -1,4 +1,4 @@
-import { CalendarCheck, ClipboardCheck, Dumbbell, Brain, TrendingUp, Activity, Target, BarChart2, Briefcase, Users, Flame, Bot, Settings, Zap } from 'lucide-react'
+import { CalendarCheck, ClipboardCheck, Dumbbell, Brain, TrendingUp, Activity, Target, BarChart2, Briefcase, Users, Flame, Bot, Settings, Zap, Flag, BookOpen } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { getWinHistory, computeCurrentWinStreak, getWinDaySettings } from '../utils/winLoss'
@@ -20,6 +20,8 @@ const SECONDARY = [
   { id: 'relations', label: 'Relations', Icon: Users, color: '#f43f5e' },
   { id: 'soul', label: 'Soul', Icon: Flame, color: '#fb923c' },
   { id: 'coach', label: 'Coach', Icon: Bot, color: '#a78bfa' },
+  { id: 'goals', label: 'Goals', Icon: Flag, color: '#c9a84c' },
+  { id: 'journal', label: 'Journal', Icon: BookOpen, color: '#e879f9' },
 ]
 
 export default function Sidebar({ active, onSelect, onSettings }) {
