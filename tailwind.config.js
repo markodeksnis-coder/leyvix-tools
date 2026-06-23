@@ -5,8 +5,16 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'monospace'],
-        display: ['"Bebas Neue"', 'cursive'],
+        display: ['Space Grotesk', 'sans-serif'],
+      },
+      colors: {
+        accent: '#ef4444',
+        success: '#22c55e',
+        card: '#111111',
+        border: '#1a1a1a',
+        bg: '#0a0a0a',
+        primary: '#f5f5f5',
+        muted: '#737373',
       },
     },
   },
