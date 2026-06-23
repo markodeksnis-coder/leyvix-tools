@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { loadAnalysis, saveAnalysis } from '../utils/storage.js';
 
-const gold = '#f59e0b';
-const green = '#10b981';
-const red = '#ef4444';
+const gold='#c9a84c', goldLt='#e2c675', green='#10b981', red='#ef4444';
 
 const SYSTEM_PROMPT = `You are a brutal, honest sales coach analyzing a real sales call. Return JSON only. No preamble.
 
@@ -24,215 +22,206 @@ const SYSTEM_PROMPT = `You are a brutal, honest sales coach analyzing a real sal
   "drill_this_week": "..."
 }`;
 
-const detectType = (title = '') => {
-  const l = title.toLowerCase();
-  return (l.includes('coaching')||l.includes('roleplay')||l.includes('genesis')||l.includes('training')) ? 'Coaching' : 'Prospect';
-};
+const detectType=(t='')=>(/(coaching|roleplay|genesis|training)/i.test(t)?'Coaching':'Prospect');
+const fmtDur=(s)=>{if(!s)return'';const m=Math.floor(s/60);return`${m}m`;};
 
-const fmtDuration = (s) => { if (!s) return ''; const m = Math.floor(s/60); return `${m}m`; };
-
-function ScoreBar({ label, value }) {
-  const color = value>=7 ? green : value>=5 ? gold : red;
-  return (
-    <div style={{ marginBottom:10 }}>
-      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
-        <span style={{ fontFamily:'Space Grotesk', fontSize:10, color:'#4a4a4a', letterSpacing:'0.1em' }}>{label}</span>
-        <span style={{ fontFamily:'Space Grotesk', fontWeight:800, fontSize:12, color }}>{value}</span>
+function ScoreBar({label,value}){
+  const c=value>=7?green:value>=5?gold:red;
+  return(
+    <div style={{marginBottom:10}}>
+      <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+        <span style={{fontSize:10,fontWeight:600,color:'#4a4550',letterSpacing:'0.1em'}}>{label}</span>
+        <span style={{fontFamily:'Space Grotesk',fontWeight:800,fontSize:13,color:c}}>{value}</span>
       </div>
-      <div style={{ background:'#080808', height:4, border:'1px solid #1c1c1c' }}>
-        <div style={{ width:`${value*10}%`, height:'100%', background:color, transition:'width 0.4s' }} />
+      <div style={{background:'#0a0a12',height:4,borderRadius:4,border:'1px solid #1a1a26'}}>
+        <div style={{width:`${value*10}%`,height:'100%',borderRadius:4,background:`linear-gradient(90deg,${c},${value>=7?'#34d399':value>=5?goldLt:'#f87171'})`,transition:'width 0.4s'}}/>
       </div>
     </div>
   );
 }
 
-function AnalysisPanel({ analysis }) {
-  if (analysis.error) return <p style={{ fontSize:13, color:red, padding:'12px 20px' }}>Error: {analysis.error}</p>;
-  return (
-    <div style={{ padding:20, borderTop:'1px solid #1c1c1c', display:'flex', flexDirection:'column', gap:18 }}>
+function AnalysisPanel({analysis}){
+  if(analysis.error) return<p style={{padding:'16px 20px',fontSize:13,color:red}}>Error: {analysis.error}</p>;
+  return(
+    <div style={{padding:'20px',borderTop:'1px solid #15151f',display:'flex',flexDirection:'column',gap:18}}>
       <div>
-        <div style={{ fontFamily:'Space Grotesk', fontWeight:700, fontSize:9, color:red, letterSpacing:'0.2em', marginBottom:10 }}>WHAT WENT WRONG</div>
-        {(analysis.wrong||[]).map((w,i) => (
-          <div key={i} style={{ borderLeft:`2px solid ${red}`, paddingLeft:12, marginBottom:10 }}>
-            <div style={{ fontFamily:'Space Grotesk', fontWeight:600, fontSize:13, color:'#f0f0f0' }}>{w.issue}</div>
-            <div style={{ fontSize:12, color:'#5a5a5a', marginTop:3 }}>FIX: {w.fix}</div>
+        <div style={{fontSize:9,fontWeight:700,color:red,letterSpacing:'0.2em',marginBottom:10}}>WHAT WENT WRONG</div>
+        {(analysis.wrong||[]).map((w,i)=>(
+          <div key={i} style={{borderLeft:`2px solid ${red}`,paddingLeft:12,marginBottom:10,paddingTop:2}}>
+            <div style={{fontWeight:600,fontSize:13,color:'#ede8da',marginBottom:3}}>{w.issue}</div>
+            <div style={{fontSize:12,color:'#5a5560',lineHeight:1.5}}>Fix: {w.fix}</div>
           </div>
         ))}
       </div>
-      {analysis.right && (
+      {analysis.right&&(
         <div>
-          <div style={{ fontFamily:'Space Grotesk', fontWeight:700, fontSize:9, color:green, letterSpacing:'0.2em', marginBottom:10 }}>WHAT WENT RIGHT</div>
-          <div style={{ borderLeft:`2px solid ${green}`, paddingLeft:12 }}>
-            <div style={{ fontFamily:'Space Grotesk', fontWeight:600, fontSize:13, color:'#f0f0f0' }}>{analysis.right.what}</div>
-            <div style={{ fontSize:12, color:'#5a5a5a', marginTop:3 }}>{analysis.right.why}</div>
+          <div style={{fontSize:9,fontWeight:700,color:green,letterSpacing:'0.2em',marginBottom:10}}>WHAT WENT RIGHT</div>
+          <div style={{borderLeft:`2px solid ${green}`,paddingLeft:12,paddingTop:2}}>
+            <div style={{fontWeight:600,fontSize:13,color:'#ede8da',marginBottom:3}}>{analysis.right.what}</div>
+            <div style={{fontSize:12,color:'#5a5560',lineHeight:1.5}}>{analysis.right.why}</div>
           </div>
         </div>
       )}
-      {analysis.scores && (
+      {analysis.scores&&(
         <div>
-          <div style={{ fontFamily:'Space Grotesk', fontWeight:700, fontSize:9, color:'#4a4a4a', letterSpacing:'0.2em', marginBottom:12 }}>SKILL BREAKDOWN</div>
-          <ScoreBar label="RAPPORT" value={analysis.scores.rapport||0} />
-          <ScoreBar label="DISCOVERY" value={analysis.scores.discovery||0} />
-          <ScoreBar label="TONALITY" value={analysis.scores.tonality||0} />
-          <ScoreBar label="OBJ. HANDLING" value={analysis.scores.objection_handling||0} />
-          <ScoreBar label="FRAME CONTROL" value={analysis.scores.frame_control||0} />
+          <div style={{fontSize:9,fontWeight:700,color:'#4a4550',letterSpacing:'0.2em',marginBottom:12}}>SKILL BREAKDOWN</div>
+          <ScoreBar label="RAPPORT" value={analysis.scores.rapport||0}/>
+          <ScoreBar label="DISCOVERY" value={analysis.scores.discovery||0}/>
+          <ScoreBar label="TONALITY" value={analysis.scores.tonality||0}/>
+          <ScoreBar label="OBJ. HANDLING" value={analysis.scores.objection_handling||0}/>
+          <ScoreBar label="FRAME CONTROL" value={analysis.scores.frame_control||0}/>
         </div>
       )}
-      {analysis.drill_this_week && (
-        <div style={{ background:'#080808', border:`1px solid ${gold}`, borderLeft:`3px solid ${gold}`, padding:14 }}>
-          <div style={{ fontFamily:'Space Grotesk', fontWeight:700, fontSize:9, color:gold, letterSpacing:'0.2em', marginBottom:5 }}>DRILL THIS WEEK</div>
-          <div style={{ fontSize:13, color:'#f0f0f0', lineHeight:1.5 }}>{analysis.drill_this_week}</div>
+      {analysis.drill_this_week&&(
+        <div style={{background:'rgba(201,168,76,0.05)',border:`1px solid rgba(201,168,76,0.2)`,borderRadius:8,padding:'14px 16px'}}>
+          <div style={{fontSize:9,fontWeight:700,color:gold,letterSpacing:'0.2em',marginBottom:6}}>DRILL THIS WEEK</div>
+          <div style={{fontSize:13,color:'#ede8da',lineHeight:1.6}}>{analysis.drill_this_week}</div>
         </div>
       )}
     </div>
   );
 }
 
-export default function Calls({ settings }) {
-  const [calls, setCalls] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [filter, setFilter] = useState('All');
-  const [analyzing, setAnalyzing] = useState({});
-  const [analyses, setAnalyses] = useState({});
-  const [expanded, setExpanded] = useState(null);
+export default function Calls({settings}){
+  const [calls,setCalls]=useState([]);
+  const [loading,setLoading]=useState(false);
+  const [error,setError]=useState('');
+  const [filter,setFilter]=useState('All');
+  const [analyzing,setAnalyzing]=useState({});
+  const [analyses,setAnalyses]=useState({});
+  const [expanded,setExpanded]=useState(null);
 
-  const fetchCalls = async () => {
-    if (!settings?.fathomKey) { setError('Add your Fathom API key in Settings.'); return; }
-    setLoading(true); setError('');
-    try {
-      const res = await fetch('https://api.fathom.video/v1/calls?limit=30', {
-        headers: { Authorization: `Bearer ${settings.fathomKey}` },
-      });
-      if (!res.ok) throw new Error(`Fathom ${res.status}`);
-      const data = await res.json();
-      setCalls(data.calls || data.data || (Array.isArray(data) ? data : []));
-    } catch(e) { setError(e.message); }
-    finally { setLoading(false); }
+  const fetchCalls=async()=>{
+    if(!settings?.fathomKey){setError('Add your Fathom API key in Settings.');return;}
+    setLoading(true);setError('');
+    try{
+      const r=await fetch('https://api.fathom.video/v1/calls?limit=30',{headers:{Authorization:`Bearer ${settings.fathomKey}`}});
+      if(!r.ok)throw new Error(`Fathom ${r.status}`);
+      const d=await r.json();
+      setCalls(d.calls||d.data||(Array.isArray(d)?d:[]));
+    }catch(e){setError(e.message);}finally{setLoading(false);}
   };
 
-  useEffect(() => {
-    const cached = {};
-    for (let i=0;i<localStorage.length;i++) {
-      const k=localStorage.key(i);
-      if(k?.startsWith('sgs_analyses_')) try { cached[k.replace('sgs_analyses_','')] = JSON.parse(localStorage.getItem(k)); } catch{}
-    }
-    setAnalyses(cached);
-    fetchCalls();
-  }, [settings?.fathomKey]);
+  useEffect(()=>{
+    const c={};
+    for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k?.startsWith('sgs_analyses_'))try{c[k.replace('sgs_analyses_','')]=JSON.parse(localStorage.getItem(k));}catch{}}
+    setAnalyses(c);fetchCalls();
+  },[settings?.fathomKey]);
 
-  const analyzeCall = async (call) => {
-    const callId = String(call.id||call.call_id);
-    if (!settings?.anthropicKey) { alert('Add your Anthropic API key in Settings.'); return; }
-    const cached = loadAnalysis(callId);
-    if (cached) { setAnalyses(p=>({...p,[callId]:cached})); setExpanded(p=>p===callId?null:callId); return; }
-    setAnalyzing(p=>({...p,[callId]:true})); setExpanded(callId);
-    try {
-      let transcript='';
-      try {
-        const tx = await fetch(`https://api.fathom.video/v1/calls/${callId}/transcript`,{headers:{Authorization:`Bearer ${settings.fathomKey}`}});
-        if(tx.ok){
-          const d=await tx.json();
-          if(typeof d==='string') transcript=d;
-          else if(Array.isArray(d)) transcript=d.map(t=>`${t.speaker||''}:${t.text||t.content||''}`).join('\n');
-          else if(d.transcript) transcript=typeof d.transcript==='string'?d.transcript:JSON.stringify(d.transcript);
-        }
-      } catch{}
-      if(!transcript) transcript=`Call: ${call.title||call.name||'Untitled'}. No transcript available.`;
-      const ai = await fetch('https://api.anthropic.com/v1/messages',{
+  const analyze=async(call)=>{
+    const id=String(call.id||call.call_id);
+    if(!settings?.anthropicKey){alert('Add your Anthropic API key in Settings.');return;}
+    const cached=loadAnalysis(id);
+    if(cached){setAnalyses(p=>({...p,[id]:cached}));setExpanded(p=>p===id?null:id);return;}
+    setAnalyzing(p=>({...p,[id]:true}));setExpanded(id);
+    try{
+      let tx='';
+      try{
+        const r=await fetch(`https://api.fathom.video/v1/calls/${id}/transcript`,{headers:{Authorization:`Bearer ${settings.fathomKey}`}});
+        if(r.ok){const d=await r.json();if(typeof d==='string')tx=d;else if(Array.isArray(d))tx=d.map(t=>`${t.speaker||''}:${t.text||t.content||''}`).join('\n');else if(d.transcript)tx=typeof d.transcript==='string'?d.transcript:JSON.stringify(d.transcript);}
+      }catch{}
+      if(!tx)tx=`Call: ${call.title||call.name||'Untitled'}. No transcript.`;
+      const ai=await fetch('https://api.anthropic.com/v1/messages',{
         method:'POST',
         headers:{'x-api-key':settings.anthropicKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true','content-type':'application/json'},
-        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1024,system:SYSTEM_PROMPT,messages:[{role:'user',content:`Analyze this call transcript. Return ONLY JSON:\n\n${transcript.slice(0,8000)}`}]}),
+        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1024,system:SYSTEM_PROMPT,messages:[{role:'user',content:`Analyze this call. Return ONLY JSON:\n\n${tx.slice(0,8000)}`}]}),
       });
       if(!ai.ok){const e=await ai.json().catch(()=>({}));throw new Error(e.error?.message||`Anthropic ${ai.status}`);}
-      const aiData=await ai.json();
-      const text=aiData.content?.[0]?.text||'{}';
-      const match=text.match(/\{[\s\S]*\}/);
-      if(!match) throw new Error('No JSON in response');
+      const data=await ai.json();
+      const match=(data.content?.[0]?.text||'{}').match(/\{[\s\S]*\}/);
+      if(!match)throw new Error('No JSON in response');
       const result=JSON.parse(match[0]);
-      saveAnalysis(callId,result);
-      setAnalyses(p=>({...p,[callId]:result}));
-    } catch(e) {
-      const err={error:e.message}; saveAnalysis(callId,err); setAnalyses(p=>({...p,[callId]:err}));
-    } finally { setAnalyzing(p=>({...p,[callId]:false})); }
+      saveAnalysis(id,result);setAnalyses(p=>({...p,[id]:result}));
+    }catch(e){
+      const err={error:e.message};saveAnalysis(id,err);setAnalyses(p=>({...p,[id]:err}));
+    }finally{setAnalyzing(p=>({...p,[id]:false}));}
   };
 
   const sorted=[...calls]
     .filter(c=>filter==='All'||detectType(c.title||c.name)===filter)
     .sort((a,b)=>new Date(b.started_at||b.date||0)-new Date(a.started_at||a.date||0));
 
-  const pill=(label, active)=>({
-    fontFamily:'Space Grotesk', fontWeight:700, fontSize:10, letterSpacing:'0.15em',
-    padding:'7px 16px', border:'1px solid', cursor:'pointer', transition:'all 0.15s',
-    borderColor: active?gold:'#1c1c1c',
-    background: active?'rgba(245,158,11,0.1)':'transparent',
-    color: active?gold:'#3a3a3a',
+  const pillStyle=(active)=>({
+    fontSize:11,fontWeight:700,letterSpacing:'0.12em',padding:'7px 16px',
+    border:`1px solid ${active?gold:'#1a1a26'}`,borderRadius:20,
+    background:active?'rgba(201,168,76,0.1)':'transparent',
+    color:active?gold:'#3a3835',cursor:'pointer',transition:'all 0.15s',
   });
 
-  return (
-    <div style={{ padding:'28px 24px', maxWidth:740 }}>
-      <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:24 }}>
+  return(
+    <div style={{padding:'28px 24px',maxWidth:760}}>
+      <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',marginBottom:24}}>
         <div>
-          <div style={{ fontFamily:'Space Grotesk', fontWeight:900, fontSize:28, color:'#f0f0f0', letterSpacing:'-0.03em', lineHeight:1 }}>CALL LIBRARY</div>
-          <div style={{ fontFamily:'Space Grotesk', fontSize:12, color:'#4a4a4a', letterSpacing:'0.15em', marginTop:5 }}>{calls.length} CALLS LOADED</div>
+          <div style={{fontFamily:'Space Grotesk',fontWeight:900,fontSize:26,color:'#ede8da',letterSpacing:'-0.03em'}}>Call Library</div>
+          <div style={{fontSize:12,color:'#4a4550',marginTop:4}}>{calls.length} calls loaded</div>
         </div>
-        <button onClick={fetchCalls} style={{ fontFamily:'Space Grotesk', fontWeight:700, fontSize:10, letterSpacing:'0.15em', padding:'8px 16px', border:`1px solid ${gold}`, color:gold, background:'transparent', cursor:'pointer' }}>↺ REFRESH</button>
+        <button onClick={fetchCalls} style={pillStyle(false)}>Refresh</button>
       </div>
 
-      <div style={{ display:'flex', gap:6, marginBottom:20 }}>
-        {['All','Prospect','Coaching'].map(f=><button key={f} onClick={()=>setFilter(f)} style={pill(f,filter===f)}>{f.toUpperCase()}</button>)}
+      <div style={{display:'flex',gap:6,marginBottom:20}}>
+        {['All','Prospect','Coaching'].map(f=><button key={f} onClick={()=>setFilter(f)} style={pillStyle(filter===f)}>{f}</button>)}
       </div>
 
-      {loading && (
-        <div style={{ display:'flex', alignItems:'center', gap:12, padding:20, background:'#0f0f0f', border:'1px solid #1c1c1c', marginBottom:16 }}>
-          <div style={{ width:14,height:14,border:`2px solid ${gold}`,borderTopColor:'transparent',borderRadius:'50%',animation:'spin 0.8s linear infinite' }}/>
-          <span style={{ color:'#4a4a4a', fontSize:13 }}>Fetching calls from Fathom...</span>
+      {loading&&(
+        <div style={{display:'flex',alignItems:'center',gap:12,padding:'18px 20px',background:'linear-gradient(135deg,#0f0f18,#0c0c14)',border:'1px solid rgba(201,168,76,0.1)',borderRadius:12,marginBottom:16}}>
+          <div style={{width:14,height:14,border:`2px solid ${gold}`,borderTopColor:'transparent',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
+          <span style={{color:'#4a4550',fontSize:13}}>Fetching calls...</span>
         </div>
       )}
-      {error && <div style={{ padding:16, background:'#0f0f0f', border:`1px solid ${red}`, borderLeft:`3px solid ${red}`, marginBottom:16 }}><p style={{ fontSize:13, color:red }}>{error}</p></div>}
+      {error&&(
+        <div style={{padding:'14px 18px',background:'rgba(239,68,68,0.05)',border:`1px solid rgba(239,68,68,0.2)`,borderLeft:`3px solid ${red}`,borderRadius:8,marginBottom:16}}>
+          <p style={{fontSize:13,color:red}}>{error}</p>
+        </div>
+      )}
       {!loading&&!error&&sorted.length===0&&(
-        <div style={{ padding:32, background:'#0f0f0f', border:'1px solid #1c1c1c', textAlign:'center' }}>
-          <p style={{ color:'#4a4a4a', fontSize:13 }}>No calls found. Add your Fathom API key in Settings.</p>
+        <div style={{padding:40,background:'linear-gradient(135deg,#0f0f18,#0c0c14)',border:'1px solid rgba(201,168,76,0.08)',borderRadius:12,textAlign:'center'}}>
+          <p style={{color:'#3a3835',fontSize:13}}>No calls found. Add your Fathom API key in Settings.</p>
         </div>
       )}
 
-      <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+      <div style={{display:'flex',flexDirection:'column',gap:8}}>
         {sorted.map(call=>{
-          const callId=String(call.id||call.call_id);
+          const id=String(call.id||call.call_id);
           const type=detectType(call.title||call.name);
-          const analysis=analyses[callId];
-          const isAnalyzing=analyzing[callId];
-          const isExpanded=expanded===callId;
+          const analysis=analyses[id];
+          const isOpen=expanded===id;
           const date=call.started_at||call.date;
           const title=call.title||call.name||call.meeting_title||'Untitled Call';
-          return (
-            <div key={callId} style={{ background:'#0f0f0f', border:`1px solid ${isExpanded?gold:'#1c1c1c'}`, transition:'border-color 0.2s' }}>
-              <div style={{ padding:'16px 20px' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:5 }}>
-                      <span style={{ fontFamily:'Space Grotesk', fontWeight:700, fontSize:9, letterSpacing:'0.15em', padding:'2px 8px', background: type==='Prospect'?'rgba(245,158,11,0.1)':'#1a1a1a', color:type==='Prospect'?gold:'#4a4a4a' }}>{type.toUpperCase()}</span>
-                      {date&&<span style={{ fontSize:11, color:'#3a3a3a' }}>{new Date(date).toLocaleDateString()}</span>}
-                      {call.duration&&<span style={{ fontSize:11, color:'#3a3a3a' }}>{fmtDuration(call.duration)}</span>}
-                      {analysis&&!analysis.error&&<span style={{ fontSize:9, color:green, fontFamily:'Space Grotesk', fontWeight:700, letterSpacing:'0.15em' }}>✓ ANALYZED</span>}
-                    </div>
-                    <div style={{ fontFamily:'Space Grotesk', fontWeight:700, fontSize:14, color:'#f0f0f0', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{title}</div>
+          return(
+            <div key={id} style={{
+              background:'linear-gradient(135deg,#0f0f18,#0c0c14)',
+              border:`1px solid ${isOpen?'rgba(201,168,76,0.3)':'rgba(201,168,76,0.08)'}`,
+              borderRadius:12,overflow:'hidden',transition:'border-color 0.2s',
+              boxShadow:isOpen?'0 4px 24px rgba(0,0,0,0.4)':'none',
+            }}>
+              <div style={{padding:'16px 20px',display:'flex',alignItems:'center',gap:14}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:5}}>
+                    <span style={{fontSize:9,fontWeight:700,letterSpacing:'0.15em',padding:'2px 9px',borderRadius:20,
+                      background:type==='Prospect'?'rgba(201,168,76,0.1)':'#111118',
+                      color:type==='Prospect'?gold:'#4a4550'}}>{type.toUpperCase()}</span>
+                    {date&&<span style={{fontSize:11,color:'#3a3835'}}>{new Date(date).toLocaleDateString()}</span>}
+                    {call.duration&&<span style={{fontSize:11,color:'#3a3835'}}>{fmtDur(call.duration)}</span>}
+                    {analysis&&!analysis.error&&<span style={{fontSize:9,fontWeight:700,color:green,letterSpacing:'0.12em'}}>✓ ANALYZED</span>}
                   </div>
-                  <div style={{ display:'flex', gap:6, flexShrink:0 }}>
-                    <a href={`https://fathom.video/calls/${callId}`} target="_blank" rel="noopener noreferrer"
-                      style={{ fontFamily:'Space Grotesk', fontWeight:700, fontSize:9, letterSpacing:'0.1em', padding:'7px 12px', border:'1px solid #1c1c1c', color:'#4a4a4a', textDecoration:'none' }}>OPEN</a>
-                    <button onClick={()=>analyzeCall(call)} disabled={isAnalyzing} style={{
-                      fontFamily:'Space Grotesk', fontWeight:700, fontSize:9, letterSpacing:'0.1em',
-                      padding:'7px 14px', border:`1px solid ${gold}`, color:isAnalyzing?'#4a4a4a':gold,
-                      background: isExpanded&&analysis?'rgba(245,158,11,0.1)':'transparent',
-                      cursor:isAnalyzing?'not-allowed':'pointer', display:'flex', alignItems:'center', gap:5,
-                    }}>
-                      {isAnalyzing?(<><span style={{width:10,height:10,border:'1.5px solid #4a4a4a',borderTopColor:'transparent',borderRadius:'50%',display:'inline-block',animation:'spin 0.8s linear infinite'}}/>ANALYZING</>):analysis?'VIEW':'ANALYZE AI'}
-                    </button>
-                  </div>
+                  <div style={{fontWeight:700,fontSize:14,color:'#ede8da',lineHeight:1.3,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{title}</div>
+                </div>
+                <div style={{display:'flex',gap:6,flexShrink:0}}>
+                  <a href={`https://fathom.video/calls/${id}`} target="_blank" rel="noopener noreferrer"
+                    style={{fontSize:10,fontWeight:700,letterSpacing:'0.1em',padding:'7px 13px',border:'1px solid #1a1a26',borderRadius:8,color:'#4a4550',textDecoration:'none'}}>Open</a>
+                  <button onClick={()=>analyze(call)} disabled={analyzing[id]} style={{
+                    fontSize:10,fontWeight:700,letterSpacing:'0.1em',padding:'7px 14px',borderRadius:8,
+                    border:`1px solid ${isOpen&&analysis?'rgba(201,168,76,0.4)':'rgba(201,168,76,0.25)'}`,
+                    background:isOpen&&analysis?'rgba(201,168,76,0.1)':'transparent',
+                    color:analyzing[id]?'#4a4550':gold,cursor:analyzing[id]?'not-allowed':'pointer',
+                    display:'flex',alignItems:'center',gap:5,
+                  }}>
+                    {analyzing[id]?(<><span style={{width:10,height:10,border:`1.5px solid ${gold}`,borderTopColor:'transparent',borderRadius:'50%',display:'inline-block',animation:'spin 0.8s linear infinite'}}/>Analyzing</>)
+                      :analysis?'View Analysis':'Analyze AI'}
+                  </button>
                 </div>
               </div>
-              {isExpanded&&analysis&&<AnalysisPanel analysis={analysis}/>}
+              {isOpen&&analysis&&<AnalysisPanel analysis={analysis}/>}
             </div>
           );
         })}
