@@ -2,63 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  box-sizing: border-box;
+:root {
+  --gold: #f59e0b;
+  --gold-dim: #d97706;
+  --green: #10b981;
+  --bg: #050505;
+  --card: #0f0f0f;
+  --border: #1c1c1c;
+  --text: #f0f0f0;
+  --muted: #6b6b6b;
 }
 
+* { box-sizing: border-box; }
+
 body {
-  background-color: #0a0a0a;
-  color: #f5f5f5;
+  background: var(--bg);
+  color: var(--text);
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-.font-display,
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Space Grotesk', sans-serif;
+@keyframes gold-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); opacity: 1; }
+  50% { box-shadow: 0 0 30px 6px rgba(245,158,11,0.25); opacity: 0.95; }
 }
+.streak-active { animation: gold-pulse 2s ease-in-out infinite; }
 
-@keyframes streak-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); opacity: 1; }
-  50% { box-shadow: 0 0 24px 4px rgba(239,68,68,0.35); opacity: 0.92; }
-}
-
-.streak-active {
-  animation: streak-pulse 2s ease-in-out infinite;
-}
-
-@keyframes dot-pulse {
+@keyframes dot-blink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  50% { opacity: 0.2; }
 }
+.dot-blink { animation: dot-blink 1.4s ease-in-out infinite; }
 
-.dot-pulse {
-  animation: dot-pulse 1.2s ease-in-out infinite;
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #0a0a0a; }
-::-webkit-scrollbar-thumb { background: #1a1a1a; }
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #1c1c1c; }
 
 input, textarea, select {
-  background-color: #0a0a0a;
-  color: #f5f5f5;
-  border: 1px solid #1a1a1a;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
   font-family: 'Inter', sans-serif;
   resize: none;
   outline: none;
   transition: border-color 0.15s;
 }
-
 input:focus, textarea:focus, select:focus {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 1px rgba(239,68,68,0.25);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(245,158,11,0.2);
 }
-
-input::placeholder, textarea::placeholder {
-  color: #333333;
-}
-
-.glow-red {
-  box-shadow: 0 0 12px rgba(239,68,68,0.4);
-}
+input::placeholder, textarea::placeholder { color: #2a2a2a; }
