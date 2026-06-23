@@ -3,40 +3,49 @@ import { today, daysSinceStart } from '../utils'
 import { getWinDaySettings, calcDayScore, getWinHistory, computeCurrentWinStreak } from '../utils/winLoss'
 
 const GOLD   = '#f0c040'
-const BG     = '#020609'
-const CARD   = '#080e1a'
-const BORDER = '#1e3050'
-const GREEN  = '#1ad9a0'
+const GREEN  = '#10b981'
 const RED    = '#ff5555'
-const PURPLE = '#b8a0ff'
-const BLUE   = '#4d9fff'
+const INDIGO = '#818cf8'
+const VIOLET = '#a78bfa'
 const CYAN   = '#22d3ee'
 const PINK   = '#e879f9'
-const TEXT2  = '#a0bcdf'
-const MUTED  = '#7a95c0'
+const BLUE   = '#60a5fa'
+const TEXT1  = '#e2e8f0'
+const TEXT2  = '#94a3b8'
+const MUTED  = '#475569'
+const DARK   = '#334155'
 
-const LABEL = {
-  fontFamily: 'Inter, sans-serif',
-  fontSize: 9, fontWeight: 600,
-  color: TEXT2, letterSpacing: '0.25em',
+const CAT_COLORS = { Body: '#2dd4bf', Business: BLUE, Mind: PINK, Daily: INDIGO, Custom: CYAN }
+
+const LABEL_STYLE = {
+  fontFamily: '"Orbitron", monospace',
+  fontSize: 8, fontWeight: 700,
+  color: MUTED, letterSpacing: '0.28em',
   textTransform: 'uppercase',
 }
 
-const CAT_COLORS = { Body: GREEN, Business: BLUE, Mind: PINK, Daily: '#a855f7', Custom: CYAN }
-
-function Section({ title, accent, children }) {
-  return (
-    <div style={{ background: CARD, borderRadius: 12, border: `1px solid ${BORDER}`, padding: '14px 16px' }}>
-      <div style={{ ...LABEL, color: accent || TEXT2, marginBottom: 12 }}>{title}</div>
-      {children}
-    </div>
-  )
+const GLASS = {
+  background: 'rgba(10, 15, 32, 0.68)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  border: '1px solid rgba(99,102,241,0.13)',
+  borderRadius: 16,
 }
 
-function ProgressBar({ pct, color, height = 4 }) {
+function TopBar({ pct, isWin, scoreColor }) {
   return (
-    <div style={{ height, background: BORDER, borderRadius: height / 2, overflow: 'hidden' }}>
-      <div style={{ height: '100%', width: `${Math.min(100, pct)}%`, background: color, borderRadius: height / 2, boxShadow: `0 0 6px ${color}`, transition: 'width 0.6s ease' }} />
+    <div style={{ position: 'relative' }}>
+      <div style={{ height: 5, background: 'rgba(99,102,241,0.1)', borderRadius: 3, overflow: 'hidden' }}>
+        <div style={{
+          height: '100%', width: `${pct}%`,
+          background: `linear-gradient(90deg, ${scoreColor}66, ${scoreColor})`,
+          borderRadius: 3,
+          boxShadow: `0 0 14px ${scoreColor}`,
+          transition: 'width 1.2s cubic-bezier(0.16,1,0.3,1)',
+        }} />
+        {/* shimmer */}
+        <div className="shimmer-bar" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 3 }} />
+      </div>
     </div>
   )
 }
@@ -47,10 +56,10 @@ export default function DailyCommand({ onNavigate }) {
   const now      = new Date()
   const dateDisplay = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()
 
-  const [dailyData]  = useLocalStorage('marko_daily',   { logs: {} })
-  const [bodyData]   = useLocalStorage('marko_body',    { liftSessions: [] })
-  const [dietData]   = useLocalStorage('marko_diet',    { history: [] })
-  const [checkInData]= useLocalStorage('marko_checkin', {})
+  const [dailyData]   = useLocalStorage('marko_daily',   { logs: {} })
+  const [bodyData]    = useLocalStorage('marko_body',    { liftSessions: [] })
+  const [dietData]    = useLocalStorage('marko_diet',    { history: [] })
+  const [checkInData] = useLocalStorage('marko_checkin', {})
 
   const winSettings  = getWinDaySettings()
   const dayScore     = calcDayScore(todayStr, winSettings, dailyData, bodyData, dietData)
@@ -77,202 +86,320 @@ export default function DailyCommand({ onNavigate }) {
   const { pct, isWin, metrics = [] } = dayScore
   const scoreColor = pct >= (winSettings.threshold || 80) ? GOLD : pct >= 50 ? CYAN : RED
 
-  const mit   = morningAnswers['mi16'] || ''
-  const word  = morningAnswers['mi17'] || ''
-  const energy= morningAnswers['me6']  ?? null
+  const mit    = morningAnswers['mi16'] || ''
+  const word   = morningAnswers['mi17'] || ''
+  const energy = morningAnswers['me6']  ?? null
   const overall = eveningAnswers['ed1'] ?? null
 
   const dayLabel = `DAY ${String(dayNum).padStart(3, '0')}`
 
   return (
-    <div style={{ background: BG, minHeight: '100%', overflowY: 'auto' }}>
+    <div style={{ background: 'transparent', minHeight: '100%', overflowY: 'auto' }}>
 
-      {/* ── HEADER ── */}
-      <div style={{ background: '#040810', borderBottom: `1px solid ${BORDER}`, padding: '20px 24px 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginBottom: 12 }}>
-          <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 52, color: GOLD, lineHeight: 1, textShadow: '0 0 24px rgba(240,192,64,0.5)' }}>
-            {dayLabel}
-          </span>
-          <span style={{ fontFamily: 'Inter', fontSize: 11, color: MUTED, letterSpacing: '0.15em' }}>{dateDisplay}</span>
-        </div>
+      {/* ── HERO HEADER ── */}
+      <div className="fade-in" style={{
+        background: 'rgba(6, 9, 24, 0.82)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        borderBottom: '1px solid rgba(99,102,241,0.14)',
+        padding: '24px 26px 20px',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        {/* Top gradient line */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+          background: 'linear-gradient(90deg, transparent 0%, rgba(99,102,241,0.6) 30%, rgba(139,92,246,0.5) 60%, rgba(6,182,212,0.3) 85%, transparent 100%)',
+        }} />
 
-        {/* Score bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ flex: 1, height: 7, background: BORDER, borderRadius: 4, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${pct}%`, background: `linear-gradient(90deg, ${scoreColor}cc, ${scoreColor})`, borderRadius: 4, transition: 'width 0.6s ease', boxShadow: `0 0 10px ${scoreColor}` }} />
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
+          {/* Day + date */}
+          <div>
+            <div style={{ ...LABEL_STYLE, color: INDIGO, marginBottom: 8, textShadow: '0 0 12px rgba(99,102,241,0.5)' }}>
+              MARKO OS — COMMAND CENTER
+            </div>
+            <div className="text-gold-gradient" style={{
+              fontFamily: '"Barlow Condensed", sans-serif',
+              fontWeight: 900, fontSize: 62, lineHeight: 0.92,
+              letterSpacing: '-0.01em',
+            }}>
+              {dayLabel}
+            </div>
+            <div style={{ fontFamily: 'Inter', fontSize: 10, color: DARK, marginTop: 8, letterSpacing: '0.12em' }}>
+              {dateDisplay}
+            </div>
           </div>
-          <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 24, color: scoreColor, minWidth: 54, textAlign: 'right' }}>{pct}%</span>
+
+          {/* Score badge */}
           <div style={{
-            padding: '4px 12px', borderRadius: 6,
-            background: isWin ? 'rgba(240,192,64,0.15)' : pct === 0 ? `rgba(30,48,80,0.6)` : 'rgba(255,85,85,0.12)',
-            border: `1px solid ${isWin ? 'rgba(240,192,64,0.45)' : pct === 0 ? BORDER : 'rgba(255,85,85,0.4)'}`,
-            fontFamily: '"Orbitron", sans-serif', fontSize: 8, fontWeight: 700,
-            color: isWin ? GOLD : pct === 0 ? MUTED : RED, letterSpacing: '0.1em',
+            ...GLASS,
+            padding: '14px 18px', minWidth: 90,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+            border: isWin
+              ? '1px solid rgba(240,192,64,0.35)'
+              : pct > 0
+                ? '1px solid rgba(255,85,85,0.25)'
+                : '1px solid rgba(99,102,241,0.15)',
+            boxShadow: isWin ? '0 0 40px rgba(240,192,64,0.1)' : 'none',
           }}>
-            {pct === 0 ? 'NOT STARTED' : isWin ? 'WIN TRACKING' : 'LOSS TRACKING'}
+            <span style={{
+              fontFamily: '"Barlow Condensed", sans-serif',
+              fontWeight: 900, fontSize: 46, lineHeight: 1,
+              color: scoreColor,
+              textShadow: `0 0 30px ${scoreColor}88`,
+            }}>{pct}%</span>
+            <div style={{
+              fontFamily: '"Orbitron", monospace', fontSize: 6, fontWeight: 700,
+              letterSpacing: '0.1em', color: scoreColor,
+              textShadow: `0 0 10px ${scoreColor}66`,
+            }}>
+              {pct === 0 ? 'PENDING' : isWin ? '🏆 WIN' : '📉 LOSS'}
+            </div>
           </div>
         </div>
+
+        <TopBar pct={pct} isWin={isWin} scoreColor={scoreColor} />
       </div>
 
-      <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* ── MAIN CONTENT ── */}
+      <div style={{ padding: '20px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         {/* ── CHECK-IN CARDS ── */}
-        <div style={{ display: 'flex', gap: 12 }}>
-          {/* Morning */}
+        <div className="fade-up delay-1" style={{ display: 'flex', gap: 14 }}>
+
+          {/* MORNING */}
           <div style={{
-            flex: 1, background: CARD, borderRadius: 12, padding: 16,
-            border: morningDone ? '1px solid rgba(240,192,64,0.45)' : `1px solid ${BORDER}`,
-            borderTop: `3px solid ${morningDone ? GOLD : BORDER}`,
+            flex: 1, ...GLASS, padding: '18px 16px',
+            position: 'relative', overflow: 'hidden',
+            border: morningDone ? '1px solid rgba(240,192,64,0.28)' : '1px solid rgba(99,102,241,0.13)',
+            boxShadow: morningDone ? '0 0 40px rgba(240,192,64,0.07), inset 0 1px 0 rgba(240,192,64,0.08)' : 'none',
+            transition: 'all 0.3s ease',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <span style={{ fontSize: 22 }}>☀️</span>
+            <div style={{
+              position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+              background: morningDone
+                ? 'linear-gradient(90deg, transparent, #f0c040, #fb923c, transparent)'
+                : 'linear-gradient(90deg, transparent, rgba(99,102,241,0.3), transparent)',
+            }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+              <span style={{ fontSize: 22, filter: 'drop-shadow(0 0 8px rgba(240,192,64,0.5))' }}>☀️</span>
               <div>
-                <div style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 10, color: GOLD, letterSpacing: '0.1em' }}>MORNING</div>
-                {morningDone && <div style={{ fontFamily: 'Inter', fontSize: 9, color: GREEN, fontWeight: 700, marginTop: 1 }}>✓ COMPLETE</div>}
+                <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 9, color: GOLD, letterSpacing: '0.12em', fontWeight: 700, textShadow: '0 0 10px rgba(240,192,64,0.4)' }}>MORNING</div>
+                {morningDone && <div style={{ fontFamily: 'Inter', fontSize: 9, color: GREEN, fontWeight: 700, marginTop: 2 }}>✓ COMPLETE</div>}
               </div>
             </div>
 
             {morningDone ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 {energy !== null && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontFamily: 'Inter', fontSize: 11, color: MUTED }}>Energy</span>
-                    <span style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 20, color: GOLD }}>{energy}<span style={{ fontSize: 11, color: MUTED }}>/10</span></span>
+                    <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 24, color: GOLD, textShadow: '0 0 14px rgba(240,192,64,0.5)' }}>
+                      {energy}<span style={{ fontSize: 11, color: DARK }}>  /10</span>
+                    </span>
                   </div>
                 )}
                 {word && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontFamily: 'Inter', fontSize: 11, color: MUTED }}>Word</span>
-                    <span style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 10, fontWeight: 700, color: CYAN }}>{word.toUpperCase()}</span>
+                    <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 9, fontWeight: 700, color: CYAN, textShadow: '0 0 12px rgba(34,211,238,0.5)', letterSpacing: '0.1em' }}>
+                      {word.toUpperCase()}
+                    </span>
                   </div>
                 )}
                 {mit && (
-                  <div style={{ marginTop: 4, paddingTop: 8, borderTop: `1px solid ${BORDER}` }}>
-                    <div style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED, marginBottom: 4 }}>MIT</div>
-                    <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#ffffff', fontStyle: 'italic', lineHeight: 1.4 }}>"{mit}"</div>
+                  <div style={{ marginTop: 6, paddingTop: 10, borderTop: '1px solid rgba(99,102,241,0.1)' }}>
+                    <div style={{ ...LABEL_STYLE, fontSize: 7, marginBottom: 6 }}>TODAY'S MIT</div>
+                    <div style={{ fontFamily: 'Inter', fontSize: 12, color: TEXT1, fontStyle: 'italic', lineHeight: 1.55 }}>"{mit}"</div>
                   </div>
                 )}
               </div>
             ) : (
-              <button onClick={() => onNavigate?.('morning')} style={{
-                width: '100%', background: GOLD, border: 'none', borderRadius: 8,
-                padding: '11px 0', fontFamily: '"Orbitron",sans-serif', fontSize: 10,
-                fontWeight: 700, color: '#000', cursor: 'pointer', letterSpacing: '0.08em',
-              }}>START NOW →</button>
+              <button
+                onClick={() => onNavigate?.('morning')}
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #f0c040, #fb923c)',
+                  border: 'none', borderRadius: 10, padding: '12px 0',
+                  fontFamily: '"Orbitron", monospace', fontSize: 9, fontWeight: 700,
+                  color: '#000', cursor: 'pointer', letterSpacing: '0.1em',
+                  boxShadow: '0 4px 24px rgba(240,192,64,0.35), 0 0 50px rgba(240,192,64,0.12)',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 36px rgba(240,192,64,0.5), 0 0 80px rgba(240,192,64,0.18)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(240,192,64,0.35), 0 0 50px rgba(240,192,64,0.12)'; }}
+              >
+                START MORNING →
+              </button>
             )}
           </div>
 
-          {/* Evening */}
+          {/* EVENING */}
           <div style={{
-            flex: 1, background: CARD, borderRadius: 12, padding: 16,
-            border: eveningDone ? '1px solid rgba(184,160,255,0.45)' : `1px solid ${BORDER}`,
-            borderTop: `3px solid ${eveningDone ? PURPLE : BORDER}`,
+            flex: 1, ...GLASS, padding: '18px 16px',
+            position: 'relative', overflow: 'hidden',
+            border: eveningDone ? '1px solid rgba(167,139,250,0.28)' : '1px solid rgba(99,102,241,0.13)',
+            boxShadow: eveningDone ? '0 0 40px rgba(167,139,250,0.07), inset 0 1px 0 rgba(167,139,250,0.08)' : 'none',
+            transition: 'all 0.3s ease',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <span style={{ fontSize: 22 }}>🌙</span>
+            <div style={{
+              position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+              background: eveningDone
+                ? 'linear-gradient(90deg, transparent, #8b5cf6, #ec4899, transparent)'
+                : 'linear-gradient(90deg, transparent, rgba(99,102,241,0.3), transparent)',
+            }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+              <span style={{ fontSize: 22, filter: 'drop-shadow(0 0 8px rgba(167,139,250,0.5))' }}>🌙</span>
               <div>
-                <div style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 10, color: PURPLE, letterSpacing: '0.1em' }}>EVENING</div>
-                {eveningDone && <div style={{ fontFamily: 'Inter', fontSize: 9, color: GREEN, fontWeight: 700, marginTop: 1 }}>✓ COMPLETE</div>}
+                <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 9, color: VIOLET, letterSpacing: '0.12em', fontWeight: 700, textShadow: '0 0 10px rgba(167,139,250,0.4)' }}>EVENING</div>
+                {eveningDone && <div style={{ fontFamily: 'Inter', fontSize: 9, color: GREEN, fontWeight: 700, marginTop: 2 }}>✓ COMPLETE</div>}
               </div>
             </div>
 
             {eveningDone ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 {overall !== null && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontFamily: 'Inter', fontSize: 11, color: MUTED }}>Overall</span>
-                    <span style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 20, color: PURPLE }}>{overall}<span style={{ fontSize: 11, color: MUTED }}>/10</span></span>
+                    <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 24, color: VIOLET, textShadow: '0 0 14px rgba(167,139,250,0.5)' }}>
+                      {overall}<span style={{ fontSize: 11, color: DARK }}>/10</span>
+                    </span>
                   </div>
                 )}
               </div>
             ) : (
-              <button onClick={() => onNavigate?.('evening')} style={{
-                width: '100%', background: PURPLE, border: 'none', borderRadius: 8,
-                padding: '11px 0', fontFamily: '"Orbitron",sans-serif', fontSize: 10,
-                fontWeight: 700, color: '#000', cursor: 'pointer', letterSpacing: '0.08em',
-              }}>START NOW →</button>
+              <button
+                onClick={() => onNavigate?.('evening')}
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                  border: 'none', borderRadius: 10, padding: '12px 0',
+                  fontFamily: '"Orbitron", monospace', fontSize: 9, fontWeight: 700,
+                  color: '#fff', cursor: 'pointer', letterSpacing: '0.1em',
+                  boxShadow: '0 4px 24px rgba(139,92,246,0.35), 0 0 50px rgba(139,92,246,0.12)',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 36px rgba(139,92,246,0.5), 0 0 80px rgba(139,92,246,0.18)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(139,92,246,0.35), 0 0 50px rgba(139,92,246,0.12)'; }}
+              >
+                START EVENING →
+              </button>
             )}
           </div>
         </div>
 
         {/* ── WIN METRICS ── */}
         {metrics.length > 0 && (
-          <Section title="WIN METRICS TODAY">
+          <div className="fade-up delay-2" style={{ ...GLASS, padding: '16px 18px' }}>
+            <div style={{ ...LABEL_STYLE, marginBottom: 12 }}>Win Metrics Today</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {metrics.map(m => (
                 <div key={m.key} style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '7px 13px', borderRadius: 8,
-                  background: m.pass ? 'rgba(26,217,160,0.1)' : 'rgba(255,85,85,0.08)',
-                  border: `1px solid ${m.pass ? 'rgba(26,217,160,0.35)' : 'rgba(255,85,85,0.3)'}`,
+                  display: 'flex', alignItems: 'center', gap: 7,
+                  padding: '7px 14px', borderRadius: 9,
+                  background: m.pass ? 'rgba(16,185,129,0.09)' : 'rgba(255,85,85,0.08)',
+                  border: `1px solid ${m.pass ? 'rgba(16,185,129,0.25)' : 'rgba(255,85,85,0.22)'}`,
+                  transition: 'all 0.2s',
                 }}>
-                  <span style={{ fontSize: 12 }}>{m.pass ? '✓' : '✗'}</span>
+                  <span style={{ fontSize: 11, color: m.pass ? GREEN : RED }}>{m.pass ? '✓' : '✗'}</span>
                   <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 600, color: m.pass ? GREEN : '#ff7777' }}>{m.label}</span>
                 </div>
               ))}
             </div>
-          </Section>
+          </div>
         )}
 
         {/* ── NON-NEGOTIABLES ── */}
         {nonNegs.length > 0 && (
-          <Section title="Non-Negotiables">
+          <div className="fade-up delay-2" style={{ ...GLASS, padding: '16px 18px' }}>
+            <div style={{ ...LABEL_STYLE, marginBottom: 12 }}>Non-Negotiables</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {nonNegs.map(item => (
                 <div key={item.id} style={{
-                  display: 'flex', alignItems: 'center', gap: 7,
-                  padding: '7px 14px', borderRadius: 8,
-                  background: item.checked ? 'rgba(26,217,160,0.1)' : 'rgba(255,85,85,0.07)',
-                  border: `1px solid ${item.checked ? 'rgba(26,217,160,0.35)' : 'rgba(255,85,85,0.28)'}`,
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '7px 14px', borderRadius: 9,
+                  background: item.checked ? 'rgba(16,185,129,0.09)' : 'rgba(255,85,85,0.08)',
+                  border: `1px solid ${item.checked ? 'rgba(16,185,129,0.25)' : 'rgba(255,85,85,0.22)'}`,
                 }}>
                   <div style={{
-                    width: 14, height: 14, borderRadius: 4,
+                    width: 14, height: 14, borderRadius: 4, flexShrink: 0,
                     background: item.checked ? GREEN : 'transparent',
-                    border: item.checked ? 'none' : `1px solid ${RED}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    border: item.checked ? 'none' : '1px solid rgba(255,85,85,0.5)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: item.checked ? `0 0 8px ${GREEN}66` : 'none',
                   }}>
-                    {item.checked && <span style={{ fontSize: 9, color: '#000', fontWeight: 900, lineHeight: 1 }}>✓</span>}
+                    {item.checked && <span style={{ fontSize: 9, color: '#000', fontWeight: 900 }}>✓</span>}
                   </div>
                   <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 600, color: item.checked ? GREEN : '#ff7777' }}>{item.label}</span>
                 </div>
               ))}
             </div>
-          </Section>
+          </div>
         )}
 
-        {/* ── STREAK + 7-DAY HISTORY ── */}
-        <div style={{ display: 'flex', gap: 12 }}>
+        {/* ── STREAK + 7-DAY GRID ── */}
+        <div className="fade-up delay-3" style={{ display: 'flex', gap: 14 }}>
+
           {/* Streak badge */}
           <div style={{
-            background: 'rgba(240,192,64,0.07)', borderRadius: 12,
-            border: '1px solid rgba(240,192,64,0.4)',
-            padding: '18px 16px', display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center', minWidth: 90, gap: 2,
+            ...GLASS, padding: '20px 14px', minWidth: 98,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
+            border: winStreak > 0 ? '1px solid rgba(240,192,64,0.3)' : '1px solid rgba(99,102,241,0.13)',
+            background: winStreak > 0
+              ? 'linear-gradient(135deg, rgba(240,192,64,0.1), rgba(251,146,60,0.04))'
+              : 'rgba(10,15,32,0.68)',
+            boxShadow: winStreak > 0 ? '0 0 50px rgba(240,192,64,0.1)' : 'none',
           }}>
-            <span style={{ fontSize: 22, lineHeight: 1 }}>🔥</span>
-            <span style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 52, color: GOLD, lineHeight: 1, textShadow: '0 0 20px rgba(240,192,64,0.6)' }}>{winStreak}</span>
-            <span style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 7, color: GOLD, letterSpacing: '0.15em', textAlign: 'center' }}>WIN STREAK</span>
+            <span style={{ fontSize: 20, filter: winStreak > 0 ? 'drop-shadow(0 0 10px rgba(240,192,64,0.6))' : 'grayscale(1)' }}>🔥</span>
+            <span style={{
+              fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 54, lineHeight: 1,
+              color: winStreak > 0 ? GOLD : DARK,
+              textShadow: winStreak > 0 ? '0 0 36px rgba(240,192,64,0.7), 0 0 80px rgba(240,192,64,0.3)' : 'none',
+            }}>{winStreak}</span>
+            <span style={{
+              fontFamily: '"Orbitron", monospace', fontSize: 6, fontWeight: 700,
+              color: winStreak > 0 ? GOLD : DARK, letterSpacing: '0.15em', textAlign: 'center',
+            }}>WIN STREAK</span>
           </div>
 
-          {/* 7-day mini grid */}
-          <div style={{ flex: 1, background: CARD, borderRadius: 12, border: `1px solid ${BORDER}`, padding: '14px 14px' }}>
-            <div style={{ ...LABEL, marginBottom: 12 }}>LAST 7 DAYS</div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {winHistory7.map((day, i) => {
-                const d   = new Date(day.date + 'T12:00:00')
-                const dow = ['S','M','T','W','T','F','S'][d.getDay()]
-                const isToday  = day.date === todayStr
-                const hasData  = day.available > 0
+          {/* 7-day grid */}
+          <div style={{ flex: 1, ...GLASS, padding: '16px 14px' }}>
+            <div style={{ ...LABEL_STYLE, marginBottom: 14 }}>Last 7 Days</div>
+            <div style={{ display: 'flex', gap: 7 }}>
+              {winHistory7.map((d, i) => {
+                const dt      = new Date(d.date + 'T12:00:00')
+                const dow     = ['S','M','T','W','T','F','S'][dt.getDay()]
+                const isToday = d.date === todayStr
+                const hasData = d.available > 0
                 return (
-                  <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-                    <span style={{ fontFamily: 'Inter', fontSize: 8, fontWeight: isToday ? 700 : 400, color: isToday ? GOLD : MUTED }}>{dow}</span>
+                  <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                    <span style={{
+                      fontFamily: 'Inter', fontSize: 8,
+                      fontWeight: isToday ? 700 : 400,
+                      color: isToday ? GOLD : DARK,
+                    }}>{dow}</span>
                     <div style={{
-                      width: '100%', aspectRatio: '1', borderRadius: 6,
-                      background: !hasData ? `rgba(30,48,80,0.5)` : day.isWin ? 'rgba(240,192,64,0.2)' : 'rgba(255,85,85,0.18)',
-                      border: isToday ? `2px solid ${GOLD}` : `1px solid ${!hasData ? BORDER : day.isWin ? 'rgba(240,192,64,0.5)' : 'rgba(255,85,85,0.45)'}`,
+                      width: '100%', aspectRatio: '1', borderRadius: 8,
+                      background: !hasData
+                        ? 'rgba(20,28,52,0.5)'
+                        : d.isWin
+                          ? 'linear-gradient(135deg, rgba(240,192,64,0.2), rgba(251,146,60,0.1))'
+                          : 'linear-gradient(135deg, rgba(255,85,85,0.15), rgba(239,68,68,0.07))',
+                      border: isToday
+                        ? `2px solid rgba(240,192,64,0.7)`
+                        : `1px solid ${!hasData ? 'rgba(30,41,80,0.5)' : d.isWin ? 'rgba(240,192,64,0.4)' : 'rgba(255,85,85,0.35)'}`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: hasData && d.isWin ? '0 0 14px rgba(240,192,64,0.2)' : hasData ? '0 0 10px rgba(255,85,85,0.1)' : 'none',
+                      transition: 'all 0.2s',
                     }}>
-                      {hasData && <span style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 13, color: day.isWin ? GOLD : RED }}>{day.isWin ? 'W' : 'L'}</span>}
+                      {hasData && (
+                        <span style={{
+                          fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 13,
+                          color: d.isWin ? GOLD : RED,
+                          textShadow: d.isWin ? '0 0 10px rgba(240,192,64,0.7)' : 'none',
+                        }}>{d.isWin ? 'W' : 'L'}</span>
+                      )}
                     </div>
                   </div>
                 )
@@ -283,92 +410,128 @@ export default function DailyCommand({ onNavigate }) {
 
         {/* ── TODAY'S FOCUS ── */}
         {(mit || word) && (
-          <div style={{ background: CARD, borderRadius: 12, border: `1px solid rgba(240,192,64,0.35)`, borderLeft: `3px solid ${GOLD}`, padding: '14px 16px' }}>
-            <div style={{ ...LABEL, color: GOLD, marginBottom: 10 }}>TODAY'S FOCUS</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+          <div className="fade-up delay-4" style={{
+            ...GLASS,
+            border: '1px solid rgba(240,192,64,0.2)',
+            borderLeft: `3px solid ${GOLD}`,
+            borderRadius: '0 16px 16px 0',
+            padding: '16px 18px',
+            boxShadow: '0 0 40px rgba(240,192,64,0.05)',
+          }}>
+            <div style={{ ...LABEL_STYLE, color: GOLD, marginBottom: 12, textShadow: '0 0 12px rgba(240,192,64,0.4)' }}>
+              Today's Focus
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {word && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED, minWidth: 36 }}>WORD</span>
-                  <span style={{ fontFamily: '"Orbitron",sans-serif', fontWeight: 900, fontSize: 18, color: CYAN, letterSpacing: '0.08em' }}>{word.toUpperCase()}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <span style={{ fontFamily: 'Inter', fontSize: 9, color: DARK, minWidth: 40, letterSpacing: '0.1em', textTransform: 'uppercase' }}>WORD</span>
+                  <span style={{ fontFamily: '"Orbitron", monospace', fontWeight: 900, fontSize: 18, color: CYAN, letterSpacing: '0.08em', textShadow: '0 0 18px rgba(34,211,238,0.55)' }}>
+                    {word.toUpperCase()}
+                  </span>
                 </div>
               )}
               {mit && (
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                  <span style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED, minWidth: 36, marginTop: 2 }}>MIT</span>
-                  <span style={{ fontFamily: 'Inter', fontSize: 13, color: '#ffffff', lineHeight: 1.5, fontWeight: 500 }}>{mit}</span>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                  <span style={{ fontFamily: 'Inter', fontSize: 9, color: DARK, minWidth: 40, marginTop: 2, letterSpacing: '0.1em', textTransform: 'uppercase' }}>MIT</span>
+                  <span style={{ fontFamily: 'Inter', fontSize: 13, color: TEXT1, lineHeight: 1.6, fontWeight: 500 }}>{mit}</span>
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* ── GOALS ── */}
+        {/* ── ACTIVE GOALS ── */}
         {goals.length > 0 && (
-          <Section title="Active Goals">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="fade-up delay-5" style={{ ...GLASS, padding: '16px 18px' }}>
+            <div style={{ ...LABEL_STYLE, marginBottom: 16 }}>Active Goals</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               {goals.map(goal => {
-                const start = new Date(goal.startDate + 'T00:00:00')
-                const end   = new Date(goal.endDate   + 'T00:00:00')
-                const total = Math.max(1, (end - start) / 86400000)
+                const start   = new Date(goal.startDate + 'T00:00:00')
+                const end     = new Date(goal.endDate   + 'T00:00:00')
+                const total   = Math.max(1, (end - start) / 86400000)
                 const elapsed = Math.max(0, (now - start) / 86400000)
                 const timePct = Math.min(100, Math.round((elapsed / total) * 100))
-                const daysLeft = Math.max(0, Math.ceil((end - now) / 86400000))
-                const accent = CAT_COLORS[goal.category] || BLUE
+                const daysLeft= Math.max(0, Math.ceil((end - now) / 86400000))
+                const accent  = CAT_COLORS[goal.category] || INDIGO
                 return (
                   <div key={goal.id}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-                      <span style={{ fontFamily: 'Inter', fontSize: 13, color: '#fff', fontWeight: 600 }}>{goal.title}</span>
-                      <span style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 18, color: accent }}>{daysLeft}<span style={{ fontSize: 10, color: MUTED, fontWeight: 400 }}>d</span></span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+                      <span style={{ fontFamily: 'Inter', fontSize: 13, color: TEXT1, fontWeight: 600 }}>{goal.title}</span>
+                      <span style={{
+                        fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 20,
+                        color: accent, textShadow: `0 0 12px ${accent}66`,
+                      }}>{daysLeft}<span style={{ fontSize: 11, color: DARK, fontWeight: 400 }}>d</span></span>
                     </div>
-                    <ProgressBar pct={timePct} color={accent} />
+                    <div style={{ height: 5, background: 'rgba(20,28,52,0.8)', borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
+                      <div style={{
+                        height: '100%', width: `${timePct}%`,
+                        background: `linear-gradient(90deg, ${accent}66, ${accent})`,
+                        borderRadius: 3, boxShadow: `0 0 10px ${accent}`,
+                        transition: 'width 1.2s cubic-bezier(0.16,1,0.3,1)',
+                      }} />
+                    </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
-                      <span style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED }}>{timePct}% time elapsed</span>
-                      <span style={{ fontFamily: 'Inter', fontSize: 9, color: accent, fontWeight: 600 }}>{daysLeft} days remaining</span>
+                      <span style={{ fontFamily: 'Inter', fontSize: 9, color: DARK }}>{timePct}% elapsed</span>
+                      <span style={{ fontFamily: 'Inter', fontSize: 9, color: accent, fontWeight: 600 }}>{daysLeft} days left</span>
                     </div>
                   </div>
                 )
               })}
             </div>
-          </Section>
+          </div>
         )}
 
         {/* ── LATEST JOURNAL ── */}
         {latestJournal && (
-          <div style={{
-            background: CARD, borderRadius: 12,
-            border: `1px solid ${BORDER}`,
+          <div className="fade-up delay-6" style={{
+            ...GLASS,
+            border: `1px solid ${latestJournal.isWin ? 'rgba(240,192,64,0.18)' : 'rgba(255,85,85,0.18)'}`,
             borderLeft: `3px solid ${latestJournal.isWin ? GOLD : RED}`,
-            padding: '14px 16px',
+            borderRadius: '0 16px 16px 0',
+            padding: '16px 18px',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ ...LABEL }}>LATEST JOURNAL</div>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <span style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED }}>{latestJournal.date}</span>
+              <div style={{ ...LABEL_STYLE }}>Latest Journal</div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ fontFamily: 'Inter', fontSize: 9, color: DARK }}>{latestJournal.date}</span>
                 <span style={{
-                  padding: '2px 8px', borderRadius: 4,
-                  background: latestJournal.isWin ? GOLD : RED,
-                  color: latestJournal.isWin ? '#000' : '#fff',
-                  fontFamily: 'Inter', fontSize: 9, fontWeight: 900,
+                  padding: '3px 9px', borderRadius: 5,
+                  background: latestJournal.isWin ? 'rgba(240,192,64,0.14)' : 'rgba(255,85,85,0.12)',
+                  border: `1px solid ${latestJournal.isWin ? 'rgba(240,192,64,0.4)' : 'rgba(255,85,85,0.35)'}`,
+                  fontFamily: '"Orbitron", monospace', fontSize: 7, fontWeight: 700,
+                  color: latestJournal.isWin ? GOLD : RED,
+                  letterSpacing: '0.05em',
                 }}>{latestJournal.isWin ? 'WIN' : 'LOSS'}</span>
               </div>
             </div>
-            <p style={{ fontFamily: 'Inter', fontSize: 12, color: '#c8d8f0', lineHeight: 1.65, margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            <p style={{ fontFamily: 'Inter', fontSize: 12, color: TEXT2, lineHeight: 1.7, margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
               {latestJournal.aiReflection || latestJournal.manualNote || '—'}
             </p>
-            <button onClick={() => onNavigate?.('journal')} style={{ marginTop: 10, background: 'none', border: 'none', color: MUTED, fontSize: 10, fontFamily: 'Inter', cursor: 'pointer', padding: 0 }}>
+            <button
+              onClick={() => onNavigate?.('journal')}
+              style={{ marginTop: 10, background: 'none', border: 'none', color: MUTED, fontSize: 10, fontFamily: 'Inter', cursor: 'pointer', padding: 0, transition: 'color 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.color = INDIGO }}
+              onMouseLeave={e => { e.currentTarget.style.color = MUTED }}
+            >
               View all entries →
             </button>
           </div>
         )}
 
-        {/* ── EMPTY PLACEHOLDER when fresh ── */}
+        {/* ── EMPTY STATE ── */}
         {!morningDone && !eveningDone && metrics.length === 0 && nonNegs.length === 0 && goals.length === 0 && !latestJournal && (
-          <div style={{ textAlign: 'center', padding: '40px 20px', color: MUTED, fontFamily: 'Inter', fontSize: 13 }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🚀</div>
-            Start your morning check-in to activate the command center.
+          <div className="fade-up delay-2" style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <div style={{ fontSize: 52, marginBottom: 16, filter: 'drop-shadow(0 0 20px rgba(99,102,241,0.4))' }}>🚀</div>
+            <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 10, color: INDIGO, letterSpacing: '0.25em', marginBottom: 10, textShadow: '0 0 16px rgba(99,102,241,0.5)' }}>
+              SYSTEM READY
+            </div>
+            <div style={{ fontFamily: 'Inter', fontSize: 13, color: DARK }}>
+              Start your morning check-in to activate the command center.
+            </div>
           </div>
         )}
 
+        <div style={{ height: 24 }} />
       </div>
     </div>
   )

@@ -48,9 +48,46 @@ export default function App() {
   const Page = PAGES[active]
 
   return (
-    <div className="flex flex-row h-screen text-white overflow-hidden" style={{ background: '#020609' }}>
+    <div className="flex flex-row h-screen text-white overflow-hidden" style={{ background: '#03040d', position: 'relative' }}>
+
+      {/* ── AURORA BACKGROUND ── */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+        {/* Indigo blob top-left */}
+        <div style={{
+          position: 'absolute', borderRadius: '50%',
+          width: '72vw', height: '72vh', top: '-22vh', left: '-18vw',
+          background: 'radial-gradient(ellipse at center, rgba(99,102,241,0.11) 0%, rgba(99,102,241,0.04) 45%, transparent 72%)',
+          animation: 'aurora-drift-1 22s ease-in-out infinite',
+          filter: 'blur(48px)',
+        }} />
+        {/* Violet blob bottom-right */}
+        <div style={{
+          position: 'absolute', borderRadius: '50%',
+          width: '62vw', height: '62vh', bottom: '-18vh', right: '-12vw',
+          background: 'radial-gradient(ellipse at center, rgba(139,92,246,0.09) 0%, rgba(139,92,246,0.03) 45%, transparent 72%)',
+          animation: 'aurora-drift-2 28s ease-in-out infinite',
+          filter: 'blur(56px)',
+        }} />
+        {/* Cyan blob center */}
+        <div style={{
+          position: 'absolute', borderRadius: '50%',
+          width: '48vw', height: '48vh', top: '32vh', left: '22vw',
+          background: 'radial-gradient(ellipse at center, rgba(6,182,212,0.06) 0%, rgba(6,182,212,0.02) 45%, transparent 72%)',
+          animation: 'aurora-drift-3 34s ease-in-out infinite',
+          filter: 'blur(64px)',
+        }} />
+        {/* Dot grid overlay */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: 'radial-gradient(rgba(99,102,241,0.07) 1px, transparent 1px)',
+          backgroundSize: '34px 34px',
+          maskImage: 'radial-gradient(ellipse 85% 85% at 50% 50%, black 10%, transparent 100%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 85% 85% at 50% 50%, black 10%, transparent 100%)',
+        }} />
+      </div>
+
       <Sidebar active={active} onSelect={setActive} onSettings={() => setShowSettings(true)} />
-      <main className="flex-1 overflow-auto min-w-0">
+      <main className="flex-1 overflow-auto min-w-0" style={{ position: 'relative', zIndex: 1 }}>
         <Page onNavigate={setActive} />
       </main>
       {showSettings && <Settings onClose={() => setShowSettings(false)} />}
