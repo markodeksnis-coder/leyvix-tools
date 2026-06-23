@@ -1,83 +1,63 @@
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@900&family=Orbitron:wght@400;600;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: dark; }
-
-* {
-  box-sizing: border-box;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+:root {
+  --bg:      #08080d;
+  --surface: #0d0d14;
+  --card:    #0f0f18;
+  --border:  rgba(201,168,76,0.1);
+  --border2: #1a1a26;
+  --gold:    #c9a84c;
+  --gold-lt: #e2c675;
+  --gold-dim: rgba(201,168,76,0.08);
+  --green:   #10b981;
+  --red:     #ef4444;
+  --text:    #ede8da;
+  --text2:   #7a7570;
+  --text3:   #2e2c2a;
 }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; }
 
 body {
-  background: #020609;
-  color: white;
-  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: #020609; }
-::-webkit-scrollbar-thumb { background: rgba(42,74,122,0.7); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(77,159,255,0.7); }
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1e1e2a; border-radius: 4px; }
 
-input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.6); }
-select option { background: #040810; }
-
-/* Glow utilities */
-.glow-purple { box-shadow: 0 0 20px rgba(139,92,246,0.5), 0 0 40px rgba(139,92,246,0.2); }
-.glow-cyan { box-shadow: 0 0 20px rgba(34,211,238,0.5), 0 0 40px rgba(34,211,238,0.2); }
-.glow-gold { box-shadow: 0 0 20px rgba(240,192,64,0.6), 0 0 40px rgba(240,192,64,0.3); }
-
-/* Gradient text utility */
-.gradient-text {
-  background: linear-gradient(135deg, #8b5cf6 0%, #22d3ee 50%, #f0c040 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+@keyframes gold-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
+  50%       { box-shadow: 0 0 28px 4px rgba(201,168,76,0.18); }
 }
+.streak-active { animation: gold-glow 2.5s ease-in-out infinite; }
 
-/* Check-in slide animations */
-@keyframes slideInForward {
-  from { transform: translateX(60px); opacity: 0; }
-  to   { transform: translateX(0);    opacity: 1; }
-}
-@keyframes slideInBack {
-  from { transform: translateX(-60px); opacity: 0; }
-  to   { transform: translateX(0);     opacity: 1; }
-}
-.slide-in-forward { animation: slideInForward 0.25s ease-out forwards; }
-.slide-in-back    { animation: slideInBack 0.25s ease-out forwards; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+.blink { animation: blink 1.6s ease-in-out infinite; }
 
-/* Check-in gold slider */
-.checkin-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 4px;
-  background: #1e3050;
+@keyframes spin { to { transform: rotate(360deg); } }
+
+input, textarea, select {
+  font-family: 'Inter', sans-serif;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border2);
   outline: none;
-  border-radius: 2px;
-  cursor: pointer;
+  resize: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.checkin-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #f0c040;
-  cursor: pointer;
-  box-shadow: 0 0 16px rgba(240,192,64,0.7);
+input:focus, textarea:focus, select:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(201,168,76,0.1);
 }
-.checkin-slider::-moz-range-thumb {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #f0c040;
-  cursor: pointer;
-  border: none;
-  box-shadow: 0 0 16px rgba(240,192,64,0.7);
-}
+input::placeholder, textarea::placeholder { color: var(--text3); }
+button { font-family: 'Inter', sans-serif; cursor: pointer; }
+select option { background: #13131e; color: var(--text); }

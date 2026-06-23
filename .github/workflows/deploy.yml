@@ -5,6 +5,7 @@ on:
     branches:
       - claude/performance-app-setup-1HK0b
       - claude/build-new-app-MLhPs
+      - claude/confident-bell-27m6a9
 
 permissions:
   contents: write
