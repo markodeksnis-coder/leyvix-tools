@@ -3,54 +3,61 @@
 @tailwind utilities;
 
 :root {
-  --gold: #f59e0b;
-  --gold-dim: #d97706;
-  --green: #10b981;
-  --bg: #050505;
-  --card: #0f0f0f;
-  --border: #1c1c1c;
-  --text: #f0f0f0;
-  --muted: #6b6b6b;
+  --bg:      #08080d;
+  --surface: #0d0d14;
+  --card:    #0f0f18;
+  --border:  rgba(201,168,76,0.1);
+  --border2: #1a1a26;
+  --gold:    #c9a84c;
+  --gold-lt: #e2c675;
+  --gold-dim: rgba(201,168,76,0.08);
+  --green:   #10b981;
+  --red:     #ef4444;
+  --text:    #ede8da;
+  --text2:   #7a7570;
+  --text3:   #2e2c2a;
 }
 
-* { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; }
 
 body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
-@keyframes gold-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); opacity: 1; }
-  50% { box-shadow: 0 0 30px 6px rgba(245,158,11,0.25); opacity: 0.95; }
-}
-.streak-active { animation: gold-pulse 2s ease-in-out infinite; }
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1e1e2a; border-radius: 4px; }
 
-@keyframes dot-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.2; }
+@keyframes gold-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
+  50%       { box-shadow: 0 0 28px 4px rgba(201,168,76,0.18); }
 }
-.dot-blink { animation: dot-blink 1.4s ease-in-out infinite; }
+.streak-active { animation: gold-glow 2.5s ease-in-out infinite; }
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+.blink { animation: blink 1.6s ease-in-out infinite; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: #1c1c1c; }
-
 input, textarea, select {
-  background: var(--bg);
-  color: var(--text);
-  border: 1px solid var(--border);
   font-family: 'Inter', sans-serif;
-  resize: none;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border2);
   outline: none;
-  transition: border-color 0.15s;
+  resize: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 input:focus, textarea:focus, select:focus {
   border-color: var(--gold);
-  box-shadow: 0 0 0 1px rgba(245,158,11,0.2);
+  box-shadow: 0 0 0 2px rgba(201,168,76,0.1);
 }
-input::placeholder, textarea::placeholder { color: #2a2a2a; }
+input::placeholder, textarea::placeholder { color: var(--text3); }
+button { font-family: 'Inter', sans-serif; cursor: pointer; }
+select option { background: #13131e; color: var(--text); }
