@@ -7,12 +7,12 @@ import IdentityStatement from '../components/IdentityStatement'
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const GOLD   = '#f0c040'
-const BG     = '#020609'
+const BG     = 'transparent'
 const Q_BG   = '#000000'
-const CARD   = '#080e1a'
-const BORDER = '#1e3050'
-const MUTED  = '#7a95c0'
-const TEXT2  = '#a0bcdf'
+const CARD   = 'rgba(8,12,26,0.65)'
+const BORDER = 'rgba(99,102,241,0.18)'
+const MUTED  = '#64748b'
+const TEXT2  = '#94a3b8'
 
 // ─── Default belief statements ────────────────────────────────────────────────
 const DEFAULT_BELIEFS = [
@@ -662,7 +662,7 @@ function EditModeView({ morningQs, setMorningQs, eveningQs, setEveningQs, onBack
   }
 
   const inputStyle = {
-    background: '#080e1a', border: `1px solid ${BORDER}`, borderRadius: 8,
+    background: 'rgba(8,12,26,0.65)', border: `1px solid ${BORDER}`, borderRadius: 8,
     color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: 14, padding: '10px 14px',
     outline: 'none', width: '100%', boxSizing: 'border-box',
   }
@@ -766,7 +766,7 @@ function EditModeView({ morningQs, setMorningQs, eveningQs, setEveningQs, onBack
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20,
         }}>
-          <div style={{ background: '#080e1a', border: `1px solid ${BORDER}`, borderRadius: 16, padding: 28, width: '100%', maxWidth: 460 }}>
+          <div style={{ background: 'rgba(8,12,26,0.65)', border: `1px solid ${BORDER}`, borderRadius: 16, padding: 28, width: '100%', maxWidth: 460 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
               <span style={{ fontFamily: '"Orbitron", sans-serif', fontSize: 14, color: GOLD }}>ADD QUESTION</span>
               <button onClick={() => setShowAdd(false)} style={{ background: 'none', border: 'none', color: MUTED, cursor: 'pointer' }}>

@@ -4,14 +4,14 @@ import { today } from '../utils'
 
 // ── Color constants ────────────────────────────────────────────────────────────
 const GOLD = '#f0c040'
-const BLUE = '#4d9fff'
-const GREEN = '#1ad9a0'
+const BLUE = '#60a5fa'
+const GREEN = '#2dd4bf'
 const RED = '#ff5555'
-const TEXT2 = '#a0bcdf'
-const MUTED = '#7a95c0'
-const BORDER = '#1e3050'
-const CARD = '#080e1a'
-const BG = '#020609'
+const TEXT2 = '#94a3b8'
+const MUTED = '#64748b'
+const BORDER = 'rgba(99,102,241,0.18)'
+const CARD = 'rgba(8,12,26,0.65)'
+const BG = 'transparent'
 
 const CATEGORIES = ['Body', 'Business', 'Mind', 'Daily', 'Custom']
 
@@ -24,7 +24,7 @@ const CATEGORY_COLORS = {
 }
 
 // ── Input / label class helpers ────────────────────────────────────────────────
-const INPUT_CLS =
+const INPUT_CLS = 'w-full rounded-lg px-3 py-2 text-sm text-white placeholder-[#64748b] focus:outline-none transition-colors' // styled inline
   'w-full bg-[#040810] border border-[#1e3050] rounded px-3 py-2 text-sm text-white placeholder-[#7a95c0] focus:outline-none focus:border-[#f0c040] transition-colors'
 const LABEL_CLS = 'block text-[9px] font-mono uppercase tracking-widest text-[#a0bcdf] mb-1.5'
 
@@ -152,7 +152,7 @@ function TimelineBar({ pct, milestonePositions, upcomingId }) {
           left: 0,
           right: 0,
           height: 6,
-          background: BORDER,
+          background: 'rgba(99,102,241,0.15)',
           borderRadius: 3,
           overflow: 'visible',
         }}
@@ -210,7 +210,7 @@ function GoalCard({ goal, onEdit, onArchive, onToggleTask }) {
       style={{
         background: CARD,
         border: `1px solid ${BORDER}`,
-        borderRadius: 12,
+        borderRadius: 16,
         padding: '16px 20px',
         display: 'flex',
         flexDirection: 'column',

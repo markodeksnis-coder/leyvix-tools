@@ -6,14 +6,14 @@ import {
   BarChart, Bar, Cell, ReferenceLine
 } from 'recharts'
 
-const BG = '#020609'
-const SURF = '#040810'
-const CARD_BORDER = '#1e3050'
-const TEXT2 = '#a0bcdf'
-const CARD = { background: '#080e1a', border: '1px solid #1e3050', borderRadius: 12, padding: 20 }
+const BG = 'transparent'
+const SURF = 'rgba(5,8,20,0.75)'
+const CARD_BORDER = 'rgba(99,102,241,0.18)'
+const TEXT2 = '#94a3b8'
+const CARD = { background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 12, padding: 20 }
 const LBL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }
 const CHART_TT = {
-  contentStyle: { background: '#040810', border: '1px solid #1e3050', borderRadius: 8, fontSize: 11, fontFamily: 'Inter' },
+  contentStyle: { background: 'rgba(5,8,20,0.75)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 8, fontSize: 11, fontFamily: 'Inter' },
   labelStyle: { color: '#a0bcdf' }, itemStyle: { color: '#fff' },
 }
 
@@ -27,7 +27,7 @@ function CircleGauge({ value, max = 10, size = 110, label, color = '#6366f1', de
     : (value >= 7 ? ['OPERATIONAL', '#1ad9a0'] : value >= 5 ? ['STABLE', '#6366f1'] : ['DEGRADED', '#f43f5e'])
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-      <div style={{ background: '#080e1a', border: '1px solid #1e3050', borderRadius: 12, padding: '16px 20px', textAlign: 'center', minWidth: 130 }}>
+      <div style={{ background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 12, padding: '16px 20px', textAlign: 'center', minWidth: 130 }}>
         <div style={{ position: 'relative', width: size, height: size, margin: '0 auto 8px' }}>
           <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
             <circle cx={cx} cy={cy} r={r} fill="none" stroke="#1e3050" strokeWidth={7} />
@@ -315,7 +315,7 @@ export default function Insights() {
             <SectionTitle dot="#4d9fff" right="AUTO-MINED FROM YOUR DAILY LOGS">CORRELATIONS DETECTED</SectionTitle>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 12 }}>
               {correlations.map((c, i) => (
-                <div key={i} style={{ background: '#020609', border: `1px solid ${c.color}20`, borderRadius: 10, padding: 16 }}>
+                <div key={i} style={{ background: 'transparent', border: `1px solid ${c.color}20`, borderRadius: 10, padding: 16 }}>
                   <div style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{c.title}</div>
                   <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#a0bcdf', marginBottom: 12 }}>{c.subtitle}</p>
                   <div style={{ display: 'flex', gap: 16 }}>

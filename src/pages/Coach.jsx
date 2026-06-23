@@ -203,7 +203,7 @@ export default function Coach() {
 
   const KeyModal = () => (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.92)' }}>
-      <div style={{ background: '#080e1a', border: '1px solid #1e3050', width: '100%', maxWidth: 448, margin: '0 16px', padding: 32, borderRadius: 12 }}>
+      <div style={{ background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', width: '100%', maxWidth: 448, margin: '0 16px', padding: 32, borderRadius: 12 }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <div style={{ color: '#b8a0ff', fontSize: 24, fontWeight: 900, marginBottom: 8 }}>⚡</div>
           <h2 style={{ fontFamily: 'Inter', fontSize: 18, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#fff', marginBottom: 8 }}>Anthropic API Key Required</h2>
@@ -217,9 +217,9 @@ export default function Coach() {
             onKeyDown={e => e.key === 'Enter' && saveKey()}
             placeholder="sk-ant-..."
             autoFocus
-            style={{ width: '100%', background: '#020609', border: '1px solid #1e3050', padding: '12px', fontSize: 14, color: '#fff', fontFamily: 'monospace', outline: 'none', boxSizing: 'border-box', borderRadius: 6 }}
+            style={{ width: '100%', background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', padding: '12px', fontSize: 14, color: '#fff', fontFamily: 'monospace', outline: 'none', boxSizing: 'border-box', borderRadius: 6 }}
             onFocus={e => e.target.style.borderColor = '#b8a0ff'}
-            onBlur={e => e.target.style.borderColor = '#1e3050'}
+            onBlur={e => e.target.style.borderColor = 'rgba(99,102,241,0.18)'}
           />
           <button onClick={saveKey} style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: 'white', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer', borderRadius: 6, boxShadow: '0 0 20px rgba(139,92,246,0.4)' }}>
             Save & Start
@@ -230,11 +230,11 @@ export default function Coach() {
   )
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#020609' }}>
+    <div className="h-full flex flex-col" style={{ background: 'transparent' }}>
       {showKeyModal && <KeyModal />}
 
       {/* Page Header */}
-      <div style={{ background: '#020609', borderBottom: '1px solid #1e3050', padding: '20px 32px', flexShrink: 0 }}>
+      <div style={{ background: 'transparent', borderBottom: '1px solid rgba(99,102,241,0.18)', padding: '20px 32px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
@@ -250,7 +250,7 @@ export default function Coach() {
             {messages.length > 0 && (
               <button
                 onClick={() => { if (window.confirm('Start new session?')) setMessages([]) }}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', border: '1px solid #1e3050', color: '#a0bcdf', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', border: '1px solid rgba(99,102,241,0.18)', color: '#a0bcdf', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
               >
                 <Plus size={9} /> New Session
               </button>
@@ -259,7 +259,7 @@ export default function Coach() {
               onClick={() => { setKeyDraft(apiKey); setShowKeyModal(true) }}
               style={{ color: '#a0bcdf', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 6 }}
               onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-              onMouseLeave={e => e.currentTarget.style.color = '#a0bcdf'}
+              onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
             >
               <Settings size={14} strokeWidth={1.5} />
             </button>
@@ -288,9 +288,9 @@ export default function Coach() {
                 <button
                   key={p}
                   onClick={() => { setInput(p); textareaRef.current?.focus() }}
-                  style={{ width: '100%', textAlign: 'left', padding: '12px 16px', border: '1px solid #1e3050', fontSize: 12, color: '#a0bcdf', background: '#080e1a', cursor: 'pointer', borderRadius: 8, fontFamily: 'Inter', transition: 'all 0.15s' }}
+                  style={{ width: '100%', textAlign: 'left', padding: '12px 16px', border: '1px solid rgba(99,102,241,0.18)', fontSize: 12, color: '#a0bcdf', background: 'rgba(8,12,26,0.65)', cursor: 'pointer', borderRadius: 8, fontFamily: 'Inter', transition: 'all 0.15s' }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = '#b8a0ff'; e.currentTarget.style.color = '#fff' }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e3050'; e.currentTarget.style.color = '#a0bcdf' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.18)'; e.currentTarget.style.color = '#94a3b8' }}
                 >
                   {p}
                 </button>
@@ -326,7 +326,7 @@ export default function Coach() {
             ))}
             {loading && (
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                <div style={{ width: 24, height: 24, border: '1px solid rgba(184,160,255,0.35)', background: '#080e1a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2, borderRadius: 4 }}>
+                <div style={{ width: 24, height: 24, border: '1px solid rgba(184,160,255,0.35)', background: 'rgba(8,12,26,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2, borderRadius: 4 }}>
                   <Bot size={11} style={{ color: '#a0bcdf' }} />
                 </div>
                 <div style={{ background: 'linear-gradient(135deg, #080e1a, #080e1a)', border: '1px solid rgba(184,160,255,0.35)', borderLeft: '2px solid #b8a0ff', padding: '12px 16px', borderRadius: 8, boxShadow: '0 0 20px rgba(99,102,241,0.1)' }}>
@@ -347,7 +347,7 @@ export default function Coach() {
       </div>
 
       {/* Chat input area */}
-      <div style={{ padding: '16px 32px', borderTop: '1px solid #1e3050', flexShrink: 0, background: '#080e1a' }}>
+      <div style={{ padding: '16px 32px', borderTop: '1px solid rgba(99,102,241,0.18)', flexShrink: 0, background: 'rgba(8,12,26,0.65)' }}>
         <div style={{ maxWidth: 768, margin: '0 auto' }}>
           <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
             <textarea
@@ -358,9 +358,9 @@ export default function Coach() {
               placeholder={apiKey ? 'Ask your coach...' : 'Set API key first...'}
               rows={1}
               disabled={!apiKey}
-              style={{ flex: 1, background: '#020609', border: '1px solid #1e3050', padding: '12px 16px', fontSize: 14, color: '#fff', resize: 'none', outline: 'none', overflow: 'hidden', fontFamily: 'Inter', opacity: apiKey ? 1 : 0.3, borderRadius: 8, transition: 'border-color 0.15s' }}
+              style={{ flex: 1, background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', padding: '12px 16px', fontSize: 14, color: '#fff', resize: 'none', outline: 'none', overflow: 'hidden', fontFamily: 'Inter', opacity: apiKey ? 1 : 0.3, borderRadius: 8, transition: 'border-color 0.15s' }}
               onFocus={e => e.target.style.borderColor = '#b8a0ff'}
-              onBlur={e => e.target.style.borderColor = '#1e3050'}
+              onBlur={e => e.target.style.borderColor = 'rgba(99,102,241,0.18)'}
             />
             <button
               onClick={sendMessage}

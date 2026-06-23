@@ -5,7 +5,7 @@ import Modal from '../components/Modal'
 import { calcStreak, today } from '../utils'
 
 const cls = {
-  input: "w-full bg-[#040810] border border-[#1e3050] px-3 py-2 text-sm text-white placeholder-[#a0bcdf] focus:outline-none focus:border-[#e879f9] transition-colors",
+  input: "w-full bg-[rgba(5,8,20,0.75)] border border-[rgba(99,102,241,0.2)] px-3 py-2 text-sm text-white placeholder-[#a0bcdf] focus:outline-none focus:border-[#e879f9] transition-colors",
   label: "block text-[9px] font-mono uppercase tracking-widest text-[#a0bcdf] mb-1.5",
 }
 
@@ -82,9 +82,9 @@ export default function Soul() {
   const displayedPrayers = showAllPrayers ? prayers : prayers.slice(0, 5)
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#020609' }}>
+    <div className="h-full flex flex-col" style={{ background: 'transparent' }}>
       {/* Page Header */}
-      <div style={{ background: '#020609', borderBottom: '1px solid #1e3050', padding: '20px 32px', flexShrink: 0 }}>
+      <div style={{ background: 'transparent', borderBottom: '1px solid rgba(99,102,241,0.18)', padding: '20px 32px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
@@ -105,7 +105,7 @@ export default function Soul() {
             </button>
             <button
               onClick={() => { setNewVal({ value: '', description: '' }); setAddingVal(true) }}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #1e3050', color: '#a0bcdf', fontSize: 9, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'transparent', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid rgba(99,102,241,0.18)', color: '#a0bcdf', fontSize: 9, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'transparent', cursor: 'pointer' }}
             >
               <Plus size={9} /> Add Value
             </button>
@@ -125,8 +125,8 @@ export default function Soul() {
               <div className="flex items-center gap-2">
                 {(data.identityArchive || []).length > 0 && (
                   <button onClick={() => setShowArchive(!showArchive)} style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#a0bcdf', fontSize: 9, fontFamily: 'Inter', textTransform: 'uppercase', letterSpacing: '0.12em', background: 'none', border: 'none', cursor: 'pointer' }}
-                    onMouseEnter={e => e.currentTarget.style.color = '#a0bcdf'}
-                    onMouseLeave={e => e.currentTarget.style.color = '#a0bcdf'}
+                    onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'}
+                    onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
                   >
                     <Archive size={10} /> Archive ({(data.identityArchive || []).length})
                   </button>
@@ -134,7 +134,7 @@ export default function Soul() {
                 {!editingIdentity && (
                   <button onClick={startEditIdentity} style={{ color: '#a0bcdf', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
                     onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-                    onMouseLeave={e => e.currentTarget.style.color = '#a0bcdf'}
+                    onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
                   >
                     <Pencil size={13} />
                   </button>
@@ -154,13 +154,13 @@ export default function Soul() {
                 />
                 <div className="flex gap-2 mt-2">
                   <button onClick={saveIdentity} style={{ padding: '8px 20px', background: 'linear-gradient(135deg, #e879f9, #db2777)', color: 'white', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer' }}>Save</button>
-                  <button onClick={() => setEditingIdentity(false)} style={{ padding: '8px 20px', border: '1px solid #1e3050', color: '#a0bcdf', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
+                  <button onClick={() => setEditingIdentity(false)} style={{ padding: '8px 20px', border: '1px solid rgba(99,102,241,0.18)', color: '#a0bcdf', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
                 </div>
               </div>
             ) : (
               <div
                 onClick={startEditIdentity}
-                style={{ background: '#080e1a', border: '1px solid #1e3050', borderLeft: '3px solid #e879f9', padding: 24, cursor: 'pointer', minHeight: 160, borderRadius: 12 }}
+                style={{ background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', borderLeft: '3px solid #e879f9', padding: 24, cursor: 'pointer', minHeight: 160, borderRadius: 12 }}
               >
                 {data.identity ? (
                   <p style={{ fontSize: 14, color: '#a0bcdf', lineHeight: 1.7, whiteSpace: 'pre-wrap', margin: 0 }}>{data.identity}</p>
@@ -174,7 +174,7 @@ export default function Soul() {
               <div className="mt-4 space-y-2">
                 <div style={{ fontSize: 9, fontFamily: 'Inter', textTransform: 'uppercase', letterSpacing: '0.12em', color: '#a0bcdf', marginBottom: 8 }}>Past Versions</div>
                 {(data.identityArchive || []).map(arch => (
-                  <div key={arch.id} style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 16, borderRadius: 8 }}>
+                  <div key={arch.id} style={{ background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', padding: 16, borderRadius: 8 }}>
                     <div style={{ fontSize: 8, fontFamily: 'Inter', color: '#a0bcdf', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.12em' }}>{arch.date}</div>
                     <p style={{ fontSize: 12, color: '#a0bcdf', lineHeight: 1.6, whiteSpace: 'pre-wrap', margin: 0 }}>{arch.content}</p>
                   </div>
@@ -188,7 +188,7 @@ export default function Soul() {
             <div className="flex items-center justify-between mb-4">
               <div style={{ fontSize: 10, fontFamily: 'Inter', textTransform: 'uppercase', letterSpacing: '0.12em', color: '#e879f9', fontWeight: 600 }}>Core Values</div>
               {!addingVal && (
-                <button onClick={() => { setNewVal({ value: '', description: '' }); setAddingVal(true) }} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', border: '1px solid #1e3050', color: '#a0bcdf', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>
+                <button onClick={() => { setNewVal({ value: '', description: '' }); setAddingVal(true) }} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', border: '1px solid rgba(99,102,241,0.18)', color: '#a0bcdf', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>
                   <Plus size={9} /> Add
                 </button>
               )}
@@ -197,7 +197,7 @@ export default function Soul() {
               {values.map((val, idx) => (
                 <div
                   key={val.id || idx}
-                  style={{ background: '#080e1a', border: '1px solid #1e3050', borderRadius: 8, padding: '12px 16px' }}
+                  style={{ background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 8, padding: '12px 16px' }}
                   className="group"
                   onMouseEnter={e => e.currentTarget.style.borderLeftColor = '#e879f9'}
                   onMouseLeave={e => e.currentTarget.style.borderLeftColor = 'rgba(232,121,249,0.2)'}
@@ -220,11 +220,11 @@ export default function Soul() {
                       <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => startEditVal(idx)} style={{ color: '#a0bcdf', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
                           onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-                          onMouseLeave={e => e.currentTarget.style.color = '#a0bcdf'}
+                          onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
                         ><Pencil size={11} /></button>
                         <button onClick={() => deleteVal(idx)} style={{ color: '#a0bcdf', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
                           onMouseEnter={e => e.currentTarget.style.color = '#e879f9'}
-                          onMouseLeave={e => e.currentTarget.style.color = '#a0bcdf'}
+                          onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
                         ><Trash2 size={11} /></button>
                       </div>
                     </div>
@@ -232,7 +232,7 @@ export default function Soul() {
                 </div>
               ))}
               {addingVal && (
-                <div style={{ background: '#080e1a', border: '1px solid #2a1e40', borderRadius: 8, padding: '12px 16px' }} className="space-y-2">
+                <div style={{ background: 'rgba(8,12,26,0.65)', border: '1px solid #2a1e40', borderRadius: 8, padding: '12px 16px' }} className="space-y-2">
                   <input value={newVal.value} onChange={e => setNewVal({ ...newVal, value: e.target.value })} onKeyDown={e => { if (e.key === 'Escape') setAddingVal(false) }} placeholder="Value name..." autoFocus className="w-full bg-transparent text-sm font-bold text-white focus:outline-none" style={{ placeholder: '#a0bcdf' }} />
                   <input value={newVal.description} onChange={e => setNewVal({ ...newVal, description: e.target.value })} onKeyDown={e => { if (e.key === 'Enter') addVal(); if (e.key === 'Escape') setAddingVal(false) }} placeholder="One-line description..." className="w-full bg-transparent text-xs focus:outline-none" style={{ color: '#a0bcdf' }} />
                   <div className="flex gap-2">
@@ -255,23 +255,23 @@ export default function Soul() {
                   </span>
                 )}
               </div>
-              <button onClick={() => { setPf({ content: '', date: today() }); setShowPrayerModal(true) }} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', border: '1px solid #1e3050', color: '#a0bcdf', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>
+              <button onClick={() => { setPf({ content: '', date: today() }); setShowPrayerModal(true) }} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', border: '1px solid rgba(99,102,241,0.18)', color: '#a0bcdf', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>
                 <Plus size={9} /> Add
               </button>
             </div>
             {prayers.length === 0 ? (
-              <div style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 24, textAlign: 'center', color: '#a0bcdf', fontSize: 10, fontFamily: 'Inter', textTransform: 'uppercase', letterSpacing: '0.12em', borderRadius: 12 }}>Start your prayer log</div>
+              <div style={{ background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', padding: 24, textAlign: 'center', color: '#a0bcdf', fontSize: 10, fontFamily: 'Inter', textTransform: 'uppercase', letterSpacing: '0.12em', borderRadius: 12 }}>Start your prayer log</div>
             ) : (
               <div className="space-y-2">
                 {displayedPrayers.map(prayer => (
-                  <div key={prayer.id} style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 16, borderRadius: 8 }} className="group">
+                  <div key={prayer.id} style={{ background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', padding: 16, borderRadius: 8 }} className="group">
                     <div className="flex items-start justify-between gap-4">
                       <p style={{ fontSize: 14, color: '#a0bcdf', lineHeight: 1.6, flex: 1, whiteSpace: 'pre-wrap', margin: 0 }}>{prayer.content}</p>
                       <div className="flex items-center gap-2 shrink-0">
                         <span style={{ fontSize: 8, fontFamily: 'Inter', color: '#a0bcdf' }}>{prayer.date}</span>
                         <button onClick={() => deletePrayer(prayer.id)} style={{ color: '#a0bcdf', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }} className="opacity-0 group-hover:opacity-100 transition-all"
                           onMouseEnter={e => e.currentTarget.style.color = '#e879f9'}
-                          onMouseLeave={e => e.currentTarget.style.color = '#a0bcdf'}
+                          onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
                         ><X size={11} /></button>
                       </div>
                     </div>
@@ -279,8 +279,8 @@ export default function Soul() {
                 ))}
                 {prayers.length > 5 && (
                   <button onClick={() => setShowAllPrayers(!showAllPrayers)} className="w-full flex items-center justify-center gap-1 py-2 transition-colors" style={{ fontSize: 9, fontFamily: 'Inter', color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.12em', background: 'none', border: 'none', cursor: 'pointer' }}
-                    onMouseEnter={e => e.currentTarget.style.color = '#a0bcdf'}
-                    onMouseLeave={e => e.currentTarget.style.color = '#a0bcdf'}
+                    onMouseEnter={e => e.currentTarget.style.color = '#94a3b8'}
+                    onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
                   >
                     {showAllPrayers ? <><ChevronUp size={9} /> Show Less</> : <><ChevronDown size={9} /> View All ({prayers.length})</>}
                   </button>
@@ -298,7 +298,7 @@ export default function Soul() {
             <div><label className={cls.label}>Prayer / Reflection</label><textarea value={pf.content} onChange={e => setPf({ ...pf, content: e.target.value })} placeholder="What are you praying about? What is God saying?" rows={6} autoFocus className={cls.input + " resize-none"} /></div>
             <div className="flex gap-2 pt-1">
               <button onClick={addPrayer} style={{ flex: 1, padding: '10px', background: 'linear-gradient(135deg, #e879f9, #db2777)', color: 'white', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer', boxShadow: '0 0 16px rgba(232,121,249,0.35)' }}>Save</button>
-              <button onClick={() => setShowPrayerModal(false)} style={{ padding: '10px 16px', border: '1px solid #1e3050', color: '#a0bcdf', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => setShowPrayerModal(false)} style={{ padding: '10px 16px', border: '1px solid rgba(99,102,241,0.18)', color: '#a0bcdf', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
             </div>
           </div>
         </Modal>

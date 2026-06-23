@@ -20,7 +20,7 @@ const TYPE_COLORS = {
 const ENERGY_ICON = { builds: '⚡', neutral: '⚪', drains: '🔻' }
 
 const cls = {
-  input: "w-full bg-[#040810] border border-[#1e3050] px-3 py-2 text-sm text-white placeholder-[#a0bcdf] focus:outline-none focus:border-[#f43f5e] transition-colors",
+  input: "w-full bg-[rgba(5,8,20,0.75)] border border-[rgba(99,102,241,0.2)] px-3 py-2 text-sm text-white placeholder-[#a0bcdf] focus:outline-none focus:border-[#f43f5e] transition-colors",
   label: "block text-[9px] font-mono uppercase tracking-widest text-[#a0bcdf] mb-1.5",
 }
 
@@ -87,9 +87,9 @@ export default function Relations() {
   }
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#020609' }}>
+    <div className="h-full flex flex-col" style={{ background: 'transparent' }}>
       {/* Header */}
-      <div style={{ background: '#020609', borderBottom: '1px solid #1e3050', padding: '20px 32px', flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+      <div style={{ background: 'transparent', borderBottom: '1px solid rgba(99,102,241,0.18)', padding: '20px 32px', flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
@@ -108,7 +108,7 @@ export default function Relations() {
       </div>
 
       {/* Stats row */}
-      <div style={{ padding: '8px 32px', borderBottom: '1px solid #1e3050', display: 'flex', gap: 24, flexShrink: 0 }}>
+      <div style={{ padding: '8px 32px', borderBottom: '1px solid rgba(99,102,241,0.18)', display: 'flex', gap: 24, flexShrink: 0 }}>
         <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em' }}>People: <span style={{ color: '#a0bcdf' }}>{people.length}</span></span>
         <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Builders: <span style={{ fontFamily: '"Orbitron", sans-serif', fontWeight: 900, color: '#1ad9a0' }}>{builders}</span></span>
         <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Drainers: <span style={{ fontFamily: '"Orbitron", sans-serif', fontWeight: 900, color: '#f43f5e' }}>{drainers}</span></span>
@@ -118,7 +118,7 @@ export default function Relations() {
         {/* Search */}
         <div className="relative">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#a0bcdf' }} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search people..." style={{ width: '100%', background: '#040810', border: '1px solid #1e3050', paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, fontFamily: 'Inter', fontSize: 14, color: '#d1d5db', outline: 'none' }} className="focus:border-[#f43f5e] transition-colors placeholder-[#a0bcdf]" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search people..." style={{ width: '100%', background: 'rgba(5,8,20,0.75)', border: '1px solid rgba(99,102,241,0.18)', paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, fontFamily: 'Inter', fontSize: 14, color: '#d1d5db', outline: 'none' }} className="focus:border-[#f43f5e] transition-colors placeholder-[#a0bcdf]" />
         </div>
 
         {/* People grid */}
@@ -137,7 +137,7 @@ export default function Relations() {
                 : '3px solid #7a95c0'
 
             return (
-              <div key={p.id} style={{ background: '#080e1a', border: '1px solid #1e3050', borderLeft: energyBorderLeft, borderRadius: 8 }} className="transition-all">
+              <div key={p.id} style={{ background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', borderLeft: energyBorderLeft, borderRadius: 8 }} className="transition-all">
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex-1">
@@ -166,7 +166,7 @@ export default function Relations() {
                 </div>
 
                 {isExpanded && (
-                  <div style={{ borderTop: '1px solid #1e3050' }} className="px-4 pb-4 pt-3 space-y-3">
+                  <div style={{ borderTop: '1px solid rgba(99,102,241,0.18)' }} className="px-4 pb-4 pt-3 space-y-3">
                     {p.notes && (
                       <div>
                         <div className="text-[8px] font-mono uppercase tracking-widest mb-1" style={{ color: '#a0bcdf' }}>Notes</div>
@@ -194,7 +194,7 @@ export default function Relations() {
                           onChange={e => setNewPsyNote(n => ({ ...n, [p.id]: e.target.value }))}
                           onKeyDown={e => e.key === 'Enter' && addPsyNote(p.id)}
                           placeholder="Observation..."
-                          style={{ flex: 1, background: '#040810', border: '1px solid #1e3050', padding: '6px 8px', fontSize: 12, color: 'white', outline: 'none' }}
+                          style={{ flex: 1, background: 'rgba(5,8,20,0.75)', border: '1px solid rgba(99,102,241,0.18)', padding: '6px 8px', fontSize: 12, color: 'white', outline: 'none' }}
                           className="focus:border-[#f43f5e] transition-colors placeholder-[#a0bcdf]"
                         />
                         <button onClick={() => addPsyNote(p.id)} style={{ padding: '6px 12px', background: 'linear-gradient(135deg, #f43f5e, #db2777)', color: 'white', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', border: 'none' }}>Add</button>
@@ -211,9 +211,9 @@ export default function Relations() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Human Behavior Notes</span>
-            <button onClick={() => setShowBehModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', border: '1px solid #1e3050', background: 'transparent', color: '#a0bcdf', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer' }}
+            <button onClick={() => setShowBehModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', border: '1px solid rgba(99,102,241,0.18)', background: 'transparent', color: '#a0bcdf', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = '#f43f5e'; e.currentTarget.style.color = 'white' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e3050'; e.currentTarget.style.color = '#a0bcdf' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.18)'; e.currentTarget.style.color = '#94a3b8' }}
             >
               <Plus size={9} /> Add Note
             </button>
@@ -228,7 +228,7 @@ export default function Relations() {
                   textTransform: 'uppercase',
                   letterSpacing: '0.1em',
                   cursor: 'pointer',
-                  border: behCat === cat ? '1px solid rgba(244,63,94,0.3)' : '1px solid #1e3050',
+                  border: behCat === cat ? '1px solid rgba(244,63,94,0.3)' : '1px solid rgba(99,102,241,0.18)',
                   background: behCat === cat ? 'rgba(244,63,94,0.12)' : 'transparent',
                   color: behCat === cat ? '#f43f5e' : '#a0bcdf',
                   transition: 'all 0.15s',
@@ -239,11 +239,11 @@ export default function Relations() {
           </div>
           <div className="relative mb-3">
             <Search size={11} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#a0bcdf' }} />
-            <input value={behSearch} onChange={e => setBehSearch(e.target.value)} placeholder="Search observations..." style={{ width: '100%', background: '#040810', border: '1px solid #1e3050', paddingLeft: 32, paddingRight: 12, paddingTop: 6, paddingBottom: 6, fontFamily: 'Inter', fontSize: 14, color: '#d1d5db', outline: 'none' }} className="focus:border-[#f43f5e] transition-colors placeholder-[#a0bcdf]" />
+            <input value={behSearch} onChange={e => setBehSearch(e.target.value)} placeholder="Search observations..." style={{ width: '100%', background: 'rgba(5,8,20,0.75)', border: '1px solid rgba(99,102,241,0.18)', paddingLeft: 32, paddingRight: 12, paddingTop: 6, paddingBottom: 6, fontFamily: 'Inter', fontSize: 14, color: '#d1d5db', outline: 'none' }} className="focus:border-[#f43f5e] transition-colors placeholder-[#a0bcdf]" />
           </div>
           <div className="space-y-2">
             {filteredBeh.map(n => (
-              <div key={n.id} style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 16, borderRadius: 8 }} className="group transition-all">
+              <div key={n.id} style={{ background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', padding: 16, borderRadius: 8 }} className="group transition-all">
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <div className="flex items-center gap-2">
                     <span style={{ fontFamily: 'Inter', fontSize: 8, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#f43f5e' }}>{n.category}</span>
@@ -256,7 +256,7 @@ export default function Relations() {
               </div>
             ))}
             {filteredBeh.length === 0 && (
-              <div style={{ background: '#020609', border: '1px solid #1e3050', padding: 24, textAlign: 'center', fontFamily: 'Inter', fontSize: 10, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: 8 }}>No observations yet</div>
+              <div style={{ background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', padding: 24, textAlign: 'center', fontFamily: 'Inter', fontSize: 10, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em', borderRadius: 8 }}>No observations yet</div>
             )}
           </div>
         </section>
@@ -281,7 +281,7 @@ export default function Relations() {
             <div><label className={cls.label}>Notes</label><textarea value={pf.notes} onChange={e => setPf({ ...pf, notes: e.target.value })} rows={3} placeholder="Who is this person..." className={cls.input + " resize-none"} /></div>
             <div className="flex gap-2 pt-1">
               <button onClick={addPerson} style={{ background: 'linear-gradient(135deg, #f43f5e, #db2777)', color: 'white', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
-              <button onClick={() => setShowPersonModal(false)} style={{ border: '1px solid #1e3050', color: '#a0bcdf', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
+              <button onClick={() => setShowPersonModal(false)} style={{ border: '1px solid rgba(99,102,241,0.18)', color: '#a0bcdf', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
             </div>
           </div>
         </Modal>
@@ -299,7 +299,7 @@ export default function Relations() {
             <div><label className={cls.label}>Detail</label><textarea value={bf.detail} onChange={e => setBf({ ...bf, detail: e.target.value })} rows={4} placeholder="Explain the pattern..." className={cls.input + " resize-none"} /></div>
             <div className="flex gap-2 pt-1">
               <button onClick={addBehNote} style={{ background: 'linear-gradient(135deg, #f43f5e, #db2777)', color: 'white', borderRadius: 8 }} className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity">Save</button>
-              <button onClick={() => setShowBehModal(false)} style={{ border: '1px solid #1e3050', color: '#a0bcdf', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
+              <button onClick={() => setShowBehModal(false)} style={{ border: '1px solid rgba(99,102,241,0.18)', color: '#a0bcdf', borderRadius: 8 }} className="px-4 py-2.5 text-[10px] uppercase tracking-widest hover:border-[#444] transition-colors">Cancel</button>
             </div>
           </div>
         </Modal>

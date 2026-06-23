@@ -7,7 +7,7 @@ import { fmtShort } from '../utils'
 const CATEGORIES = ['Sales Psychology','Human Behavior','Theology','Business Frameworks','Fitness Science','Relationships','Door-to-Door','Reading People','Other']
 
 const cls = {
-  input: "w-full bg-[#040810] border border-[#1e3050] px-3 py-2 text-sm text-white placeholder-[#a0bcdf] focus:outline-none focus:border-[#e879f9] transition-colors",
+  input: "w-full bg-[rgba(5,8,20,0.75)] border border-[rgba(99,102,241,0.2)] px-3 py-2 text-sm text-white placeholder-[#a0bcdf] focus:outline-none focus:border-[#e879f9] transition-colors",
   label: "block text-[9px] font-mono uppercase tracking-widest text-[#a0bcdf] mb-1.5",
 }
 
@@ -151,9 +151,9 @@ export default function Mind() {
   const lastEntry = [...entries].sort((a, b) => b.date > a.date ? 1 : -1)[0]
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#080e1a' }}>
+    <div className="h-full flex flex-col" style={{ background: 'rgba(8,12,26,0.65)' }}>
       {/* Header */}
-      <div style={{ background: '#080e1a', borderBottom: '1px solid #162035', padding: '20px 32px', flexShrink: 0, position: 'relative' }}>
+      <div style={{ background: 'rgba(8,12,26,0.65)', borderBottom: '1px solid #162035', padding: '20px 32px', flexShrink: 0, position: 'relative' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
           <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#a0bcdf', letterSpacing: '0.12em', textTransform: 'uppercase' }}>KNOWLEDGE ACQUISITION ACTIVE</span>
@@ -195,7 +195,7 @@ export default function Mind() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left panel: categories */}
-        <div style={{ width: 208, borderRight: '1px solid #162035', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto', background: '#080e1a' }}>
+        <div style={{ width: 208, borderRight: '1px solid #162035', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto', background: 'rgba(8,12,26,0.65)' }}>
           <button
             onClick={() => setActiveCat('All')}
             style={{
@@ -208,7 +208,7 @@ export default function Mind() {
             }}
           >
             <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: activeCat === 'All' ? '#e879f9' : '#a0bcdf' }}>All</span>
-            <span style={{ fontFamily: 'Inter', fontSize: 9, background: '#080e1a', padding: '2px 6px', color: '#a0bcdf' }}>{total}</span>
+            <span style={{ fontFamily: 'Inter', fontSize: 9, background: 'rgba(8,12,26,0.65)', padding: '2px 6px', color: '#a0bcdf' }}>{total}</span>
           </button>
           {CATEGORIES.map(cat => (
             <button
@@ -217,16 +217,16 @@ export default function Mind() {
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '12px 20px', textAlign: 'left',
-                borderBottom: '1px solid #1e3050',
+                borderBottom: '1px solid rgba(99,102,241,0.18)',
                 borderLeft: activeCat === cat ? '2px solid #e879f9' : '2px solid transparent',
                 background: activeCat === cat ? 'rgba(232,121,249,0.08)' : 'transparent',
                 cursor: 'pointer', transition: 'all 0.15s',
               }}
-              onMouseEnter={e => { if (activeCat !== cat) e.currentTarget.querySelector('span').style.color = '#a0bcdf' }}
-              onMouseLeave={e => { if (activeCat !== cat) e.currentTarget.querySelector('span').style.color = '#a0bcdf' }}
+              onMouseEnter={e => { if (activeCat !== cat) e.currentTarget.querySelector('span').style.color = '#94a3b8' }}
+              onMouseLeave={e => { if (activeCat !== cat) e.currentTarget.querySelector('span').style.color = '#94a3b8' }}
             >
               <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', lineHeight: 1.3, color: activeCat === cat ? '#e879f9' : '#a0bcdf' }}>{cat}</span>
-              {counts[cat] > 0 && <span style={{ fontFamily: 'Inter', fontSize: 9, background: '#080e1a', padding: '2px 6px', color: '#a0bcdf', flexShrink: 0, marginLeft: 4 }}>{counts[cat]}</span>}
+              {counts[cat] > 0 && <span style={{ fontFamily: 'Inter', fontSize: 9, background: 'rgba(8,12,26,0.65)', padding: '2px 6px', color: '#a0bcdf', flexShrink: 0, marginLeft: 4 }}>{counts[cat]}</span>}
             </button>
           ))}
         </div>
@@ -240,15 +240,15 @@ export default function Mind() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search entries..."
-                style={{ width: '100%', background: '#080e1a', border: '1px solid #1e3050', paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, fontSize: 14, color: '#a0bcdf', outline: 'none', fontFamily: 'Inter', borderRadius: 8, boxSizing: 'border-box' }}
+                style={{ width: '100%', background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, fontSize: 14, color: '#a0bcdf', outline: 'none', fontFamily: 'Inter', borderRadius: 8, boxSizing: 'border-box' }}
                 onFocus={e => e.currentTarget.style.borderColor = '#e879f9'}
-                onBlur={e => e.currentTarget.style.borderColor = '#1e3050'}
+                onBlur={e => e.currentTarget.style.borderColor = 'rgba(99,102,241,0.18)'}
               />
             </div>
           </div>
 
           {/* Contextual Search Panel */}
-          <div style={{ margin: '12px 24px 0', background: '#080e1a', border: '1px solid #1e3050', borderRadius: 10, flexShrink: 0 }}>
+          <div style={{ margin: '12px 24px 0', background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 10, flexShrink: 0 }}>
             <button onClick={() => setShowContextSearch(!showContextSearch)}
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', background: 'none', border: 'none', cursor: 'pointer' }}>
               <span style={{ fontSize: 14 }}>🧠</span>
@@ -261,7 +261,7 @@ export default function Mind() {
                   <input value={contextQuery} onChange={e => setContextQuery(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleContextSearch()}
                     placeholder="e.g. I'm struggling with staying consistent..."
-                    style={{ flex: 1, background: '#080e1a', border: '1px solid #1e3050', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
+                    style={{ flex: 1, background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
                   <button onClick={handleContextSearch} disabled={contextSearching}
                     style={{ padding: '8px 14px', background: contextSearching ? '#1e3050' : 'linear-gradient(135deg, #e879f9, #a855f7)', color: contextSearching ? '#a0bcdf' : 'white', border: 'none', borderRadius: 6, cursor: contextSearching ? 'not-allowed' : 'pointer', fontFamily: 'Inter', fontSize: 11, fontWeight: 700, boxShadow: contextSearching ? 'none' : '0 0 16px rgba(232,121,249,0.4)' }}>
                     {contextSearching ? '...' : 'Find'}
@@ -269,7 +269,7 @@ export default function Mind() {
                 </div>
                 {contextError && <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#ff5555', margin: '0 0 8px' }}>{contextError}</p>}
                 {contextResult && (
-                  <div style={{ background: '#080e1a', border: '1px solid rgba(232,121,249,0.3)', borderLeft: '3px solid #e879f9', borderRadius: 8, padding: 14 }}>
+                  <div style={{ background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(232,121,249,0.3)', borderLeft: '3px solid #e879f9', borderRadius: 8, padding: 14 }}>
                     <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#e879f9', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>MOST RELEVANT — {contextResult.category}</div>
                     <div style={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 600, color: 'white', marginBottom: 6 }}>{contextResult.title}</div>
                     {contextResult.source && <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#a0bcdf', marginBottom: 8 }}>Source: {contextResult.source}</div>}
@@ -356,7 +356,7 @@ export default function Mind() {
         <Modal title="New Entry" onClose={() => { setShowModal(false); setAiMode(false); setRawNotes(''); setRawSource(''); setAiError('') }}>
           <div className="space-y-4">
             {/* AI / Manual toggle */}
-            <div style={{ display: 'flex', gap: 1, marginBottom: 16, background: '#080e1a', borderRadius: 8, padding: 4, border: '1px solid #1e3050' }}>
+            <div style={{ display: 'flex', gap: 1, marginBottom: 16, background: 'rgba(8,12,26,0.65)', borderRadius: 8, padding: 4, border: '1px solid rgba(99,102,241,0.18)' }}>
               {[['raw', 'Manual'], ['ai', 'AI Format ✨']].map(([mode, label]) => (
                 <button key={mode} onClick={() => { setAiMode(mode === 'ai'); setAiError('') }}
                   style={{ flex: 1, padding: '7px', fontFamily: 'Inter', fontSize: 11, fontWeight: 600, border: 'none', cursor: 'pointer', borderRadius: 6, transition: 'all 0.15s',
@@ -373,12 +373,12 @@ export default function Mind() {
                   <label style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>Raw Notes / Takeaways</label>
                   <textarea value={rawNotes} onChange={e => setRawNotes(e.target.value)} rows={6}
                     placeholder="Paste your raw notes, takeaways, or summary from any video, book, or podcast..."
-                    style={{ width: '100%', background: '#080e1a', border: '1px solid #1e3050', borderRadius: 8, padding: '10px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 8, padding: '10px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', resize: 'vertical', boxSizing: 'border-box' }} />
                 </div>
                 <div>
                   <label style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>Source</label>
                   <input value={rawSource} onChange={e => setRawSource(e.target.value)} placeholder="Book title, video name, podcast episode..."
-                    style={{ width: '100%', background: '#080e1a', border: '1px solid #1e3050', borderRadius: 8, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 8, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 {aiError && <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#ff5555', margin: 0 }}>{aiError}</p>}
                 <button onClick={handleAIFormat} disabled={aiFormatting || !rawNotes.trim()}
@@ -403,7 +403,7 @@ export default function Mind() {
                 <div><label className={cls.label}>Date</label><input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} className={cls.input} /></div>
                 <div className="flex gap-2 pt-1">
                   <button onClick={addEntry} style={{ flex: 1, padding: '10px 0', background: 'linear-gradient(135deg, #e879f9, #a855f7)', color: 'white', fontFamily: 'Inter', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', border: 'none', borderRadius: 8, cursor: 'pointer', boxShadow: '0 0 16px rgba(232,121,249,0.4)' }}>Save Entry</button>
-                  <button onClick={() => { setShowModal(false); setAiMode(false); setRawNotes(''); setRawSource(''); setAiError('') }} style={{ padding: '10px 16px', background: 'transparent', color: '#a0bcdf', fontFamily: 'Inter', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', border: '1px solid #1e3050', borderRadius: 8, cursor: 'pointer' }}>Cancel</button>
+                  <button onClick={() => { setShowModal(false); setAiMode(false); setRawNotes(''); setRawSource(''); setAiError('') }} style={{ padding: '10px 16px', background: 'transparent', color: '#a0bcdf', fontFamily: 'Inter', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 8, cursor: 'pointer' }}>Cancel</button>
                 </div>
               </>
             )}

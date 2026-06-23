@@ -138,7 +138,7 @@ function OscillationGraph({ points, mean, metricId }) {
         <XAxis dataKey="label" hide />
         <YAxis domain={[domainMin, domainMax]} hide />
         <Tooltip
-          contentStyle={{ background: '#040810', border: '1px solid #1e3050', fontSize: 10, fontFamily: 'Inter', boxShadow: '0 0 20px rgba(34,211,238,0.1)' }}
+          contentStyle={{ background: 'rgba(5,8,20,0.75)', border: '1px solid rgba(99,102,241,0.18)', fontSize: 10, fontFamily: 'Inter', boxShadow: '0 0 20px rgba(34,211,238,0.1)' }}
           labelStyle={{ color: '#a0bcdf' }}
           formatter={(v) => [v !== null ? (Number.isInteger(v) ? v : v.toFixed(1)) : '—', '']}
         />
@@ -162,7 +162,7 @@ function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
   const low = stats?.low ?? null
 
   return (
-    <div style={{ background: 'linear-gradient(135deg, #080e1a 0%, #040810 100%)', border: '1px solid #1e3050', borderRadius: 12, overflow: 'hidden', marginBottom: 12, boxShadow: '0 0 0 1px rgba(34,211,238,0.06)' }}>
+    <div style={{ background: 'linear-gradient(135deg, #080e1a 0%, #040810 100%)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 12, overflow: 'hidden', marginBottom: 12, boxShadow: '0 0 0 1px rgba(34,211,238,0.06)' }}>
       <div style={{ padding: '14px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 24, letterSpacing: '0.04em', lineHeight: 1, background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
@@ -303,9 +303,9 @@ export default function LifeCycles() {
   }
 
   return (
-    <div style={{ background: '#080e1a', minHeight: '100%' }}>
+    <div style={{ background: 'rgba(8,12,26,0.65)', minHeight: '100%' }}>
       {/* Header */}
-      <div style={{ background: '#080e1a', borderBottom: '1px solid #162035', padding: '20px 32px', flexShrink: 0 }}>
+      <div style={{ background: 'rgba(8,12,26,0.65)', borderBottom: '1px solid #162035', padding: '20px 32px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
             <h1 style={{
@@ -368,7 +368,7 @@ export default function LifeCycles() {
                 onKeyDown={e => e.key === 'Enter' && addCustomMetric()}
                 placeholder="e.g. Morning Energy"
                 style={{
-                  width: '100%', background: '#020609', border: '1px solid #1e3050', borderRadius: 6,
+                  width: '100%', background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 6,
                   padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box'
                 }}
               />
@@ -382,7 +382,7 @@ export default function LifeCycles() {
                 onChange={e => setNewMetricMax(e.target.value)}
                 type="number"
                 style={{
-                  width: '100%', background: '#020609', border: '1px solid #1e3050', borderRadius: 6,
+                  width: '100%', background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 6,
                   padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box'
                 }}
               />
@@ -395,7 +395,7 @@ export default function LifeCycles() {
             </button>
             <button
               onClick={() => setShowAddMetric(false)}
-              style={{ padding: '8px 14px', border: '1px solid #1e3050', background: 'transparent', color: '#a0bcdf', borderRadius: 6, cursor: 'pointer', fontFamily: 'Inter', fontSize: 11 }}
+              style={{ padding: '8px 14px', border: '1px solid rgba(99,102,241,0.18)', background: 'transparent', color: '#a0bcdf', borderRadius: 6, cursor: 'pointer', fontFamily: 'Inter', fontSize: 11 }}
             >
               Cancel
             </button>
@@ -466,7 +466,7 @@ export default function LifeCycles() {
               {isCustom && (
                 <div style={{
                   marginTop: -6, marginBottom: 12, padding: '10px 20px', background: 'linear-gradient(135deg, #080e1a, #040810)',
-                  border: '1px solid #1e3050', borderTop: 'none', borderRadius: '0 0 12px 12px',
+                  border: '1px solid rgba(99,102,241,0.18)', borderTop: 'none', borderRadius: '0 0 12px 12px',
                   display: 'flex', gap: 8, alignItems: 'center'
                 }}>
                   <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0bcdf' }}>Log today's value:</span>
@@ -477,7 +477,7 @@ export default function LifeCycles() {
                     onKeyDown={e => e.key === 'Enter' && logCustomValue(metric.id)}
                     placeholder={`0–${metric.maxVal}`}
                     style={{
-                      width: 80, background: '#020609', border: '1px solid #1e3050', borderRadius: 6,
+                      width: 80, background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 6,
                       padding: '5px 10px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none'
                     }}
                   />

@@ -50,47 +50,74 @@ export default function App() {
   return (
     <div className="flex flex-row h-screen text-white overflow-hidden" style={{ background: '#03040d', position: 'relative' }}>
 
-      {/* ── AURORA BACKGROUND ── */}
+      {/* ── BACKGROUND SYSTEM ── */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}>
-        {/* Indigo blob top-left */}
+
+        {/* Large central orb — main visual anchor */}
+        <div style={{
+          position: 'absolute',
+          width: '110vw', height: '110vh',
+          top: '-10vh', left: '-5vw',
+          background: 'radial-gradient(ellipse at 55% 40%, rgba(99,102,241,0.22) 0%, rgba(99,102,241,0.1) 25%, rgba(139,92,246,0.06) 50%, transparent 70%)',
+          animation: 'aurora-drift-1 30s ease-in-out infinite',
+          filter: 'blur(30px)',
+        }} />
+
+        {/* Deep violet right-side bloom */}
         <div style={{
           position: 'absolute', borderRadius: '50%',
-          width: '80vw', height: '80vh', top: '-30vh', left: '-20vw',
-          background: 'radial-gradient(ellipse at center, rgba(99,102,241,0.32) 0%, rgba(99,102,241,0.14) 40%, transparent 70%)',
-          animation: 'aurora-drift-1 22s ease-in-out infinite',
+          width: '65vw', height: '90vh', top: '10vh', right: '-15vw',
+          background: 'radial-gradient(ellipse at center, rgba(139,92,246,0.18) 0%, rgba(99,102,241,0.08) 40%, transparent 70%)',
+          animation: 'aurora-drift-2 24s ease-in-out infinite',
           filter: 'blur(60px)',
         }} />
-        {/* Violet blob bottom-right */}
+
+        {/* Cyan accent bottom-left */}
         <div style={{
           position: 'absolute', borderRadius: '50%',
-          width: '70vw', height: '70vh', bottom: '-20vh', right: '-15vw',
-          background: 'radial-gradient(ellipse at center, rgba(139,92,246,0.28) 0%, rgba(139,92,246,0.1) 40%, transparent 70%)',
-          animation: 'aurora-drift-2 28s ease-in-out infinite',
-          filter: 'blur(70px)',
-        }} />
-        {/* Cyan blob center */}
-        <div style={{
-          position: 'absolute', borderRadius: '50%',
-          width: '55vw', height: '55vh', top: '30vh', left: '20vw',
-          background: 'radial-gradient(ellipse at center, rgba(6,182,212,0.18) 0%, rgba(6,182,212,0.06) 40%, transparent 70%)',
-          animation: 'aurora-drift-3 34s ease-in-out infinite',
-          filter: 'blur(80px)',
-        }} />
-        {/* Gold accent top-right */}
-        <div style={{
-          position: 'absolute', borderRadius: '50%',
-          width: '40vw', height: '40vh', top: '-10vh', right: '5vw',
-          background: 'radial-gradient(ellipse at center, rgba(240,192,64,0.1) 0%, transparent 65%)',
-          animation: 'aurora-drift-2 18s ease-in-out infinite reverse',
+          width: '50vw', height: '50vh', bottom: '-10vh', left: '-5vw',
+          background: 'radial-gradient(ellipse at center, rgba(6,182,212,0.14) 0%, rgba(6,182,212,0.05) 45%, transparent 70%)',
+          animation: 'aurora-drift-3 20s ease-in-out infinite reverse',
           filter: 'blur(50px)',
         }} />
-        {/* Dot grid overlay */}
+
+        {/* Gold crown top-right */}
+        <div style={{
+          position: 'absolute', borderRadius: '50%',
+          width: '40vw', height: '35vh', top: '-5vh', right: '10vw',
+          background: 'radial-gradient(ellipse at center, rgba(240,192,64,0.1) 0%, transparent 65%)',
+          animation: 'aurora-drift-1 18s ease-in-out infinite reverse',
+          filter: 'blur(40px)',
+        }} />
+
+        {/* Dot grid — constellation feel */}
         <div style={{
           position: 'absolute', inset: 0,
-          backgroundImage: 'radial-gradient(rgba(99,102,241,0.18) 1px, transparent 1px)',
-          backgroundSize: '30px 30px',
-          maskImage: 'radial-gradient(ellipse 90% 90% at 50% 50%, black 5%, transparent 100%)',
-          WebkitMaskImage: 'radial-gradient(ellipse 90% 90% at 50% 50%, black 5%, transparent 100%)',
+          backgroundImage: 'radial-gradient(rgba(129,140,248,0.22) 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
+          maskImage: 'radial-gradient(ellipse 95% 95% at 50% 50%, black 0%, transparent 100%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 95% 95% at 50% 50%, black 0%, transparent 100%)',
+        }} />
+
+        {/* Horizontal scan line shimmer */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(99,102,241,0.015) 2px, rgba(99,102,241,0.015) 4px)',
+          pointerEvents: 'none',
+        }} />
+
+        {/* Corner HUD elements */}
+        {/* Top-left */}
+        <div style={{ position: 'absolute', top: 20, left: 90, width: 60, height: 60, borderTop: '1px solid rgba(99,102,241,0.4)', borderLeft: '1px solid rgba(99,102,241,0.4)', opacity: 0.6 }} />
+        {/* Top-right */}
+        <div style={{ position: 'absolute', top: 20, right: 20, width: 60, height: 60, borderTop: '1px solid rgba(99,102,241,0.4)', borderRight: '1px solid rgba(99,102,241,0.4)', opacity: 0.6 }} />
+        {/* Bottom-right */}
+        <div style={{ position: 'absolute', bottom: 20, right: 20, width: 60, height: 60, borderBottom: '1px solid rgba(99,102,241,0.4)', borderRight: '1px solid rgba(99,102,241,0.4)', opacity: 0.6 }} />
+
+        {/* Vignette edges */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, rgba(2,3,13,0.7) 100%)',
         }} />
       </div>
 

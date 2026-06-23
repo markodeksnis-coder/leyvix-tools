@@ -5,8 +5,8 @@ import Modal from '../components/Modal'
 import { today } from '../utils'
 import { calcDayScore, getWinDaySettings, getWinHistory, computeCurrentWinStreak } from '../utils/winLoss'
 
-const BG = '#080e1a'
-const CARD = { background: 'linear-gradient(135deg, #080e1a 0%, #0a0a24 100%)', border: '1px solid #1e3050', borderRadius: 12, padding: 20, boxShadow: '0 0 0 1px rgba(139,92,246,0.08)' }
+const BG = 'rgba(8,12,26,0.65)'
+const CARD = { background: 'linear-gradient(135deg, #080e1a 0%, #0a0a24 100%)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 12, padding: 20, boxShadow: '0 0 0 1px rgba(139,92,246,0.08)' }
 const LBL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }
 
 function ProgressRing({ done, total, size = 148 }) {
@@ -255,7 +255,7 @@ export default function DailyOS() {
                 <span style={{ fontFamily: 'Inter', fontSize: 8, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em' }}>STREAK</span>
               </div>
             )}
-            <button onClick={() => setShowManage(!showManage)} style={{ padding: '7px 14px', border: '1px solid #1e3050', color: '#a0bcdf', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer', fontFamily: 'Inter' }}>
+            <button onClick={() => setShowManage(!showManage)} style={{ padding: '7px 14px', border: '1px solid rgba(99,102,241,0.18)', color: '#a0bcdf', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer', fontFamily: 'Inter' }}>
               {showManage ? 'Close' : 'Manage Lists'}
             </button>
           </div>
@@ -348,7 +348,7 @@ export default function DailyOS() {
                 <input type="number" min="1" max="10" step="0.5"
                   value={sleepInput} onChange={e => setSleepInput(e.target.value)}
                   placeholder={data.logs[todayStr]?.sleep ? String(data.logs[todayStr].sleep) : '—'}
-                  style={{ width:'100%', background: '#020609', border:'1px solid #1e3050', borderRadius:6, padding:'8px 12px', fontFamily:'Inter', fontSize:14, color:'white', outline:'none', boxSizing:'border-box' }} />
+                  style={{ width:'100%', background: 'transparent', border:'1px solid rgba(99,102,241,0.18)', borderRadius:6, padding:'8px 12px', fontFamily:'Inter', fontSize:14, color:'white', outline:'none', boxSizing:'border-box' }} />
                 {data.logs[todayStr]?.sleep && <div style={{ fontFamily:'Inter', fontSize:9, color:'#4d9fff', marginTop:4 }}>Logged: {data.logs[todayStr].sleep}/10</div>}
               </div>
               {/* Steps */}
@@ -357,7 +357,7 @@ export default function DailyOS() {
                 <input type="number" min="0"
                   value={stepsInput} onChange={e => setStepsInput(e.target.value)}
                   placeholder={data.logs[todayStr]?.steps ? String(data.logs[todayStr].steps) : '—'}
-                  style={{ width:'100%', background: '#020609', border:'1px solid #1e3050', borderRadius:6, padding:'8px 12px', fontFamily:'Inter', fontSize:14, color:'white', outline:'none', boxSizing:'border-box' }} />
+                  style={{ width:'100%', background: 'transparent', border:'1px solid rgba(99,102,241,0.18)', borderRadius:6, padding:'8px 12px', fontFamily:'Inter', fontSize:14, color:'white', outline:'none', boxSizing:'border-box' }} />
                 {data.logs[todayStr]?.steps && <div style={{ fontFamily:'Inter', fontSize:9, color:'#f0c040', marginTop:4 }}>Logged: {data.logs[todayStr].steps.toLocaleString()}</div>}
               </div>
               {/* Work Output */}
@@ -366,7 +366,7 @@ export default function DailyOS() {
                 <input type="number" min="1" max="10" step="0.5"
                   value={workInput} onChange={e => setWorkInput(e.target.value)}
                   placeholder={data.logs[todayStr]?.workOutput ? String(data.logs[todayStr].workOutput) : '—'}
-                  style={{ width:'100%', background: '#020609', border:'1px solid #1e3050', borderRadius:6, padding:'8px 12px', fontFamily:'Inter', fontSize:14, color:'white', outline:'none', boxSizing:'border-box' }} />
+                  style={{ width:'100%', background: 'transparent', border:'1px solid rgba(99,102,241,0.18)', borderRadius:6, padding:'8px 12px', fontFamily:'Inter', fontSize:14, color:'white', outline:'none', boxSizing:'border-box' }} />
                 {data.logs[todayStr]?.workOutput && <div style={{ fontFamily:'Inter', fontSize:9, color:'#1ad9a0', marginTop:4 }}>Logged: {data.logs[todayStr].workOutput}/10</div>}
               </div>
             </div>
@@ -387,14 +387,14 @@ export default function DailyOS() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
                   {(data.nonNegotiables || []).map(n => (
-                    <div key={n.id} className="group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#080e1a', border: '1px solid #ff555520', borderLeft: '3px solid #ff5555', borderRadius: 8 }}>
+                    <div key={n.id} className="group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(8,12,26,0.65)', border: '1px solid #ff555520', borderLeft: '3px solid #ff5555', borderRadius: 8 }}>
                       <span style={{ fontFamily: 'Inter', fontSize: 12, color: 'white' }}>{n.title}</span>
                       <button onClick={() => deleteNonNeg(n.id)} style={{ color: '#a0bcdf', background: 'none', border: 'none', cursor: 'pointer', opacity: 0 }} className="group-hover:opacity-100 hover:!text-red-400 transition-all"><Trash2 size={12} /></button>
                     </div>
                   ))}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <input value={newNNText} onChange={e => setNewNNText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addNonNeg()} placeholder="Add non-negotiable..." style={{ flex: 1, background: '#020609', border: '1px solid #1e3050', borderRadius: 6, padding: '7px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
+                  <input value={newNNText} onChange={e => setNewNNText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addNonNeg()} placeholder="Add non-negotiable..." style={{ flex: 1, background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 6, padding: '7px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
                   <button onClick={addNonNeg} style={{ padding: '7px 12px', background: '#ff5555', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer' }}><Plus size={13} /></button>
                 </div>
               </div>
@@ -407,14 +407,14 @@ export default function DailyOS() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
                   {(data.taskTemplates || []).map(t => (
-                    <div key={t.id} className="group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#080e1a', border: '1px solid #1e3050', borderRadius: 8 }}>
+                    <div key={t.id} className="group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 8 }}>
                       <span style={{ fontFamily: 'Inter', fontSize: 12, color: '#d1d5db' }}>{t.title}</span>
                       <button onClick={() => deleteTask(t.id)} style={{ color: '#a0bcdf', background: 'none', border: 'none', cursor: 'pointer', opacity: 0 }} className="group-hover:opacity-100 hover:!text-red-400 transition-all"><Trash2 size={12} /></button>
                     </div>
                   ))}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <input value={newTaskText} onChange={e => setNewTaskText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTaskTemplate()} placeholder="Add daily task..." style={{ flex: 1, background: '#020609', border: '1px solid #1e3050', borderRadius: 6, padding: '7px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
+                  <input value={newTaskText} onChange={e => setNewTaskText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTaskTemplate()} placeholder="Add daily task..." style={{ flex: 1, background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 6, padding: '7px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
                   <button onClick={addTaskTemplate} style={{ padding: '7px 12px', background: '#f0c040', color: '#000', border: 'none', borderRadius: 6, cursor: 'pointer' }}><Plus size={13} /></button>
                 </div>
               </div>
@@ -469,7 +469,7 @@ export default function DailyOS() {
                   <button key={item.id} onClick={() => toggleItem(item.id)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px',
-                      background: '#080e1a',
+                      background: 'rgba(8,12,26,0.65)',
                       border: `1px solid ${item.checked ? 'rgba(34,197,94,0.12)' : '#1e3050'}`,
                       borderLeft: `3px solid ${item.checked ? '#22c55e' : '#f0c040'}`,
                       borderRadius: 8, cursor: 'pointer', width: '100%', textAlign: 'left', transition: 'all 0.15s',
@@ -486,7 +486,7 @@ export default function DailyOS() {
             {/* Add one-time task */}
             <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
               <input value={newOneTimeText} onChange={e => setNewOneTimeText(e.target.value)} onKeyDown={e => e.key === 'Enter' && addOneTimeTask()} placeholder="Add task for today..."
-                style={{ flex: 1, background: '#020609', border: '1px solid #1e3050', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
+                style={{ flex: 1, background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
               <button onClick={addOneTimeTask} style={{ padding: '8px 12px', background: '#f0c040', color: '#000', border: 'none', borderRadius: 6, cursor: 'pointer' }}><Plus size={14} /></button>
             </div>
           </div>
