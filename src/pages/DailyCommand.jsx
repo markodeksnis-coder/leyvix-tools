@@ -25,10 +25,10 @@ const LABEL_STYLE = {
 }
 
 const GLASS = {
-  background: 'rgba(10, 15, 32, 0.68)',
+  background: 'rgba(8, 12, 26, 0.52)',
   backdropFilter: 'blur(20px)',
   WebkitBackdropFilter: 'blur(20px)',
-  border: '1px solid rgba(99,102,241,0.13)',
+  border: '1px solid rgba(99,102,241,0.2)',
   borderRadius: 16,
 }
 

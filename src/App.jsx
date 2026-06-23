@@ -55,34 +55,42 @@ export default function App() {
         {/* Indigo blob top-left */}
         <div style={{
           position: 'absolute', borderRadius: '50%',
-          width: '72vw', height: '72vh', top: '-22vh', left: '-18vw',
-          background: 'radial-gradient(ellipse at center, rgba(99,102,241,0.11) 0%, rgba(99,102,241,0.04) 45%, transparent 72%)',
+          width: '80vw', height: '80vh', top: '-30vh', left: '-20vw',
+          background: 'radial-gradient(ellipse at center, rgba(99,102,241,0.32) 0%, rgba(99,102,241,0.14) 40%, transparent 70%)',
           animation: 'aurora-drift-1 22s ease-in-out infinite',
-          filter: 'blur(48px)',
+          filter: 'blur(60px)',
         }} />
         {/* Violet blob bottom-right */}
         <div style={{
           position: 'absolute', borderRadius: '50%',
-          width: '62vw', height: '62vh', bottom: '-18vh', right: '-12vw',
-          background: 'radial-gradient(ellipse at center, rgba(139,92,246,0.09) 0%, rgba(139,92,246,0.03) 45%, transparent 72%)',
+          width: '70vw', height: '70vh', bottom: '-20vh', right: '-15vw',
+          background: 'radial-gradient(ellipse at center, rgba(139,92,246,0.28) 0%, rgba(139,92,246,0.1) 40%, transparent 70%)',
           animation: 'aurora-drift-2 28s ease-in-out infinite',
-          filter: 'blur(56px)',
+          filter: 'blur(70px)',
         }} />
         {/* Cyan blob center */}
         <div style={{
           position: 'absolute', borderRadius: '50%',
-          width: '48vw', height: '48vh', top: '32vh', left: '22vw',
-          background: 'radial-gradient(ellipse at center, rgba(6,182,212,0.06) 0%, rgba(6,182,212,0.02) 45%, transparent 72%)',
+          width: '55vw', height: '55vh', top: '30vh', left: '20vw',
+          background: 'radial-gradient(ellipse at center, rgba(6,182,212,0.18) 0%, rgba(6,182,212,0.06) 40%, transparent 70%)',
           animation: 'aurora-drift-3 34s ease-in-out infinite',
-          filter: 'blur(64px)',
+          filter: 'blur(80px)',
+        }} />
+        {/* Gold accent top-right */}
+        <div style={{
+          position: 'absolute', borderRadius: '50%',
+          width: '40vw', height: '40vh', top: '-10vh', right: '5vw',
+          background: 'radial-gradient(ellipse at center, rgba(240,192,64,0.1) 0%, transparent 65%)',
+          animation: 'aurora-drift-2 18s ease-in-out infinite reverse',
+          filter: 'blur(50px)',
         }} />
         {/* Dot grid overlay */}
         <div style={{
           position: 'absolute', inset: 0,
-          backgroundImage: 'radial-gradient(rgba(99,102,241,0.07) 1px, transparent 1px)',
-          backgroundSize: '34px 34px',
-          maskImage: 'radial-gradient(ellipse 85% 85% at 50% 50%, black 10%, transparent 100%)',
-          WebkitMaskImage: 'radial-gradient(ellipse 85% 85% at 50% 50%, black 10%, transparent 100%)',
+          backgroundImage: 'radial-gradient(rgba(99,102,241,0.18) 1px, transparent 1px)',
+          backgroundSize: '30px 30px',
+          maskImage: 'radial-gradient(ellipse 90% 90% at 50% 50%, black 5%, transparent 100%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 90% 90% at 50% 50%, black 5%, transparent 100%)',
         }} />
       </div>
 
