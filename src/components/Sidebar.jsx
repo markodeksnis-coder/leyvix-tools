@@ -1,20 +1,21 @@
-import { CalendarCheck, Sun, Moon, Dumbbell, Brain, TrendingUp, Activity, Target, BarChart2, Briefcase, Users, Flame, Bot, Settings, Zap, Flag, BookOpen } from 'lucide-react'
+import { CalendarCheck, Sun, Moon, Dumbbell, Brain, TrendingUp, Activity, Target, BarChart2, Briefcase, Users, Flame, Bot, Settings, Zap, Flag, BookOpen, LayoutDashboard } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { getWinHistory, computeCurrentWinStreak, getWinDaySettings } from '../utils/winLoss'
 import { daysSinceStart } from '../utils'
 
 const PRIMARY = [
-  { id: 'daily',   label: 'Daily',   Icon: CalendarCheck, color: '#8b5cf6' },
-  { id: 'morning', label: 'Morning', Icon: Sun,           color: '#f0c040' },
-  { id: 'evening', label: 'Evening', Icon: Moon,          color: '#b8a0ff' },
-  { id: 'body',    label: 'Body',    Icon: Dumbbell,      color: '#1ad9a0' },
-  { id: 'mind',    label: 'Mind',    Icon: Brain,         color: '#e879f9' },
-  { id: 'growth-feed', label: 'Growth', Icon: TrendingUp, color: '#f0c040' },
-  { id: 'life-cycles', label: 'Cycles', Icon: Activity,   color: '#22d3ee' },
+  { id: 'command', label: 'Command', Icon: LayoutDashboard, color: '#f0c040' },
+  { id: 'morning', label: 'Morning', Icon: Sun,             color: '#f0c040' },
+  { id: 'evening', label: 'Evening', Icon: Moon,            color: '#b8a0ff' },
+  { id: 'body',    label: 'Body',    Icon: Dumbbell,        color: '#1ad9a0' },
+  { id: 'mind',    label: 'Mind',    Icon: Brain,           color: '#e879f9' },
+  { id: 'growth-feed', label: 'Growth', Icon: TrendingUp,   color: '#f0c040' },
+  { id: 'life-cycles', label: 'Cycles', Icon: Activity,     color: '#22d3ee' },
 ]
 
 const SECONDARY = [
+  { id: 'daily', label: 'Daily', Icon: CalendarCheck, color: '#8b5cf6' },
   { id: 'record', label: 'Record', Icon: Target, color: '#22d3ee' },
   { id: 'insights', label: 'Insights', Icon: BarChart2, color: '#6366f1' },
   { id: 'business', label: 'Business', Icon: Briefcase, color: '#4d9fff' },

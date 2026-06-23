@@ -17,11 +17,13 @@ import MorningCheckIn from './pages/MorningCheckIn'
 import EveningCheckIn from './pages/EveningCheckIn'
 import Goals from './pages/Goals'
 import Journal from './pages/Journal'
+import DailyCommand from './pages/DailyCommand'
 import { initSeedData } from './data/seedData'
 
 initSeedData()
 
 const PAGES = {
+  command: DailyCommand,
   record: Record,
   insights: Insights,
   mind: Mind,
@@ -41,7 +43,7 @@ const PAGES = {
 }
 
 export default function App() {
-  const [active, setActive] = useState('record')
+  const [active, setActive] = useState('command')
   const [showSettings, setShowSettings] = useState(false)
   const Page = PAGES[active]
 
@@ -49,7 +51,7 @@ export default function App() {
     <div className="flex flex-row h-screen text-white overflow-hidden" style={{ background: '#020609' }}>
       <Sidebar active={active} onSelect={setActive} onSettings={() => setShowSettings(true)} />
       <main className="flex-1 overflow-auto min-w-0">
-        <Page />
+        <Page onNavigate={setActive} />
       </main>
       {showSettings && <Settings onClose={() => setShowSettings(false)} />}
     </div>
