@@ -21,33 +21,47 @@ function getMetricValue(metricId, dateStr, dailyData, bodyData, dietData) {
   const items = log?.items || []
   switch (metricId) {
     case 'diet_quality': {
+      // Primary: calorie/protein compliance from Body page
       const h = (dietData.history || []).find(h => h.date === dateStr)
-      if (!h) return null
-      const cT = dietData.targets?.calories || 2400
-      const pT = dietData.targets?.protein || 200
-      return Math.round(((Math.min(h.calories, cT) / cT) + (Math.min(h.protein, pT) / pT)) / 2 * 100)
+      if (h) {
+        const cT = dietData.targets?.calories || 2400
+        const pT = dietData.targets?.protein || 200
+        return Math.round(((Math.min(h.calories, cT) / cT) + (Math.min(h.protein, pT) / pT)) / 2 * 100)
+      }
+      // Fallback: diet quality rating from evening check-in (1-10 → 0-100)
+      return log?.dietQuality != null ? Math.round(log.dietQuality * 10) : null
     }
     case 'gym_session': {
-      const t = [...(bodyData.workouts || []), ...(bodyData.liftSessions || [])].some(w => w.date === dateStr)
-      return log ? (t ? 1 : 0) : null
+      const trained = [...(bodyData.workouts || []), ...(bodyData.liftSessions || [])].some(w => w.date === dateStr)
+      if (trained) return 1
+      // Fallback: log exists but no workout entry → 0; no log at all → null
+      return log != null ? 0 : null
     }
     case 'sleep_quality':
       return log?.sleep ?? null
     case 'steps':
       return log?.steps ?? null
     case 'cold_shower': {
+      // Primary: DailyOS non-negotiable item
       const item = items.find(i => i.isNonNeg && /cold shower/i.test(i.title))
-      return item != null ? (item.checked ? 1 : 0) : null
+      if (item != null) return item.checked ? 1 : 0
+      // Fallback: evening check-in answer
+      return log?.coldShower ?? null
     }
     case 'work_output':
       return log?.workOutput ?? null
     case 'reading': {
+      // Primary: DailyOS task item
       const item = items.find(i => !i.isNonNeg && /read|learn/i.test(i.title))
-      return item != null ? (item.checked ? 1 : 0) : null
+      if (item != null) return item.checked ? 1 : 0
+      // Fallback: evening check-in answer
+      return log?.reading ?? null
     }
     case 'daily_score': {
-      if (!log || !items.length) return null
-      return Math.round(items.filter(i => i.checked).length / items.length * 100)
+      // Primary: DailyOS checklist completion
+      if (items.length > 0) return Math.round(items.filter(i => i.checked).length / items.length * 100)
+      // Fallback: overall day rating from evening check-in (1-10 → 0-100)
+      return log?.dailyRating != null ? Math.round(log.dailyRating * 10) : null
     }
     default: return null
   }

@@ -218,10 +218,13 @@ function syncToSections(tab, answers, dateStr) {
     if (answers['mi17'] != null) daily.logs[dateStr].wordOfDay  = answers['mi17']
   }
   if (tab === 'evening') {
-    if (answers['eb16'] != null) daily.logs[dateStr].steps      = answers['eb16']
-    if (answers['ed4']  != null) daily.logs[dateStr].workOutput  = answers['ed4']
-    if (answers['eb14'] != null) daily.logs[dateStr].dietQuality = answers['eb14']
-    if (answers['em19'] != null) daily.logs[dateStr].stress     = answers['em19']
+    if (answers['eb16'] != null) daily.logs[dateStr].steps        = answers['eb16']
+    if (answers['ed4']  != null) daily.logs[dateStr].workOutput   = answers['ed4']
+    if (answers['eb14'] != null) daily.logs[dateStr].dietQuality  = answers['eb14']
+    if (answers['em19'] != null) daily.logs[dateStr].stress       = answers['em19']
+    if (answers['ed1']  != null) daily.logs[dateStr].dailyRating  = answers['ed1']
+    if (answers['en8']  != null) daily.logs[dateStr].coldShower   = answers['en8'] === 'YES' ? 1 : 0
+    if (answers['ek27'] != null) daily.logs[dateStr].reading      = answers['ek27'] === 'YES' ? 1 : 0
 
     if (answers['eb10'] === 'YES') {
       const bodyRaw  = localStorage.getItem('marko_body')

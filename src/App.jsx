@@ -22,6 +22,45 @@ import { initSeedData } from './data/seedData'
 
 initSeedData()
 
+// One-time backfill: sync historical checkin answers into marko_daily
+// Runs once per app version; re-runs if version bumps
+;(function backfillCheckinToDaily() {
+  if (localStorage.getItem('marko_backfill_v2') === 'done') return
+  const MOOD_SCORE = { 'Excellent': 9, 'Good': 7, 'Neutral': 5, 'Low': 3, 'Very low': 1 }
+  try {
+    const checkin = JSON.parse(localStorage.getItem('marko_checkin') || '{}')
+    const daily   = JSON.parse(localStorage.getItem('marko_daily')   || '{"logs":{}}')
+    if (!daily.logs) daily.logs = {}
+
+    Object.entries(checkin.morning || {}).forEach(([ds, data]) => {
+      const a = data?.answers || {}
+      if (!daily.logs[ds]) daily.logs[ds] = {}
+      const log = daily.logs[ds]
+      if (a['ms2']  != null && log.sleep     == null) log.sleep     = +a['ms2']
+      if (a['me6']  != null && log.energy    == null) log.energy    = +a['me6']
+      if (a['mm11'] != null && log.mood      == null) log.mood      = a['mm11']
+      if (a['mi16'] != null && log.mit       == null) log.mit       = a['mi16']
+      if (a['mi17'] != null && log.wordOfDay == null) log.wordOfDay = a['mi17']
+    })
+
+    Object.entries(checkin.evening || {}).forEach(([ds, data]) => {
+      const a = data?.answers || {}
+      if (!daily.logs[ds]) daily.logs[ds] = {}
+      const log = daily.logs[ds]
+      if (a['eb16'] != null && log.steps       == null) log.steps       = +a['eb16']
+      if (a['ed4']  != null && log.workOutput  == null) log.workOutput  = +a['ed4']
+      if (a['eb14'] != null && log.dietQuality == null) log.dietQuality = +a['eb14']
+      if (a['em19'] != null && log.stress      == null) log.stress      = +a['em19']
+      if (a['ed1']  != null && log.dailyRating == null) log.dailyRating = +a['ed1']
+      if (a['en8']  != null && log.coldShower  == null) log.coldShower  = a['en8'] === 'YES' ? 1 : 0
+      if (a['ek27'] != null && log.reading     == null) log.reading     = a['ek27'] === 'YES' ? 1 : 0
+    })
+
+    localStorage.setItem('marko_daily', JSON.stringify(daily))
+    localStorage.setItem('marko_backfill_v2', 'done')
+  } catch (e) { /* silent fail — non-critical */ }
+})()
+
 const PAGES = {
   command: DailyCommand,
   record: Record,
