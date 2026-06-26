@@ -7,10 +7,10 @@ import {
 } from 'recharts'
 
 const BG = 'transparent'
-const SURF = 'rgba(5,8,20,0.75)'
+const SURF = 'rgba(5,8,20,0.88)'
 const CARD_BORDER = 'rgba(99,102,241,0.18)'
 const TEXT2 = '#94a3b8'
-const CARD = { background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 12, padding: 20 }
+const CARD = { background: 'rgba(8,12,26,0.70)', border: '1.5px solid rgba(99,102,241,0.32)', borderRadius: 14, padding: 20, boxShadow: '0 4px 24px rgba(0,0,0,0.3)' }
 const LBL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }
 const CHART_TT = {
   contentStyle: { background: 'rgba(5,8,20,0.75)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 8, fontSize: 11, fontFamily: 'Inter' },
@@ -18,7 +18,7 @@ const CHART_TT = {
 }
 
 function CircleGauge({ value, max = 10, size = 110, label, color = '#6366f1', delta }) {
-  const r = 38, cx = size / 2, cy = size / 2
+  const r = 40, cx = size / 2, cy = size / 2
   const circ = 2 * Math.PI * r
   const pct = Math.min(1, (isNaN(value) ? 0 : value) / max)
   const offset = circ * (1 - pct)
@@ -30,8 +30,8 @@ function CircleGauge({ value, max = 10, size = 110, label, color = '#6366f1', de
       <div style={{ background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 12, padding: '16px 20px', textAlign: 'center', minWidth: 130 }}>
         <div style={{ position: 'relative', width: size, height: size, margin: '0 auto 8px' }}>
           <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-            <circle cx={cx} cy={cy} r={r} fill="none" stroke="#1e3050" strokeWidth={7} />
-            <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={7}
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(30,48,80,0.8)" strokeWidth={8} />
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={8}
               strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" />
           </svg>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>

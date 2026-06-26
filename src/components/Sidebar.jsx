@@ -36,10 +36,10 @@ export default function Sidebar({ active, onSelect, onSettings }) {
     <aside style={{
       width: 76,
       flexShrink: 0,
-      background: 'rgba(5, 7, 20, 0.92)',
+      background: 'rgba(4, 6, 18, 0.96)',
       backdropFilter: 'blur(24px)',
       WebkitBackdropFilter: 'blur(24px)',
-      borderRight: '1px solid rgba(99,102,241,0.12)',
+      borderRight: '1px solid rgba(99,102,241,0.28)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -55,7 +55,7 @@ export default function Sidebar({ active, onSelect, onSettings }) {
       {/* Vertical accent line */}
       <div style={{
         position: 'absolute', right: 0, top: '8%', bottom: '8%', width: 1,
-        background: 'linear-gradient(to bottom, transparent, rgba(99,102,241,0.4) 35%, rgba(139,92,246,0.35) 65%, transparent)',
+        background: 'linear-gradient(to bottom, transparent, rgba(99,102,241,0.7) 35%, rgba(139,92,246,0.6) 65%, transparent)',
         pointerEvents: 'none',
       }} />
 
@@ -92,11 +92,11 @@ export default function Sidebar({ active, onSelect, onSettings }) {
                 width: '100%', border: 'none', outline: 'none',
                 transition: 'all 0.22s cubic-bezier(0.16,1,0.3,1)',
                 background: isActive
-                  ? 'linear-gradient(135deg, rgba(99,102,241,0.22), rgba(139,92,246,0.12))'
+                  ? 'linear-gradient(135deg, rgba(99,102,241,0.32), rgba(139,92,246,0.18))'
                   : 'transparent',
-                borderLeft: isActive ? '2px solid rgba(129,140,248,0.9)' : '2px solid transparent',
+                borderLeft: isActive ? '3px solid rgba(129,140,248,1)' : '2px solid transparent',
                 boxShadow: isActive
-                  ? `0 4px 24px rgba(99,102,241,0.18), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0 1px rgba(99,102,241,0.2)`
+                  ? `0 4px 24px rgba(99,102,241,0.25), inset 0 1px 0 rgba(255,255,255,0.06), 0 0 0 1px rgba(99,102,241,0.25)`
                   : 'none',
               }}
               onMouseEnter={e => {
@@ -113,11 +113,11 @@ export default function Sidebar({ active, onSelect, onSettings }) {
               }}
             >
               <Icon
-                size={19}
+                size={20}
                 color={color}
                 strokeWidth={isActive ? 2.5 : 1.6}
                 style={{
-                  filter: `drop-shadow(0 0 ${isActive ? 10 : 5}px ${color})`,
+                  filter: isActive ? `drop-shadow(0 0 14px ${color}) drop-shadow(0 0 28px ${color}80)` : `drop-shadow(0 0 5px ${color})`,
                   opacity: isActive ? 1 : 0.72,
                   transition: 'all 0.22s',
                 }}
@@ -154,7 +154,8 @@ export default function Sidebar({ active, onSelect, onSettings }) {
                 background: isActive
                   ? 'linear-gradient(135deg, rgba(99,102,241,0.18), rgba(139,92,246,0.09))'
                   : 'transparent',
-                borderLeft: isActive ? '2px solid rgba(129,140,248,0.8)' : '2px solid transparent',
+                borderLeft: isActive ? '3px solid rgba(129,140,248,0.95)' : '2px solid transparent',
+                boxShadow: isActive ? 'inset 0 1px 0 rgba(255,255,255,0.04)' : 'none',
               }}
               onMouseEnter={e => {
                 if (!isActive) {
@@ -170,11 +171,11 @@ export default function Sidebar({ active, onSelect, onSettings }) {
               }}
             >
               <Icon
-                size={15}
+                size={17}
                 color={color}
                 strokeWidth={1.5}
                 style={{
-                  filter: `drop-shadow(0 0 ${isActive ? 8 : 4}px ${color})`,
+                  filter: isActive ? `drop-shadow(0 0 10px ${color})` : `drop-shadow(0 0 4px ${color})`,
                   opacity: isActive ? 1 : 0.6,
                   transition: 'all 0.2s',
                 }}

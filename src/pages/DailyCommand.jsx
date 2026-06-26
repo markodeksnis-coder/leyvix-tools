@@ -26,11 +26,12 @@ const LABEL_STYLE = {
 }
 
 const GLASS = {
-  background: 'rgba(8, 12, 26, 0.52)',
+  background: 'rgba(8, 12, 26, 0.68)',
   backdropFilter: 'blur(20px)',
   WebkitBackdropFilter: 'blur(20px)',
-  border: '1px solid rgba(99,102,241,0.2)',
-  borderRadius: 16,
+  border: '1.5px solid rgba(99,102,241,0.35)',
+  borderRadius: 18,
+  boxShadow: '0 4px 28px rgba(0,0,0,0.35)',
 }
 
 function TopBar({ pct, isWin, scoreColor }) {
@@ -328,22 +329,28 @@ export default function DailyCommand({ onNavigate }) {
                 { label: 'Sleep',   value: todayPulse.sleep,  color: VIOLET, suffix: '/10' },
                 { label: 'Mood',    value: todayPulse.mood,   color: PINK,   suffix: '/10' },
                 { label: 'Stress',  value: todayPulse.stress, color: RED,    suffix: '/10' },
-              ].map(({ label, value, color, suffix }) => (
+              ].map(({ label, value, color }) => (
                 <div key={label} style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-                  padding: '12px 8px', borderRadius: 12,
-                  background: value !== null ? `${color}0d` : 'rgba(20,28,52,0.4)',
-                  border: `1px solid ${value !== null ? `${color}28` : 'rgba(30,41,80,0.4)'}`,
+                  padding: '16px 8px 12px', borderRadius: 14,
+                  background: value !== null ? `linear-gradient(160deg, ${color}18, ${color}06)` : 'rgba(10,15,32,0.5)',
+                  border: `1.5px solid ${value !== null ? color+'55' : 'rgba(30,41,80,0.5)'}`,
+                  boxShadow: value !== null ? `0 0 24px ${color}18, inset 0 1px 0 ${color}20` : 'none',
+                  overflow: 'hidden', position: 'relative',
                 }}>
                   <span style={{
                     fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900,
-                    fontSize: value !== null ? 42 : 28, lineHeight: 1,
+                    fontSize: value !== null ? 48 : 28, lineHeight: 1,
                     color: value !== null ? color : MUTED,
-                    textShadow: value !== null ? `0 0 20px ${color}70` : 'none',
+                    textShadow: value !== null ? `0 0 28px ${color}80, 0 0 60px ${color}30` : 'none',
                   }}>
                     {value !== null ? value : '—'}
                   </span>
-                  <span style={{ fontFamily: 'Inter', fontSize: 9, color: value !== null ? color : MUTED, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{label}</span>
+                  <span style={{ fontFamily: 'Inter', fontSize: 9, color: value !== null ? color : MUTED, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em' }}>{label}</span>
+                  {/* bottom progress bar */}
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, background: 'rgba(10,15,32,0.6)' }}>
+                    <div style={{ height: '100%', width: `${value !== null ? (value/10)*100 : 0}%`, background: color, borderRadius: 2, boxShadow: `0 0 8px ${color}` }} />
+                  </div>
                 </div>
               ))}
             </div>
@@ -369,18 +376,18 @@ export default function DailyCommand({ onNavigate }) {
               ].map(({ label, value, color }) => (
                 <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '10px 6px', borderRadius: 10, background: 'rgba(8,12,26,0.5)' }}>
                   {/* Mini ring */}
-                  <div style={{ position: 'relative', width: 52, height: 52 }}>
-                    <svg width="52" height="52" style={{ transform: 'rotate(-90deg)' }}>
-                      <circle cx="26" cy="26" r="20" fill="none" stroke="rgba(30,41,80,0.6)" strokeWidth={4} />
+                  <div style={{ position: 'relative', width: 64, height: 64 }}>
+                    <svg width="64" height="64" style={{ transform: 'rotate(-90deg)' }}>
+                      <circle cx="32" cy="32" r="24" fill="none" stroke="rgba(30,41,80,0.6)" strokeWidth={5} />
                       {value !== null && (
-                        <circle cx="26" cy="26" r="20" fill="none" stroke={color} strokeWidth={4}
-                          strokeDasharray={2 * Math.PI * 20}
-                          strokeDashoffset={2 * Math.PI * 20 * (1 - Math.min(1, +value / 10))}
+                        <circle cx="32" cy="32" r="24" fill="none" stroke={color} strokeWidth={5}
+                          strokeDasharray={2 * Math.PI * 24}
+                          strokeDashoffset={2 * Math.PI * 24 * (1 - Math.min(1, +value / 10))}
                           strokeLinecap="round" />
                       )}
                     </svg>
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 15, color: value !== null ? color : MUTED, lineHeight: 1 }}>
+                      <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 16, color: value !== null ? color : MUTED, lineHeight: 1 }}>
                         {value ?? '—'}
                       </span>
                     </div>

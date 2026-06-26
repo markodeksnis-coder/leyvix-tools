@@ -20,8 +20,8 @@ body {
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.25); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.5); }
+::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.5); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.8); }
 
 input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.6); }
 select option { background: #080c1e; }
@@ -119,31 +119,32 @@ select option { background: #080c1e; }
   background: rgba(12, 18, 38, 0.65);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(99,102,241,0.12);
+  border: 1.5px solid rgba(99,102,241,0.38);
   border-radius: 16px;
+  box-shadow: 0 4px 28px rgba(0,0,0,0.35), 0 0 0 1px rgba(99,102,241,0.08) inset;
   transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.25s ease;
 }
 .glass:hover {
-  border-color: rgba(99,102,241,0.28);
-  box-shadow: 0 8px 40px rgba(99,102,241,0.1), 0 0 0 1px rgba(99,102,241,0.06) inset;
+  border-color: rgba(99,102,241,0.6);
+  box-shadow: 0 8px 40px rgba(99,102,241,0.18), 0 0 0 1px rgba(99,102,241,0.12) inset;
   transform: translateY(-2px);
 }
 .glass-gold {
   background: rgba(12, 18, 38, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(240,192,64,0.18);
+  border: 1px solid rgba(240,192,64,0.45);
   border-radius: 16px;
-  box-shadow: 0 0 30px rgba(240,192,64,0.06);
+  box-shadow: 0 0 30px rgba(240,192,64,0.15);
   transition: all 0.3s ease;
 }
 .glass-violet {
   background: rgba(12, 18, 38, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(139,92,246,0.18);
+  border: 1px solid rgba(139,92,246,0.45);
   border-radius: 16px;
-  box-shadow: 0 0 30px rgba(139,92,246,0.06);
+  box-shadow: 0 0 30px rgba(139,92,246,0.15);
   transition: all 0.3s ease;
 }
 
@@ -265,13 +266,14 @@ select:focus {
   background: rgba(8,12,26,0.65);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(99,102,241,0.16);
+  border: 1px solid rgba(99,102,241,0.38);
   border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 .section-card:hover {
-  border-color: rgba(99,102,241,0.3);
-  box-shadow: 0 4px 32px rgba(99,102,241,0.08);
+  border-color: rgba(99,102,241,0.6);
+  box-shadow: 0 8px 40px rgba(99,102,241,0.14), 0 4px 24px rgba(0,0,0,0.35);
 }
 
 /* ── PROGRESS TRACK ─────────────────────────────────── */

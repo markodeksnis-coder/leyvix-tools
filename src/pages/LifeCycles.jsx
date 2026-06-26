@@ -158,7 +158,7 @@ function OscillationGraph({ points, mean, metricId, color }) {
           itemStyle={{ color }}
           formatter={(v) => [v !== null ? (Number.isInteger(v) ? v : v.toFixed(1)) : '—', '']}
         />
-        <ReferenceLine y={mean} stroke={color} strokeDasharray="5 4" strokeWidth={1} strokeOpacity={0.4} />
+        <ReferenceLine y={mean} stroke={color} strokeDasharray="5 4" strokeWidth={1} strokeOpacity={0.6} />
         <Area
           type="monotone"
           dataKey="value"
@@ -183,7 +183,7 @@ function StatBox({ label, value, unit, color }) {
       padding: '12px 8px',
       background: 'rgba(5,8,20,0.5)',
       borderRadius: 10,
-      border: `1px solid ${color}20`,
+      border: `1px solid ${color}35`,
     }}>
       <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 28, lineHeight: 1, color, filter: `drop-shadow(0 0 8px ${color}60)` }}>
         {display}{unitStr && <span style={{ fontSize: 14 }}>{unitStr}</span>}
@@ -207,7 +207,7 @@ function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
       background: 'rgba(8,12,26,0.72)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
-      border: `1px solid ${color}22`,
+      border: `1px solid ${color}40`,
       borderRadius: 20,
       overflow: 'hidden',
       boxShadow: `0 0 40px ${color}08, 0 4px 24px rgba(0,0,0,0.4)`,
@@ -215,10 +215,10 @@ function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
       position: 'relative',
     }}
       onMouseEnter={e => { e.currentTarget.style.borderColor = `${color}50`; e.currentTarget.style.boxShadow = `0 0 60px ${color}18, 0 8px 32px rgba(0,0,0,0.5)` }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = `${color}22`; e.currentTarget.style.boxShadow = `0 0 40px ${color}08, 0 4px 24px rgba(0,0,0,0.4)` }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = `${color}40`; e.currentTarget.style.boxShadow = `0 0 40px ${color}08, 0 4px 24px rgba(0,0,0,0.4)` }}
     >
       {/* Top accent bar */}
-      <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${color}, transparent)`, opacity: 0.7 }} />
+      <div style={{ height: 3.5, background: `linear-gradient(90deg, transparent, ${color}, transparent)`, opacity: 0.7 }} />
 
       {/* Header */}
       <div style={{ padding: '20px 24px 12px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
