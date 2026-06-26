@@ -158,15 +158,15 @@ function OscillationGraph({ points, mean, metricId, color }) {
           itemStyle={{ color }}
           formatter={(v) => [v !== null ? (Number.isInteger(v) ? v : v.toFixed(1)) : '—', '']}
         />
-        <ReferenceLine y={mean} stroke={color} strokeDasharray="5 4" strokeWidth={1} strokeOpacity={0.6} />
+        <ReferenceLine y={mean} stroke={color} strokeDasharray="5 4" strokeWidth={2} strokeOpacity={0.8} />
         <Area
           type="monotone"
           dataKey="value"
           stroke={color}
-          strokeWidth={2.5}
+          strokeWidth={3.5}
           fill={`url(#fill-${metricId})`}
-          dot={{ fill: color, r: 3, strokeWidth: 0 }}
-          activeDot={{ fill: color, r: 5, strokeWidth: 2, stroke: '#fff' }}
+          dot={{ fill: color, r: 4, strokeWidth: 2, stroke: '#fff' }}
+          activeDot={{ fill: color, r: 7, strokeWidth: 2, stroke: '#fff' }}
           connectNulls
         />
       </AreaChart>
@@ -180,10 +180,11 @@ function StatBox({ label, value, unit, color }) {
   return (
     <div style={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-      padding: '12px 8px',
-      background: 'rgba(5,8,20,0.5)',
+      padding: '14px 8px',
+      background: `${color}0C`,
       borderRadius: 10,
-      border: `1px solid ${color}35`,
+      border: `2px solid ${color}55`,
+      boxShadow: `0 0 20px ${color}12`,
     }}>
       <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 28, lineHeight: 1, color, filter: `drop-shadow(0 0 8px ${color}60)` }}>
         {display}{unitStr && <span style={{ fontSize: 14 }}>{unitStr}</span>}
@@ -204,30 +205,31 @@ function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
 
   return (
     <div style={{
-      background: 'rgba(8,12,26,0.72)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      border: `1px solid ${color}40`,
+      background: 'rgba(6,9,22,0.85)',
+      backdropFilter: 'blur(28px)',
+      WebkitBackdropFilter: 'blur(28px)',
+      border: `2px solid ${color}70`,
       borderRadius: 20,
       overflow: 'hidden',
-      boxShadow: `0 0 40px ${color}08, 0 4px 24px rgba(0,0,0,0.4)`,
+      boxShadow: `0 0 60px ${color}18, 0 6px 36px rgba(0,0,0,0.55), inset 0 1px 0 ${color}18`,
       transition: 'border-color 0.3s, box-shadow 0.3s',
       position: 'relative',
     }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = `${color}50`; e.currentTarget.style.boxShadow = `0 0 60px ${color}18, 0 8px 32px rgba(0,0,0,0.5)` }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = `${color}40`; e.currentTarget.style.boxShadow = `0 0 40px ${color}08, 0 4px 24px rgba(0,0,0,0.4)` }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = `${color}CC`; e.currentTarget.style.boxShadow = `0 0 100px ${color}35, 0 12px 50px rgba(0,0,0,0.65), inset 0 1px 0 ${color}28` }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = `${color}70`; e.currentTarget.style.boxShadow = `0 0 60px ${color}18, 0 6px 36px rgba(0,0,0,0.55), inset 0 1px 0 ${color}18` }}
     >
       {/* Top accent bar */}
-      <div style={{ height: 3.5, background: `linear-gradient(90deg, transparent, ${color}, transparent)`, opacity: 0.7 }} />
+      <div style={{ height: 5, background: `linear-gradient(90deg, ${color}44, ${color}, ${color}CC, ${color}44)`, boxShadow: `0 0 20px ${color}60` }} />
 
       {/* Header */}
       <div style={{ padding: '20px 24px 12px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
-            width: 40, height: 40, borderRadius: 12,
-            background: `${color}18`, border: `1px solid ${color}35`,
+            width: 44, height: 44, borderRadius: 12,
+            background: `${color}28`, border: `2px solid ${color}70`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 18, flexShrink: 0,
+            fontSize: 20, flexShrink: 0,
+            boxShadow: `0 0 20px ${color}30`,
           }}>
             {metric.icon || '📊'}
           </div>
@@ -278,12 +280,13 @@ function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
       <div style={{
         margin: '0 16px 16px',
         padding: '12px 16px',
-        background: `${insightColor}08`,
-        border: `1px solid ${insightColor}25`,
-        borderLeft: `3px solid ${insightColor}`,
+        background: `${insightColor}12`,
+        border: `2px solid ${insightColor}50`,
+        borderLeft: `5px solid ${insightColor}`,
         borderRadius: '0 10px 10px 0',
+        boxShadow: `0 0 20px ${insightColor}15`,
       }}>
-        <span style={{ fontFamily: 'Inter', fontSize: 12, color: '#cbd5e1', lineHeight: 1.6 }}>{insight.text}</span>
+        <span style={{ fontFamily: 'Inter', fontSize: 12, color: '#e2e8f0', lineHeight: 1.6 }}>{insight.text}</span>
       </div>
     </div>
   )
@@ -377,8 +380,8 @@ export default function LifeCycles() {
   return (
     <div style={{ background: 'transparent', minHeight: '100%' }}>
       {/* Header */}
-      <div style={{ borderBottom: '1px solid rgba(99,102,241,0.12)', padding: '24px 40px 20px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, transparent, #22d3ee 30%, #8b5cf6 60%, transparent)' }} />
+      <div style={{ borderBottom: '2px solid rgba(34,211,238,0.45)', padding: '24px 40px 20px', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 40px rgba(34,211,238,0.08)' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 5, background: 'linear-gradient(90deg, transparent, #22d3ee 25%, #8b5cf6 60%, #e879f9 85%, transparent)', filter: 'blur(0.5px)' }} />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 1200, margin: '0 auto' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
@@ -459,11 +462,12 @@ export default function LifeCycles() {
           ].map((s, i) => (
             <div key={i} style={{
               padding: '20px 24px', borderRadius: 16,
-              background: 'rgba(8,12,26,0.6)', backdropFilter: 'blur(16px)',
-              border: `1px solid ${s.color}18`,
+              background: `${s.color}0A`, backdropFilter: 'blur(20px)',
+              border: `2px solid ${s.color}65`,
+              boxShadow: `0 0 50px ${s.color}18, 0 4px 24px rgba(0,0,0,0.4)`,
               textAlign: 'center',
             }}>
-              <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 48, color: s.color, lineHeight: 1, filter: `drop-shadow(0 0 16px ${s.color}60)` }}>{s.value}</div>
+              <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 54, color: s.color, lineHeight: 1, filter: `drop-shadow(0 0 20px ${s.color}) drop-shadow(0 0 40px ${s.color}60)` }}>{s.value}</div>
               <div style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 6 }}>{s.label}</div>
               <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#475569', marginTop: 2 }}>{s.sub}</div>
             </div>
@@ -472,15 +476,15 @@ export default function LifeCycles() {
 
       {/* Daily Win Rate — full width */}
       <div style={{
-        background: 'rgba(8,12,26,0.72)', backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(240,192,64,0.22)', borderRadius: 20,
+        background: 'rgba(6,9,22,0.88)', backdropFilter: 'blur(28px)',
+        border: '2px solid rgba(240,192,64,0.72)', borderRadius: 20,
         overflow: 'hidden', marginBottom: 24,
-        boxShadow: '0 0 40px rgba(240,192,64,0.06)',
+        boxShadow: '0 0 70px rgba(240,192,64,0.2), 0 6px 36px rgba(0,0,0,0.5), inset 0 1px 0 rgba(240,192,64,0.15)',
       }}>
-        <div style={{ height: 3, background: 'linear-gradient(90deg, transparent, #f0c040, transparent)', opacity: 0.7 }} />
+        <div style={{ height: 5, background: 'linear-gradient(90deg, transparent, #f0c040CC, #f0c040, #fb923c, transparent)', boxShadow: '0 0 20px rgba(240,192,64,0.5)' }} />
         <div style={{ padding: '20px 28px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(240,192,64,0.12)', border: '1px solid rgba(240,192,64,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🏆</div>
+            <div style={{ width: 46, height: 46, borderRadius: 12, background: 'rgba(240,192,64,0.2)', border: '2px solid rgba(240,192,64,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, boxShadow: '0 0 24px rgba(240,192,64,0.35)' }}>🏆</div>
             <div>
               <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 15, fontWeight: 700, letterSpacing: '0.06em', color: 'white' }}>DAILY WIN RATE</div>
               <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#94a3b8', marginTop: 3 }}>{winDaysCount} wins out of {totalDays} days logged</div>
@@ -493,7 +497,7 @@ export default function LifeCycles() {
         <div style={{ padding: '0 8px 8px' }}>
           <OscillationGraph points={winRatePoints} mean={0.5} metricId="daily_win_rate" color="#f0c040" />
         </div>
-        <div style={{ margin: '0 16px 16px', padding: '12px 16px', background: 'rgba(240,192,64,0.06)', border: '1px solid rgba(240,192,64,0.15)', borderLeft: '3px solid #f0c040', borderRadius: '0 10px 10px 0' }}>
+        <div style={{ margin: '0 16px 16px', padding: '12px 16px', background: 'rgba(240,192,64,0.1)', border: '2px solid rgba(240,192,64,0.45)', borderLeft: '5px solid #f0c040', borderRadius: '0 10px 10px 0', boxShadow: '0 0 20px rgba(240,192,64,0.1)' }}>
           <span style={{ fontFamily: 'Inter', fontSize: 12, color: '#cbd5e1', lineHeight: 1.6 }}>
             {totalDays < 3 ? 'Log at least 3 days to detect your win pattern.' :
               winRatePct >= 80 ? `You are winning ${winRatePct}% of days. Elite consistency. Protect the streak.` :

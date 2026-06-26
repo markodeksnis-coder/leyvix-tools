@@ -34,12 +34,13 @@ export default function Sidebar({ active, onSelect, onSettings }) {
 
   return (
     <aside style={{
-      width: 76,
+      width: 80,
       flexShrink: 0,
-      background: 'rgba(4, 6, 18, 0.96)',
-      backdropFilter: 'blur(24px)',
-      WebkitBackdropFilter: 'blur(24px)',
-      borderRight: '1px solid rgba(99,102,241,0.28)',
+      background: 'rgba(3, 4, 14, 0.98)',
+      backdropFilter: 'blur(32px)',
+      WebkitBackdropFilter: 'blur(32px)',
+      borderRight: '2px solid rgba(99,102,241,0.55)',
+      boxShadow: '4px 0 40px rgba(99,102,241,0.12)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -54,9 +55,10 @@ export default function Sidebar({ active, onSelect, onSettings }) {
 
       {/* Vertical accent line */}
       <div style={{
-        position: 'absolute', right: 0, top: '8%', bottom: '8%', width: 1,
-        background: 'linear-gradient(to bottom, transparent, rgba(99,102,241,0.7) 35%, rgba(139,92,246,0.6) 65%, transparent)',
+        position: 'absolute', right: 0, top: '5%', bottom: '5%', width: 2,
+        background: 'linear-gradient(to bottom, transparent, rgba(99,102,241,1) 30%, rgba(139,92,246,0.9) 60%, rgba(34,211,238,0.6) 85%, transparent)',
         pointerEvents: 'none',
+        filter: 'blur(0.5px)',
       }} />
 
       {/* ── LOGO ── */}
@@ -92,33 +94,35 @@ export default function Sidebar({ active, onSelect, onSettings }) {
                 width: '100%', border: 'none', outline: 'none',
                 transition: 'all 0.22s cubic-bezier(0.16,1,0.3,1)',
                 background: isActive
-                  ? 'linear-gradient(135deg, rgba(99,102,241,0.32), rgba(139,92,246,0.18))'
+                  ? 'linear-gradient(135deg, rgba(99,102,241,0.45), rgba(139,92,246,0.28))'
                   : 'transparent',
-                borderLeft: isActive ? '3px solid rgba(129,140,248,1)' : '2px solid transparent',
+                borderLeft: isActive ? '4px solid rgba(129,140,248,1)' : '3px solid transparent',
                 boxShadow: isActive
-                  ? `0 4px 24px rgba(99,102,241,0.25), inset 0 1px 0 rgba(255,255,255,0.06), 0 0 0 1px rgba(99,102,241,0.25)`
+                  ? `0 4px 32px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(99,102,241,0.4), 0 0 20px rgba(99,102,241,0.2) inset`
                   : 'none',
               }}
               onMouseEnter={e => {
                 if (!isActive) {
-                  e.currentTarget.style.background = 'rgba(99,102,241,0.09)'
-                  e.currentTarget.style.borderLeft = '2px solid rgba(99,102,241,0.25)'
+                  e.currentTarget.style.background = 'rgba(99,102,241,0.15)'
+                  e.currentTarget.style.borderLeft = '3px solid rgba(99,102,241,0.5)'
                 }
               }}
               onMouseLeave={e => {
                 if (!isActive) {
                   e.currentTarget.style.background = 'transparent'
-                  e.currentTarget.style.borderLeft = '2px solid transparent'
+                  e.currentTarget.style.borderLeft = '3px solid transparent'
                 }
               }}
             >
               <Icon
-                size={20}
+                size={22}
                 color={color}
-                strokeWidth={isActive ? 2.5 : 1.6}
+                strokeWidth={isActive ? 2.8 : 1.8}
                 style={{
-                  filter: isActive ? `drop-shadow(0 0 14px ${color}) drop-shadow(0 0 28px ${color}80)` : `drop-shadow(0 0 5px ${color})`,
-                  opacity: isActive ? 1 : 0.72,
+                  filter: isActive
+                    ? `drop-shadow(0 0 10px ${color}) drop-shadow(0 0 24px ${color}) drop-shadow(0 0 48px ${color}80)`
+                    : `drop-shadow(0 0 8px ${color}CC)`,
+                  opacity: isActive ? 1 : 0.85,
                   transition: 'all 0.22s',
                 }}
               />
@@ -148,35 +152,37 @@ export default function Sidebar({ active, onSelect, onSettings }) {
             <button key={id} onClick={() => onSelect(id)} title={label}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: '7px 4px', borderRadius: 8, cursor: 'pointer',
+                padding: '8px 4px', borderRadius: 8, cursor: 'pointer',
                 width: '100%', border: 'none', outline: 'none',
                 transition: 'all 0.2s',
                 background: isActive
-                  ? 'linear-gradient(135deg, rgba(99,102,241,0.18), rgba(139,92,246,0.09))'
+                  ? 'linear-gradient(135deg, rgba(99,102,241,0.3), rgba(139,92,246,0.16))'
                   : 'transparent',
-                borderLeft: isActive ? '3px solid rgba(129,140,248,0.95)' : '2px solid transparent',
-                boxShadow: isActive ? 'inset 0 1px 0 rgba(255,255,255,0.04)' : 'none',
+                borderLeft: isActive ? '4px solid rgba(129,140,248,1)' : '3px solid transparent',
+                boxShadow: isActive ? `inset 0 1px 0 rgba(255,255,255,0.08), 0 0 20px rgba(99,102,241,0.25) inset` : 'none',
               }}
               onMouseEnter={e => {
                 if (!isActive) {
-                  e.currentTarget.style.background = 'rgba(99,102,241,0.08)'
-                  e.currentTarget.style.borderLeft = '2px solid rgba(99,102,241,0.2)'
+                  e.currentTarget.style.background = 'rgba(99,102,241,0.14)'
+                  e.currentTarget.style.borderLeft = '3px solid rgba(99,102,241,0.45)'
                 }
               }}
               onMouseLeave={e => {
                 if (!isActive) {
                   e.currentTarget.style.background = 'transparent'
-                  e.currentTarget.style.borderLeft = '2px solid transparent'
+                  e.currentTarget.style.borderLeft = '3px solid transparent'
                 }
               }}
             >
               <Icon
-                size={17}
+                size={19}
                 color={color}
-                strokeWidth={1.5}
+                strokeWidth={1.8}
                 style={{
-                  filter: isActive ? `drop-shadow(0 0 10px ${color})` : `drop-shadow(0 0 4px ${color})`,
-                  opacity: isActive ? 1 : 0.6,
+                  filter: isActive
+                    ? `drop-shadow(0 0 10px ${color}) drop-shadow(0 0 20px ${color}CC)`
+                    : `drop-shadow(0 0 7px ${color}BB)`,
+                  opacity: isActive ? 1 : 0.8,
                   transition: 'all 0.2s',
                 }}
               />

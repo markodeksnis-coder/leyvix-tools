@@ -26,12 +26,12 @@ const LABEL_STYLE = {
 }
 
 const GLASS = {
-  background: 'rgba(8, 12, 26, 0.68)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  border: '1.5px solid rgba(99,102,241,0.35)',
+  background: 'rgba(6, 9, 22, 0.82)',
+  backdropFilter: 'blur(28px)',
+  WebkitBackdropFilter: 'blur(28px)',
+  border: '2px solid rgba(99,102,241,0.62)',
   borderRadius: 18,
-  boxShadow: '0 4px 28px rgba(0,0,0,0.35)',
+  boxShadow: '0 6px 40px rgba(0,0,0,0.55), 0 0 60px rgba(99,102,241,0.08), inset 0 1px 0 rgba(99,102,241,0.12)',
 }
 
 function TopBar({ pct, isWin, scoreColor }) {
@@ -126,17 +126,19 @@ export default function DailyCommand({ onNavigate }) {
 
       {/* ── HERO HEADER ── */}
       <div className="fade-in" style={{
-        background: 'rgba(6, 9, 24, 0.82)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderBottom: '1px solid rgba(99,102,241,0.14)',
+        background: 'rgba(4, 6, 18, 0.94)',
+        backdropFilter: 'blur(32px)',
+        WebkitBackdropFilter: 'blur(32px)',
+        borderBottom: '2px solid rgba(99,102,241,0.55)',
+        boxShadow: '0 4px 40px rgba(99,102,241,0.1)',
         padding: '24px 26px 20px',
         position: 'relative', overflow: 'hidden',
       }}>
         {/* Top gradient line */}
         <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 2,
-          background: 'linear-gradient(90deg, transparent 0%, rgba(99,102,241,0.6) 30%, rgba(139,92,246,0.5) 60%, rgba(6,182,212,0.3) 85%, transparent 100%)',
+          position: 'absolute', top: 0, left: 0, right: 0, height: 4,
+          background: 'linear-gradient(90deg, transparent 0%, rgba(99,102,241,1) 25%, rgba(139,92,246,0.9) 55%, rgba(6,182,212,0.7) 80%, transparent 100%)',
+          filter: 'blur(0.5px)',
         }} />
 
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
@@ -163,11 +165,15 @@ export default function DailyCommand({ onNavigate }) {
             padding: '14px 18px', minWidth: 90,
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
             border: isWin
-              ? '1px solid rgba(240,192,64,0.35)'
+              ? '2px solid rgba(240,192,64,0.75)'
               : pct > 0
-                ? '1px solid rgba(255,85,85,0.25)'
-                : '1px solid rgba(99,102,241,0.15)',
-            boxShadow: isWin ? '0 0 40px rgba(240,192,64,0.1)' : 'none',
+                ? '2px solid rgba(255,85,85,0.6)'
+                : '2px solid rgba(99,102,241,0.45)',
+            boxShadow: isWin
+              ? '0 0 50px rgba(240,192,64,0.25), 0 0 20px rgba(240,192,64,0.15) inset'
+              : pct > 0
+                ? '0 0 30px rgba(255,85,85,0.15)'
+                : 'none',
           }}>
             <span style={{
               fontFamily: '"Barlow Condensed", sans-serif',
@@ -198,15 +204,15 @@ export default function DailyCommand({ onNavigate }) {
           <div style={{
             flex: 1, ...GLASS, padding: '18px 16px',
             position: 'relative', overflow: 'hidden',
-            border: morningDone ? '1px solid rgba(240,192,64,0.28)' : '1px solid rgba(99,102,241,0.13)',
-            boxShadow: morningDone ? '0 0 40px rgba(240,192,64,0.07), inset 0 1px 0 rgba(240,192,64,0.08)' : 'none',
+            border: morningDone ? '2px solid rgba(240,192,64,0.75)' : '2px solid rgba(99,102,241,0.45)',
+            boxShadow: morningDone ? '0 0 60px rgba(240,192,64,0.18), inset 0 1px 0 rgba(240,192,64,0.15)' : '0 0 30px rgba(99,102,241,0.08)',
             transition: 'all 0.3s ease',
           }}>
             <div style={{
-              position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+              position: 'absolute', top: 0, left: 0, right: 0, height: 4,
               background: morningDone
                 ? 'linear-gradient(90deg, transparent, #f0c040, #fb923c, transparent)'
-                : 'linear-gradient(90deg, transparent, rgba(99,102,241,0.3), transparent)',
+                : 'linear-gradient(90deg, transparent, rgba(99,102,241,0.8), rgba(139,92,246,0.6), transparent)',
             }} />
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
@@ -266,15 +272,15 @@ export default function DailyCommand({ onNavigate }) {
           <div style={{
             flex: 1, ...GLASS, padding: '18px 16px',
             position: 'relative', overflow: 'hidden',
-            border: eveningDone ? '1px solid rgba(167,139,250,0.28)' : '1px solid rgba(99,102,241,0.13)',
-            boxShadow: eveningDone ? '0 0 40px rgba(167,139,250,0.07), inset 0 1px 0 rgba(167,139,250,0.08)' : 'none',
+            border: eveningDone ? '2px solid rgba(167,139,250,0.75)' : '2px solid rgba(99,102,241,0.45)',
+            boxShadow: eveningDone ? '0 0 60px rgba(167,139,250,0.18), inset 0 1px 0 rgba(167,139,250,0.15)' : '0 0 30px rgba(99,102,241,0.08)',
             transition: 'all 0.3s ease',
           }}>
             <div style={{
-              position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+              position: 'absolute', top: 0, left: 0, right: 0, height: 4,
               background: eveningDone
                 ? 'linear-gradient(90deg, transparent, #8b5cf6, #ec4899, transparent)'
-                : 'linear-gradient(90deg, transparent, rgba(99,102,241,0.3), transparent)',
+                : 'linear-gradient(90deg, transparent, rgba(99,102,241,0.8), rgba(139,92,246,0.6), transparent)',
             }} />
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
@@ -332,24 +338,24 @@ export default function DailyCommand({ onNavigate }) {
               ].map(({ label, value, color }) => (
                 <div key={label} style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-                  padding: '16px 8px 12px', borderRadius: 14,
-                  background: value !== null ? `linear-gradient(160deg, ${color}18, ${color}06)` : 'rgba(10,15,32,0.5)',
-                  border: `1.5px solid ${value !== null ? color+'55' : 'rgba(30,41,80,0.5)'}`,
-                  boxShadow: value !== null ? `0 0 24px ${color}18, inset 0 1px 0 ${color}20` : 'none',
+                  padding: '18px 8px 14px', borderRadius: 14,
+                  background: value !== null ? `linear-gradient(160deg, ${color}28, ${color}0C)` : 'rgba(10,15,32,0.6)',
+                  border: `2px solid ${value !== null ? color+'99' : 'rgba(40,55,100,0.7)'}`,
+                  boxShadow: value !== null ? `0 0 40px ${color}30, inset 0 1px 0 ${color}30` : 'none',
                   overflow: 'hidden', position: 'relative',
                 }}>
                   <span style={{
                     fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900,
-                    fontSize: value !== null ? 48 : 28, lineHeight: 1,
+                    fontSize: value !== null ? 54 : 30, lineHeight: 1,
                     color: value !== null ? color : MUTED,
-                    textShadow: value !== null ? `0 0 28px ${color}80, 0 0 60px ${color}30` : 'none',
+                    textShadow: value !== null ? `0 0 30px ${color}, 0 0 60px ${color}60` : 'none',
                   }}>
                     {value !== null ? value : '—'}
                   </span>
                   <span style={{ fontFamily: 'Inter', fontSize: 9, color: value !== null ? color : MUTED, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em' }}>{label}</span>
                   {/* bottom progress bar */}
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, background: 'rgba(10,15,32,0.6)' }}>
-                    <div style={{ height: '100%', width: `${value !== null ? (value/10)*100 : 0}%`, background: color, borderRadius: 2, boxShadow: `0 0 8px ${color}` }} />
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 5, background: 'rgba(10,15,32,0.8)' }}>
+                    <div style={{ height: '100%', width: `${value !== null ? (value/10)*100 : 0}%`, background: `linear-gradient(90deg, ${color}88, ${color})`, borderRadius: 2, boxShadow: `0 0 12px ${color}` }} />
                   </div>
                 </div>
               ))}
@@ -459,13 +465,13 @@ export default function DailyCommand({ onNavigate }) {
 
           {/* Streak badge */}
           <div style={{
-            ...GLASS, padding: '20px 14px', minWidth: 98,
+            ...GLASS, padding: '20px 14px', minWidth: 100,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
-            border: winStreak > 0 ? '1px solid rgba(240,192,64,0.3)' : '1px solid rgba(99,102,241,0.13)',
+            border: winStreak > 0 ? '2px solid rgba(240,192,64,0.75)' : '2px solid rgba(99,102,241,0.45)',
             background: winStreak > 0
-              ? 'linear-gradient(135deg, rgba(240,192,64,0.1), rgba(251,146,60,0.04))'
-              : 'rgba(10,15,32,0.68)',
-            boxShadow: winStreak > 0 ? '0 0 50px rgba(240,192,64,0.1)' : 'none',
+              ? 'linear-gradient(135deg, rgba(240,192,64,0.18), rgba(251,146,60,0.08))'
+              : 'rgba(6,9,22,0.82)',
+            boxShadow: winStreak > 0 ? '0 0 70px rgba(240,192,64,0.2), 0 0 30px rgba(240,192,64,0.1) inset' : 'none',
           }}>
             <span style={{ fontSize: 20, filter: winStreak > 0 ? 'drop-shadow(0 0 10px rgba(240,192,64,0.6))' : 'grayscale(1)' }}>🔥</span>
             <span style={{
@@ -528,11 +534,11 @@ export default function DailyCommand({ onNavigate }) {
         {(mit || word) && (
           <div className="fade-up delay-4" style={{
             ...GLASS,
-            border: '1px solid rgba(240,192,64,0.2)',
-            borderLeft: `3px solid ${GOLD}`,
+            border: '2px solid rgba(240,192,64,0.6)',
+            borderLeft: `5px solid ${GOLD}`,
             borderRadius: '0 16px 16px 0',
             padding: '16px 18px',
-            boxShadow: '0 0 40px rgba(240,192,64,0.05)',
+            boxShadow: '0 0 60px rgba(240,192,64,0.15), inset 0 0 30px rgba(240,192,64,0.04)',
           }}>
             <div style={{ ...LABEL_STYLE, color: GOLD, marginBottom: 12, textShadow: '0 0 12px rgba(240,192,64,0.4)' }}>
               Today's Focus
@@ -601,10 +607,11 @@ export default function DailyCommand({ onNavigate }) {
         {latestJournal && (
           <div className="fade-up delay-6" style={{
             ...GLASS,
-            border: `1px solid ${latestJournal.isWin ? 'rgba(240,192,64,0.18)' : 'rgba(255,85,85,0.18)'}`,
-            borderLeft: `3px solid ${latestJournal.isWin ? GOLD : RED}`,
+            border: `2px solid ${latestJournal.isWin ? 'rgba(240,192,64,0.62)' : 'rgba(255,85,85,0.55)'}`,
+            borderLeft: `5px solid ${latestJournal.isWin ? GOLD : RED}`,
             borderRadius: '0 16px 16px 0',
             padding: '16px 18px',
+            boxShadow: `0 0 50px ${latestJournal.isWin ? 'rgba(240,192,64,0.12)' : 'rgba(255,85,85,0.1)'}`,
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ ...LABEL_STYLE }}>Latest Journal</div>

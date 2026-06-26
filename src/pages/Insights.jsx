@@ -10,7 +10,7 @@ const BG = 'transparent'
 const SURF = 'rgba(5,8,20,0.88)'
 const CARD_BORDER = 'rgba(99,102,241,0.18)'
 const TEXT2 = '#94a3b8'
-const CARD = { background: 'rgba(8,12,26,0.70)', border: '1.5px solid rgba(99,102,241,0.32)', borderRadius: 14, padding: 20, boxShadow: '0 4px 24px rgba(0,0,0,0.3)' }
+const CARD = { background: 'rgba(6,9,22,0.82)', border: '2px solid rgba(99,102,241,0.65)', borderRadius: 14, padding: 20, boxShadow: '0 6px 40px rgba(0,0,0,0.55), 0 0 60px rgba(99,102,241,0.08), inset 0 1px 0 rgba(99,102,241,0.12)' }
 const LBL = { fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }
 const CHART_TT = {
   contentStyle: { background: 'rgba(5,8,20,0.75)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 8, fontSize: 11, fontFamily: 'Inter' },
@@ -27,11 +27,11 @@ function CircleGauge({ value, max = 10, size = 110, label, color = '#6366f1', de
     : (value >= 7 ? ['OPERATIONAL', '#1ad9a0'] : value >= 5 ? ['STABLE', '#6366f1'] : ['DEGRADED', '#f43f5e'])
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-      <div style={{ background: 'rgba(8,12,26,0.65)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 12, padding: '16px 20px', textAlign: 'center', minWidth: 130 }}>
+      <div style={{ background: `${color}0C`, border: `2px solid ${color}65`, borderRadius: 12, padding: '16px 20px', textAlign: 'center', minWidth: 130, boxShadow: `0 0 40px ${color}20` }}>
         <div style={{ position: 'relative', width: size, height: size, margin: '0 auto 8px' }}>
           <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-            <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(30,48,80,0.8)" strokeWidth={8} />
-            <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={8}
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(15,25,60,0.95)" strokeWidth={10} />
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth={10}
               strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" />
           </svg>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
@@ -59,7 +59,7 @@ function SectionTitle({ dot = '#6366f1', children, right }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ width: 8, height: 8, borderRadius: '50%', background: dot }} />
+        <div style={{ width: 10, height: 10, borderRadius: '50%', background: dot, boxShadow: `0 0 10px ${dot}, 0 0 20px ${dot}80` }} />
         <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{children}</span>
       </div>
       {right && <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{right}</span>}
@@ -229,7 +229,8 @@ export default function Insights() {
   return (
     <div style={{ background: BG, minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div style={{ background: BG, borderBottom: `1px solid ${CARD_BORDER}`, padding: '20px 32px', flexShrink: 0 }}>
+      <div style={{ background: 'rgba(4,6,18,0.95)', borderBottom: '2px solid rgba(99,102,241,0.6)', boxShadow: '0 4px 40px rgba(99,102,241,0.1)', padding: '20px 32px', flexShrink: 0, position: 'relative' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: 'linear-gradient(90deg, transparent, rgba(99,102,241,1) 30%, rgba(34,211,238,0.8) 70%, transparent)' }} />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
@@ -240,8 +241,8 @@ export default function Insights() {
             <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0bcdf', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 4 }}>THE WAR ROOM // TRENDS · CORRELATIONS · FORECAST</p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <div style={{ background: SURF, border: `1px solid ${CARD_BORDER}`, borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 11, fontWeight: 600, color: TEXT2, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontFamily: '"Orbitron",sans-serif', fontWeight: 900, color: '#6366f1' }}>{dayCount}</span> DAYS ENGRAVED
+            <div style={{ background: 'rgba(99,102,241,0.12)', border: '2px solid rgba(99,102,241,0.65)', borderRadius: 8, padding: '6px 14px', fontFamily: 'Inter', fontSize: 11, fontWeight: 600, color: TEXT2, display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 0 20px rgba(99,102,241,0.2)' }}>
+              <span style={{ fontFamily: '"Orbitron",sans-serif', fontWeight: 900, color: '#818cf8', textShadow: '0 0 14px rgba(99,102,241,0.8)' }}>{dayCount}</span> DAYS ENGRAVED
             </div>
           </div>
         </div>
@@ -292,10 +293,10 @@ export default function Insights() {
                     <XAxis dataKey="date" tick={{ fill: '#7a95c0', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} interval={4} />
                     <YAxis domain={[0, 10]} tick={{ fill: '#7a95c0', fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} width={20} />
                     <Tooltip {...CHART_TT} />
-                    <Area type="monotone" dataKey="energy" stroke="#6366f1" fill="url(#gE)" strokeWidth={2} dot={false} connectNulls />
-                    <Area type="monotone" dataKey="mood" stroke="#4d9fff" fill="url(#gM)" strokeWidth={2} dot={false} connectNulls />
-                    <Area type="monotone" dataKey="sleep" stroke="#4d9fff" fill="url(#gS)" strokeWidth={2} dot={false} connectNulls />
-                    <Area type="monotone" dataKey="stress" stroke="#f43f5e" fill="url(#gSt)" strokeWidth={2} dot={false} connectNulls />
+                    <Area type="monotone" dataKey="energy" stroke="#818cf8" fill="url(#gE)" strokeWidth={3} dot={false} connectNulls />
+                    <Area type="monotone" dataKey="mood" stroke="#22d3ee" fill="url(#gM)" strokeWidth={3} dot={false} connectNulls />
+                    <Area type="monotone" dataKey="sleep" stroke="#a78bfa" fill="url(#gS)" strokeWidth={3} dot={false} connectNulls />
+                    <Area type="monotone" dataKey="stress" stroke="#f43f5e" fill="url(#gSt)" strokeWidth={3} dot={false} connectNulls />
                   </AreaChart>
                 </ResponsiveContainer>
                 <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
@@ -318,7 +319,7 @@ export default function Insights() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {streakRanking.map((h, i) => (
-                  <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: BG, borderRadius: 8, border: `1px solid ${CARD_BORDER}` }}>
+                  <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'rgba(99,102,241,0.06)', borderRadius: 8, border: '2px solid rgba(99,102,241,0.45)' }}>
                     <span style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 14, color: FLAME_COLORS[i] || '#a0bcdf', width: 20, textAlign: 'center' }}>#{i + 1}</span>
                     <span style={{ fontFamily: 'Inter', fontSize: 12, color: 'white', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h.name}</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -339,7 +340,7 @@ export default function Insights() {
             <SectionTitle dot="#4d9fff" right="AUTO-MINED FROM YOUR DAILY LOGS">CORRELATIONS DETECTED</SectionTitle>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 12 }}>
               {correlations.map((c, i) => (
-                <div key={i} style={{ background: 'transparent', border: `1px solid ${c.color}20`, borderRadius: 10, padding: 16 }}>
+                <div key={i} style={{ background: `${c.color}08`, border: `2px solid ${c.color}55`, borderRadius: 10, padding: 16, boxShadow: `0 0 30px ${c.color}10` }}>
                   <div style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{c.title}</div>
                   <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#a0bcdf', marginBottom: 12 }}>{c.subtitle}</p>
                   <div style={{ display: 'flex', gap: 16 }}>
@@ -354,8 +355,8 @@ export default function Insights() {
                       </div>
                     ))}
                   </div>
-                  <div style={{ marginTop: 10, height: 4, background: '#1e3050', borderRadius: 2 }}>
-                    <div style={{ height: 4, background: c.color, borderRadius: 2, width: `${c.confidence}%` }} />
+                  <div style={{ marginTop: 10, height: 6, background: 'rgba(15,25,60,0.9)', borderRadius: 3, border: `1px solid ${c.color}30` }}>
+                    <div style={{ height: '100%', background: c.color, borderRadius: 3, width: `${c.confidence}%`, boxShadow: `0 0 10px ${c.color}` }} />
                   </div>
                 </div>
               ))}
