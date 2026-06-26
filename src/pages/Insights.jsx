@@ -79,10 +79,34 @@ function pearson(xs, ys) {
   return num / (dx * dy)
 }
 
+const MOOD_SCORE = { 'Excellent': 9, 'Good': 7, 'Neutral': 5, 'Low': 3, 'Very low': 1 }
+
 export default function Insights() {
-  const [checkLogs] = useLocalStorage('marko_checklogs', {})
+  const [checkInData] = useLocalStorage('marko_checkin', {})
   const [habits] = useLocalStorage('marko_habits', [])
   const [diet] = useLocalStorage('marko_diet', { targets: { calories: 2800 }, history: [] })
+
+  // Transform marko_checkin → flat {dateStr: {morning:{energy,sleep,mood}, evening:{stress}}}
+  const checkLogs = useMemo(() => {
+    const result = {}
+    Object.entries(checkInData.morning || {}).forEach(([ds, data]) => {
+      if (!data?.answers) return
+      const a = data.answers
+      result[ds] = result[ds] || {}
+      result[ds].morning = {
+        energy: a['me6'] != null ? +a['me6'] : null,
+        sleep:  a['ms2'] != null ? +a['ms2'] : null,
+        mood:   a['mm11'] != null ? (MOOD_SCORE[a['mm11']] ?? 5) : null,
+      }
+    })
+    Object.entries(checkInData.evening || {}).forEach(([ds, data]) => {
+      if (!data?.answers) return
+      const a = data.answers
+      result[ds] = result[ds] || {}
+      result[ds].evening = { stress: a['em19'] != null ? +a['em19'] : null }
+    })
+    return result
+  }, [checkInData])
 
   const todayStr = today()
   const dayCount = (() => {

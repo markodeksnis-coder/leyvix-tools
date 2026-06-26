@@ -211,12 +211,17 @@ function syncToSections(tab, answers, dateStr) {
   if (!daily.logs[dateStr]) daily.logs[dateStr] = {}
 
   if (tab === 'morning') {
-    if (answers['ms2'] != null) daily.logs[dateStr].sleep = answers['ms2']
+    if (answers['ms2']  != null) daily.logs[dateStr].sleep      = answers['ms2']
+    if (answers['me6']  != null) daily.logs[dateStr].energy     = answers['me6']
+    if (answers['mm11'] != null) daily.logs[dateStr].mood       = answers['mm11']
+    if (answers['mi16'] != null) daily.logs[dateStr].mit        = answers['mi16']
+    if (answers['mi17'] != null) daily.logs[dateStr].wordOfDay  = answers['mi17']
   }
   if (tab === 'evening') {
     if (answers['eb16'] != null) daily.logs[dateStr].steps      = answers['eb16']
     if (answers['ed4']  != null) daily.logs[dateStr].workOutput  = answers['ed4']
     if (answers['eb14'] != null) daily.logs[dateStr].dietQuality = answers['eb14']
+    if (answers['em19'] != null) daily.logs[dateStr].stress     = answers['em19']
 
     if (answers['eb10'] === 'YES') {
       const bodyRaw  = localStorage.getItem('marko_body')
