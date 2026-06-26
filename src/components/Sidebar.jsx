@@ -1,4 +1,4 @@
-import { CalendarCheck, Sun, Moon, Dumbbell, Brain, TrendingUp, Activity, Target, BarChart2, Briefcase, Users, Flame, Bot, Settings, Zap, Flag, BookOpen, LayoutDashboard } from 'lucide-react'
+import { CalendarCheck, Sun, Moon, Dumbbell, Brain, TrendingUp, Activity, Target, BarChart2, Flame, Bot, Settings, Zap, Flag, BookOpen, LayoutDashboard } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { getWinHistory, computeCurrentWinStreak, getWinDaySettings } from '../utils/winLoss'
 import { daysSinceStart } from '../utils'
@@ -14,15 +14,13 @@ const PRIMARY = [
 ]
 
 const SECONDARY = [
-  { id: 'daily',     label: 'Daily',     Icon: CalendarCheck, color: '#818cf8' },
-  { id: 'record',    label: 'Record',    Icon: Target,        color: '#22d3ee' },
-  { id: 'insights',  label: 'Insights',  Icon: BarChart2,     color: '#6366f1' },
-  { id: 'business',  label: 'Business',  Icon: Briefcase,     color: '#60a5fa' },
-  { id: 'relations', label: 'Relations', Icon: Users,         color: '#f43f5e' },
-  { id: 'soul',      label: 'Soul',      Icon: Flame,         color: '#fb923c' },
-  { id: 'coach',     label: 'Coach',     Icon: Bot,           color: '#a78bfa' },
-  { id: 'goals',     label: 'Goals',     Icon: Flag,          color: '#f0c040' },
-  { id: 'journal',   label: 'Journal',   Icon: BookOpen,      color: '#e879f9' },
+  { id: 'daily',    label: 'Daily',    Icon: CalendarCheck, color: '#818cf8' },
+  { id: 'record',   label: 'Record',   Icon: Target,        color: '#22d3ee' },
+  { id: 'insights', label: 'Insights', Icon: BarChart2,     color: '#6366f1' },
+  { id: 'soul',     label: 'Soul',     Icon: Flame,         color: '#fb923c' },
+  { id: 'coach',    label: 'Coach',    Icon: Bot,           color: '#a78bfa' },
+  { id: 'goals',    label: 'Goals',    Icon: Flag,          color: '#f0c040' },
+  { id: 'journal',  label: 'Journal',  Icon: BookOpen,      color: '#e879f9' },
 ]
 
 export default function Sidebar({ active, onSelect, onSettings }) {

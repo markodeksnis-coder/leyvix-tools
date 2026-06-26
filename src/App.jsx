@@ -5,8 +5,6 @@ import Record from './pages/Record'
 import Insights from './pages/Insights'
 import Mind from './pages/Mind'
 import Body from './pages/Body'
-import Relations from './pages/Relations'
-import Business from './pages/Business'
 import Soul from './pages/Soul'
 import Coach from './pages/Coach'
 import GrowthFeed from './pages/GrowthFeed'
@@ -67,8 +65,6 @@ const PAGES = {
   insights: Insights,
   mind: Mind,
   body: Body,
-  relations: Relations,
-  business: Business,
   soul: Soul,
   coach: Coach,
   'growth-feed': GrowthFeed,

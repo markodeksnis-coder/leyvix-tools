@@ -1,5 +1,6 @@
+import { useMemo } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { today, daysSinceStart } from '../utils'
+import { today, daysSinceStart, daysAgo } from '../utils'
 import { getWinDaySettings, calcDayScore, getWinHistory, computeCurrentWinStreak } from '../utils/winLoss'
 
 const GOLD   = '#f0c040'
@@ -86,10 +87,36 @@ export default function DailyCommand({ onNavigate }) {
   const { pct, isWin, metrics = [] } = dayScore
   const scoreColor = pct >= (winSettings.threshold || 80) ? GOLD : pct >= 50 ? CYAN : RED
 
-  const mit    = morningAnswers['mi16'] || ''
-  const word   = morningAnswers['mi17'] || ''
-  const energy = morningAnswers['me6']  ?? null
-  const overall = eveningAnswers['ed1'] ?? null
+  const mit     = morningAnswers['mi16'] || ''
+  const word    = morningAnswers['mi17'] || ''
+  const energy  = morningAnswers['me6']  ?? null
+  const overall = eveningAnswers['ed1']  ?? null
+
+  const MOOD_SCORE = { 'Excellent': 9, 'Good': 7, 'Neutral': 5, 'Low': 3, 'Very low': 1 }
+
+  // Today's pulse metrics from check-in
+  const todayPulse = useMemo(() => ({
+    energy: morningAnswers['me6']  != null ? +morningAnswers['me6']  : null,
+    sleep:  morningAnswers['ms2']  != null ? +morningAnswers['ms2']  : null,
+    mood:   morningAnswers['mm11'] != null ? (MOOD_SCORE[morningAnswers['mm11']] ?? null) : null,
+    stress: eveningAnswers['em19'] != null ? +eveningAnswers['em19'] : null,
+  }), [checkInData]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 7-day averages from marko_checkin
+  const avg7 = useMemo(() => {
+    const vals = { energy: [], sleep: [], mood: [], stress: [] }
+    for (let i = 0; i < 7; i++) {
+      const ds = daysAgo(i)
+      const ma = checkInData?.morning?.[ds]?.answers || {}
+      const ea = checkInData?.evening?.[ds]?.answers || {}
+      if (ma['me6']  != null) vals.energy.push(+ma['me6'])
+      if (ma['ms2']  != null) vals.sleep.push(+ma['ms2'])
+      if (ma['mm11'] != null) { const v = MOOD_SCORE[ma['mm11']]; if (v) vals.mood.push(v) }
+      if (ea['em19'] != null) vals.stress.push(+ea['em19'])
+    }
+    const avg = arr => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : null
+    return { energy: avg(vals.energy), sleep: avg(vals.sleep), mood: avg(vals.mood), stress: avg(vals.stress), days: Math.max(vals.energy.length, vals.sleep.length) }
+  }, [checkInData])
 
   const dayLabel = `DAY ${String(dayNum).padStart(3, '0')}`
 
@@ -288,6 +315,88 @@ export default function DailyCommand({ onNavigate }) {
             )}
           </div>
         </div>
+
+        {/* ── TODAY'S PULSE ── */}
+        {(todayPulse.energy !== null || todayPulse.sleep !== null || todayPulse.mood !== null) && (
+          <div className="fade-up delay-2" style={{ ...GLASS, padding: '18px 20px' }}>
+            <div style={{ ...LABEL_STYLE, marginBottom: 14, color: CYAN, textShadow: '0 0 12px rgba(34,211,238,0.4)' }}>
+              Today's Pulse
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+              {[
+                { label: 'Energy',  value: todayPulse.energy, color: GOLD,   suffix: '/10' },
+                { label: 'Sleep',   value: todayPulse.sleep,  color: VIOLET, suffix: '/10' },
+                { label: 'Mood',    value: todayPulse.mood,   color: PINK,   suffix: '/10' },
+                { label: 'Stress',  value: todayPulse.stress, color: RED,    suffix: '/10' },
+              ].map(({ label, value, color, suffix }) => (
+                <div key={label} style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                  padding: '12px 8px', borderRadius: 12,
+                  background: value !== null ? `${color}0d` : 'rgba(20,28,52,0.4)',
+                  border: `1px solid ${value !== null ? `${color}28` : 'rgba(30,41,80,0.4)'}`,
+                }}>
+                  <span style={{
+                    fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900,
+                    fontSize: value !== null ? 42 : 28, lineHeight: 1,
+                    color: value !== null ? color : MUTED,
+                    textShadow: value !== null ? `0 0 20px ${color}70` : 'none',
+                  }}>
+                    {value !== null ? value : '—'}
+                  </span>
+                  <span style={{ fontFamily: 'Inter', fontSize: 9, color: value !== null ? color : MUTED, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── 7-DAY INSIGHTS ── */}
+        {avg7.days >= 2 && (
+          <div className="fade-up delay-2" style={{ ...GLASS, padding: '18px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div style={{ ...LABEL_STYLE, color: INDIGO, textShadow: '0 0 12px rgba(99,102,241,0.4)' }}>7-Day Averages</div>
+              <button onClick={() => onNavigate?.('insights')} style={{ background: 'none', border: 'none', fontFamily: 'Inter', fontSize: 10, color: MUTED, cursor: 'pointer', padding: 0 }}
+                onMouseEnter={e => e.currentTarget.style.color = INDIGO}
+                onMouseLeave={e => e.currentTarget.style.color = MUTED}
+              >View Insights →</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+              {[
+                { label: 'Avg Energy', value: avg7.energy, color: GOLD   },
+                { label: 'Avg Sleep',  value: avg7.sleep,  color: VIOLET },
+                { label: 'Avg Mood',   value: avg7.mood,   color: PINK   },
+                { label: 'Avg Stress', value: avg7.stress, color: RED    },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '10px 6px', borderRadius: 10, background: 'rgba(8,12,26,0.5)' }}>
+                  {/* Mini ring */}
+                  <div style={{ position: 'relative', width: 52, height: 52 }}>
+                    <svg width="52" height="52" style={{ transform: 'rotate(-90deg)' }}>
+                      <circle cx="26" cy="26" r="20" fill="none" stroke="rgba(30,41,80,0.6)" strokeWidth={4} />
+                      {value !== null && (
+                        <circle cx="26" cy="26" r="20" fill="none" stroke={color} strokeWidth={4}
+                          strokeDasharray={2 * Math.PI * 20}
+                          strokeDashoffset={2 * Math.PI * 20 * (1 - Math.min(1, +value / 10))}
+                          strokeLinecap="round" />
+                      )}
+                    </svg>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 15, color: value !== null ? color : MUTED, lineHeight: 1 }}>
+                        {value ?? '—'}
+                      </span>
+                    </div>
+                  </div>
+                  <span style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>{label}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 12, padding: '8px 12px', background: 'rgba(99,102,241,0.06)', borderRadius: 8, border: '1px solid rgba(99,102,241,0.12)' }}>
+              <span style={{ fontFamily: 'Inter', fontSize: 11, color: TEXT2 }}>
+                Based on <span style={{ color: INDIGO, fontWeight: 700 }}>{avg7.days}</span> check-ins in the last 7 days.
+                {avg7.energy && +avg7.energy >= 7 ? ' Energy is high — push harder today.' : avg7.energy && +avg7.energy < 5 ? ' Energy is low — prioritize recovery.' : ''}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* ── WIN METRICS ── */}
         {metrics.length > 0 && (
