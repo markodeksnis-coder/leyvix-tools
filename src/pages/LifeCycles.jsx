@@ -104,7 +104,7 @@ function generateInsight(metricName, stats) {
 
 function OscillationGraph({ points, mean, metricId }) {
   const valid = points.filter(p => p.value !== null)
-  if (valid.length < 7) {
+  if (valid.length < 3) {
     return (
       <div style={{
         height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center',
