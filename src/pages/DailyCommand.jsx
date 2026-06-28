@@ -103,21 +103,28 @@ export default function DailyCommand({ onNavigate }) {
     stress: eveningAnswers['em19'] != null ? +eveningAnswers['em19'] : null,
   }), [checkInData]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 7-day averages from marko_checkin
+  // 7-day averages from marko_checkin + diet history
   const avg7 = useMemo(() => {
-    const vals = { energy: [], sleep: [], mood: [], stress: [] }
+    const vals = { energy: [], sleep: [], calories: [], protein: [] }
     for (let i = 0; i < 7; i++) {
       const ds = daysAgo(i)
       const ma = checkInData?.morning?.[ds]?.answers || {}
-      const ea = checkInData?.evening?.[ds]?.answers || {}
-      if (ma['me6']  != null) vals.energy.push(+ma['me6'])
-      if (ma['ms2']  != null) vals.sleep.push(+ma['ms2'])
-      if (ma['mm11'] != null) { const v = MOOD_SCORE[ma['mm11']]; if (v) vals.mood.push(v) }
-      if (ea['em19'] != null) vals.stress.push(+ea['em19'])
+      if (ma['me6'] != null) vals.energy.push(+ma['me6'])
+      if (ma['ms2'] != null) vals.sleep.push(+ma['ms2'])
+      const dh = (dietData.history || []).find(h => h.date === ds)
+      if (dh?.calories) vals.calories.push(dh.calories)
+      if (dh?.protein)  vals.protein.push(dh.protein)
     }
-    const avg = arr => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : null
-    return { energy: avg(vals.energy), sleep: avg(vals.sleep), mood: avg(vals.mood), stress: avg(vals.stress), days: Math.max(vals.energy.length, vals.sleep.length) }
-  }, [checkInData])
+    const avg  = arr => arr.length ? +(arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : null
+    const avgI = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null
+    return {
+      energy:   avg(vals.energy),
+      sleep:    avg(vals.sleep),
+      calories: avgI(vals.calories),
+      protein:  avgI(vals.protein),
+      days: Math.max(vals.energy.length, vals.sleep.length, vals.calories.length),
+    }
+  }, [checkInData, dietData])
 
   const dayLabel = `DAY ${String(dayNum).padStart(3, '0')}`
 
@@ -373,39 +380,48 @@ export default function DailyCommand({ onNavigate }) {
                 onMouseLeave={e => e.currentTarget.style.color = MUTED}
               >View Insights →</button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-              {[
-                { label: 'Avg Energy', value: avg7.energy, color: GOLD   },
-                { label: 'Avg Sleep',  value: avg7.sleep,  color: VIOLET },
-                { label: 'Avg Mood',   value: avg7.mood,   color: PINK   },
-                { label: 'Avg Stress', value: avg7.stress, color: RED    },
-              ].map(({ label, value, color }) => (
-                <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '10px 6px', borderRadius: 10, background: 'rgba(8,12,26,0.5)' }}>
-                  {/* Mini ring */}
-                  <div style={{ position: 'relative', width: 64, height: 64 }}>
-                    <svg width="64" height="64" style={{ transform: 'rotate(-90deg)' }}>
-                      <circle cx="32" cy="32" r="24" fill="none" stroke="rgba(30,41,80,0.6)" strokeWidth={5} />
-                      {value !== null && (
-                        <circle cx="32" cy="32" r="24" fill="none" stroke={color} strokeWidth={5}
-                          strokeDasharray={2 * Math.PI * 24}
-                          strokeDashoffset={2 * Math.PI * 24 * (1 - Math.min(1, +value / 10))}
-                          strokeLinecap="round" />
-                      )}
-                    </svg>
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 16, color: value !== null ? color : MUTED, lineHeight: 1 }}>
-                        {value ?? '—'}
-                      </span>
+            {(() => {
+              const calTarget = dietData.targets?.calories || 2400
+              const proTarget = dietData.targets?.protein  || 200
+              const items7 = [
+                { label: 'Sleep',    value: avg7.sleep,    color: VIOLET, max: 10,        unit: 'hrs',  fmt: v => v },
+                { label: 'Energy',   value: avg7.energy,   color: GOLD,   max: 10,        unit: '/10',  fmt: v => v },
+                { label: 'Calories', value: avg7.calories, color: CYAN,   max: calTarget, unit: 'kcal', fmt: v => v?.toLocaleString() },
+                { label: 'Protein',  value: avg7.protein,  color: GREEN,  max: proTarget, unit: 'g',    fmt: v => v },
+              ]
+              return (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+                  {items7.map(({ label, value, color, max, unit, fmt }) => (
+                    <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '12px 6px 8px', borderRadius: 12, background: value !== null ? `${color}0C` : 'rgba(8,12,26,0.5)', border: `2px solid ${value !== null ? color + '50' : 'rgba(30,41,80,0.5)'}` }}>
+                      {/* Mini ring */}
+                      <div style={{ position: 'relative', width: 64, height: 64 }}>
+                        <svg width="64" height="64" style={{ transform: 'rotate(-90deg)' }}>
+                          <circle cx="32" cy="32" r="24" fill="none" stroke="rgba(20,30,60,0.8)" strokeWidth={5} />
+                          {value !== null && (
+                            <circle cx="32" cy="32" r="24" fill="none" stroke={color} strokeWidth={5}
+                              strokeDasharray={2 * Math.PI * 24}
+                              strokeDashoffset={2 * Math.PI * 24 * (1 - Math.min(1, value / max))}
+                              strokeLinecap="round" />
+                          )}
+                        </svg>
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
+                          <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: max > 100 ? 13 : 16, color: value !== null ? color : MUTED, lineHeight: 1, textShadow: value !== null ? `0 0 14px ${color}` : 'none' }}>
+                            {value !== null ? fmt(value) : '—'}
+                          </span>
+                          {value !== null && <span style={{ fontFamily: 'Inter', fontSize: 7, color, opacity: 0.8, marginTop: 1 }}>{unit}</span>}
+                        </div>
+                      </div>
+                      <span style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.07em', textAlign: 'center' }}>{label}</span>
                     </div>
-                  </div>
-                  <span style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>{label}</span>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <div style={{ marginTop: 12, padding: '8px 12px', background: 'rgba(99,102,241,0.06)', borderRadius: 8, border: '1px solid rgba(99,102,241,0.12)' }}>
+              )
+            })()}
+            <div style={{ marginTop: 12, padding: '8px 12px', background: 'rgba(99,102,241,0.06)', borderRadius: 8, border: '2px solid rgba(99,102,241,0.3)' }}>
               <span style={{ fontFamily: 'Inter', fontSize: 11, color: TEXT2 }}>
                 Based on <span style={{ color: INDIGO, fontWeight: 700 }}>{avg7.days}</span> check-ins in the last 7 days.
-                {avg7.energy && +avg7.energy >= 7 ? ' Energy is high — push harder today.' : avg7.energy && +avg7.energy < 5 ? ' Energy is low — prioritize recovery.' : ''}
+                {avg7.energy && avg7.energy >= 7 ? ' Energy is high — push harder today.' : avg7.energy && avg7.energy < 5 ? ' Energy is low — prioritize recovery.' : ''}
+                {avg7.calories ? ` Avg ${avg7.calories?.toLocaleString()} kcal · ${avg7.protein ?? '—'}g protein.` : ''}
               </span>
             </div>
           </div>

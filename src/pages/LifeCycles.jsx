@@ -6,15 +6,21 @@ import WinDaySettings from '../components/WinDaySettings'
 import { Settings2 } from 'lucide-react'
 
 const DEFAULT_METRICS = [
-  { id: 'diet_quality',  name: 'Diet Quality',       unit: '%',      maxVal: 100,   color: '#f0c040', icon: '🥗' },
-  { id: 'gym_session',   name: 'Gym Session',         unit: 'binary', maxVal: 1,     color: '#22d3ee', icon: '🏋️' },
-  { id: 'sleep_quality', name: 'Sleep Quality',       unit: '/10',    maxVal: 10,    color: '#8b5cf6', icon: '🌙' },
-  { id: 'steps',         name: 'Steps',               unit: 'steps',  maxVal: 15000, color: '#1ad9a0', icon: '👟' },
-  { id: 'cold_shower',   name: 'Cold Shower',         unit: 'binary', maxVal: 1,     color: '#3b82f6', icon: '❄️' },
-  { id: 'work_output',   name: 'Work Output',         unit: '/10',    maxVal: 10,    color: '#fb923c', icon: '💼' },
-  { id: 'reading',       name: 'Reading / Learning',  unit: 'binary', maxVal: 1,     color: '#e879f9', icon: '📖' },
-  { id: 'daily_score',   name: 'Daily Score',         unit: '%',      maxVal: 100,   color: '#6366f1', icon: '⚡' },
+  { id: 'diet_quality',  name: 'Diet Quality',    unit: '%',    maxVal: 100,   color: '#f0c040', icon: '🥗' },
+  { id: 'gym_session',   name: 'Workout Hours',   unit: 'hrs',  maxVal: 3,     color: '#22d3ee', icon: '🏋️' },
+  { id: 'sleep_quality', name: 'Sleep Quality',   unit: '/10',  maxVal: 10,    color: '#8b5cf6', icon: '🌙' },
+  { id: 'steps',         name: 'Steps',           unit: 'steps',maxVal: 15000, color: '#1ad9a0', icon: '👟' },
+  { id: 'cold_shower',   name: 'Cold Shower',     unit: 'binary',maxVal: 1,   color: '#3b82f6', icon: '❄️' },
+  { id: 'work_output',   name: 'Work Output',     unit: '/10',  maxVal: 10,    color: '#fb923c', icon: '💼' },
+  { id: 'reading',       name: 'Study Hours',     unit: 'hrs',  maxVal: 4,     color: '#e879f9', icon: '📖' },
+  { id: 'daily_score',   name: 'Daily Score',     unit: '%',    maxVal: 100,   color: '#6366f1', icon: '⚡' },
 ]
+
+// Built-in metrics that need manual daily logging → which field in marko_daily.logs to write
+const DAILY_LOG_FIELDS = {
+  gym_session: 'workoutHours',
+  reading:     'studyHours',
+}
 
 function getMetricValue(metricId, dateStr, dailyData, bodyData, dietData) {
   const log = dailyData.logs?.[dateStr]
@@ -32,9 +38,11 @@ function getMetricValue(metricId, dateStr, dailyData, bodyData, dietData) {
       return log?.dietQuality != null ? Math.round(log.dietQuality * 10) : null
     }
     case 'gym_session': {
+      // Primary: manually logged hours via LifeCycles
+      if (log?.workoutHours != null) return log.workoutHours
+      // Fallback: workout session logged in Body → count as 1 hr
       const trained = [...(bodyData.workouts || []), ...(bodyData.liftSessions || [])].some(w => w.date === dateStr)
       if (trained) return 1
-      // Fallback: log exists but no workout entry → 0; no log at all → null
       return log != null ? 0 : null
     }
     case 'sleep_quality':
@@ -51,11 +59,12 @@ function getMetricValue(metricId, dateStr, dailyData, bodyData, dietData) {
     case 'work_output':
       return log?.workOutput ?? null
     case 'reading': {
-      // Primary: DailyOS task item
+      // Primary: manually logged hours via LifeCycles
+      if (log?.studyHours != null) return log.studyHours
+      // Fallback: DailyOS task item or check-in binary (treat as 1 hr if done)
       const item = items.find(i => !i.isNonNeg && /read|learn/i.test(i.title))
       if (item != null) return item.checked ? 1 : 0
-      // Fallback: evening check-in answer
-      return log?.reading ?? null
+      return log?.reading != null ? log.reading : null
     }
     case 'daily_score': {
       // Primary: DailyOS checklist completion
@@ -293,7 +302,7 @@ function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
 }
 
 export default function LifeCycles() {
-  const [dailyData] = useLocalStorage('marko_daily', { logs: {}, nonNegotiables: [], taskTemplates: [] })
+  const [dailyData, setDailyData] = useLocalStorage('marko_daily', { logs: {}, nonNegotiables: [], taskTemplates: [] })
   const [bodyData] = useLocalStorage('marko_body', { workouts: [], liftSessions: [] })
   const [dietData] = useLocalStorage('marko_diet', { targets: { calories: 2400, protein: 200 }, history: [] })
   const [cyclesConfig, setCyclesConfig] = useLocalStorage('marko_cycles_config', { customMetrics: [], customLogs: {} })
@@ -303,7 +312,20 @@ export default function LifeCycles() {
   const [newMetricMax, setNewMetricMax] = useState('10')
   const [editingMetric, setEditingMetric] = useState(null)
   const [customLogInputs, setCustomLogInputs] = useState({})
+  const [dailyLogInputs, setDailyLogInputs] = useState({})
   const [showWinSettings, setShowWinSettings] = useState(false)
+
+  const logDailyMetric = (metricId) => {
+    const field = DAILY_LOG_FIELDS[metricId]
+    const val = parseFloat(dailyLogInputs[metricId])
+    if (!field || isNaN(val)) return
+    const ds = new Date().toISOString().split('T')[0]
+    setDailyData(d => ({
+      ...d,
+      logs: { ...(d.logs || {}), [ds]: { ...(d.logs?.[ds] || {}), [field]: val } }
+    }))
+    setDailyLogInputs(prev => ({ ...prev, [metricId]: '' }))
+  }
 
   const allMetrics = [...DEFAULT_METRICS, ...(cyclesConfig.customMetrics || [])]
 
@@ -511,6 +533,9 @@ export default function LifeCycles() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20, paddingBottom: 40 }}>
         {metricData.map(({ metric, points, stats, mean }) => {
           const isCustom = !DEFAULT_METRICS.find(m => m.id === metric.id)
+          const isDailyLoggable = !!DAILY_LOG_FIELDS[metric.id]
+          const color = metric.color || '#6366f1'
+          const showLogPanel = isCustom || isDailyLoggable
           return (
             <div key={metric.id} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               <MetricCard
@@ -521,20 +546,30 @@ export default function LifeCycles() {
                 onEdit={isCustom ? () => setEditingMetric(metric) : null}
                 onDelete={isCustom ? () => deleteCustomMetric(metric.id) : null}
               />
-              {isCustom && (
+              {showLogPanel && (
                 <div style={{
-                  padding: '10px 20px', background: 'rgba(5,8,20,0.6)',
-                  border: '1px solid rgba(99,102,241,0.12)', borderTop: 'none',
-                  borderRadius: '0 0 16px 16px', display: 'flex', gap: 10, alignItems: 'center'
+                  padding: '10px 20px',
+                  background: `${color}08`,
+                  border: `2px solid ${color}40`, borderTop: 'none',
+                  borderRadius: '0 0 18px 18px', display: 'flex', gap: 10, alignItems: 'center',
                 }}>
-                  <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#64748b' }}>Log today:</span>
-                  <input type="number" value={customLogInputs[metric.id] || ''}
-                    onChange={e => setCustomLogInputs(prev => ({ ...prev, [metric.id]: e.target.value }))}
-                    onKeyDown={e => e.key === 'Enter' && logCustomValue(metric.id)}
+                  <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#64748b' }}>
+                    Log today ({metric.unit === 'binary' ? 'hrs' : metric.unit}):
+                  </span>
+                  <input
+                    type="number"
+                    value={isDailyLoggable ? (dailyLogInputs[metric.id] || '') : (customLogInputs[metric.id] || '')}
+                    onChange={e => isDailyLoggable
+                      ? setDailyLogInputs(prev => ({ ...prev, [metric.id]: e.target.value }))
+                      : setCustomLogInputs(prev => ({ ...prev, [metric.id]: e.target.value }))}
+                    onKeyDown={e => e.key === 'Enter' && (isDailyLoggable ? logDailyMetric(metric.id) : logCustomValue(metric.id))}
                     placeholder={`0–${metric.maxVal}`}
-                    style={{ width: 80, background: 'transparent', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 6, padding: '5px 10px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }} />
-                  <button onClick={() => logCustomValue(metric.id)}
-                    style={{ padding: '5px 14px', background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)', color: '#fff', border: 'none', borderRadius: 6, fontFamily: 'Inter', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                    style={{ width: 80, background: 'rgba(5,8,20,0.7)', border: `2px solid ${color}50`, borderRadius: 6, padding: '5px 10px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }}
+                  />
+                  <button
+                    onClick={() => isDailyLoggable ? logDailyMetric(metric.id) : logCustomValue(metric.id)}
+                    style={{ padding: '5px 14px', background: `linear-gradient(135deg, ${color}, ${color}BB)`, color: '#fff', border: 'none', borderRadius: 6, fontFamily: 'Inter', fontSize: 11, fontWeight: 700, cursor: 'pointer', boxShadow: `0 0 12px ${color}50` }}
+                  >
                     Save
                   </button>
                 </div>
