@@ -215,8 +215,8 @@ export default function Body() {
   const [showCustomForm, setShowCustomForm] = useState(false)
   const [customLiftForm, setCustomLiftForm] = useState({ lift: '', weight: '', reps: '', feel: 3, date: todayStr })
 
-  // Quick manual meal log
-  const [quickLog, setQuickLog] = useState({ calories: '', protein: '', carbs: '', fats: '' })
+  // Daily totals log (end of day — sets, not adds)
+  const [quickLog, setQuickLog] = useState({ calories: '', protein: '' })
 
   // Nutrition settings
   const [showNutrSettings, setShowNutrSettings] = useState(false)
@@ -727,59 +727,54 @@ export default function Body() {
               color={TEAL}
             />
 
-            {/* Quick manual log */}
+            {/* End-of-day totals entry */}
             <div style={{ borderTop: '1px solid rgba(99,102,241,0.15)', paddingTop: 16, marginTop: 4 }}>
               <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 8, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.28em', marginBottom: 10 }}>
-                LOG MEAL
+                TODAY'S TOTALS
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, marginBottom: 10 }}>
-                {[
-                  { key: 'calories', label: 'KCAL',    color: VIOLET, placeholder: '600' },
-                  { key: 'protein',  label: 'PROTEIN g', color: TEAL,  placeholder: '40' },
-                  { key: 'carbs',    label: 'CARBS g',   color: GOLD,  placeholder: '70' },
-                  { key: 'fats',     label: 'FATS g',    color: PINK,  placeholder: '15' },
-                ].map(({ key, label, color, placeholder }) => (
-                  <div key={key}>
-                    <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 7, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 5 }}>{label}</div>
-                    <input
-                      type="number"
-                      value={quickLog[key]}
-                      onChange={e => setQuickLog(q => ({ ...q, [key]: e.target.value }))}
-                      placeholder={placeholder}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') {
-                          logMeal(quickLog.calories, quickLog.protein, quickLog.carbs, quickLog.fats)
-                          setQuickLog({ calories: '', protein: '', carbs: '', fats: '' })
-                        }
-                      }}
-                      style={{
-                        ...S.input,
-                        borderColor: quickLog[key] ? `${color}70` : 'rgba(99,102,241,0.25)',
-                        color: quickLog[key] ? color : TEXT1,
-                        fontWeight: 700,
-                        fontSize: 15,
-                        padding: '8px 10px',
-                      }}
-                    />
-                  </div>
-                ))}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                <div>
+                  <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 8, fontWeight: 700, color: VIOLET, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 6 }}>CALORIES (kcal)</div>
+                  <input
+                    type="number"
+                    value={quickLog.calories}
+                    onChange={e => setQuickLog(q => ({ ...q, calories: e.target.value }))}
+                    placeholder={String(Math.round(todayDiet.calories || 0)) || '2100'}
+                    style={{ ...S.input, borderColor: quickLog.calories ? 'rgba(167,139,250,0.7)' : 'rgba(99,102,241,0.25)', color: VIOLET, fontWeight: 700, fontSize: 18, padding: '10px 12px' }}
+                  />
+                </div>
+                <div>
+                  <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 8, fontWeight: 700, color: TEAL, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 6 }}>PROTEIN (g)</div>
+                  <input
+                    type="number"
+                    value={quickLog.protein}
+                    onChange={e => setQuickLog(q => ({ ...q, protein: e.target.value }))}
+                    placeholder={String(Math.round(todayDiet.protein || 0)) || '150'}
+                    style={{ ...S.input, borderColor: quickLog.protein ? `${TEAL}70` : 'rgba(99,102,241,0.25)', color: TEAL, fontWeight: 700, fontSize: 18, padding: '10px 12px' }}
+                  />
+                </div>
               </div>
               <button
                 onClick={() => {
-                  if (!quickLog.calories && !quickLog.protein) return
-                  logMeal(quickLog.calories || 0, quickLog.protein || 0, quickLog.carbs || 0, quickLog.fats || 0)
-                  setQuickLog({ calories: '', protein: '', carbs: '', fats: '' })
+                  const cals = parseFloat(quickLog.calories)
+                  const prot = parseFloat(quickLog.protein)
+                  if (isNaN(cals) && isNaN(prot)) return
+                  // Set (replace) today's entry
+                  const history = [...(diet.history || []).filter(h => h.date !== todayStr)]
+                  history.push({ date: todayStr, calories: isNaN(cals) ? 0 : cals, protein: isNaN(prot) ? 0 : prot, carbs: 0, fats: 0 })
+                  setDiet(d => ({ ...d, history: history.sort((a, b2) => a.date.localeCompare(b2.date)) }))
+                  setQuickLog({ calories: '', protein: '' })
                 }}
                 style={{
                   ...S.primaryBtn,
                   width: '100%',
                   background: 'linear-gradient(135deg, #a78bfa, #6366f1)',
                   boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
-                  padding: '11px 0',
+                  padding: '12px 0',
                   fontSize: 13,
                 }}
               >
-                + ADD MEAL
+                SAVE DAY'S TOTALS
               </button>
             </div>
           </div>
