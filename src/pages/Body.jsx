@@ -215,6 +215,9 @@ export default function Body() {
   const [showCustomForm, setShowCustomForm] = useState(false)
   const [customLiftForm, setCustomLiftForm] = useState({ lift: '', weight: '', reps: '', feel: 3, date: todayStr })
 
+  // Quick manual meal log
+  const [quickLog, setQuickLog] = useState({ calories: '', protein: '', carbs: '', fats: '' })
+
   // Nutrition settings
   const [showNutrSettings, setShowNutrSettings] = useState(false)
   const [nutrTargets, setNutrTargets] = useState({ calories: String(diet.targets?.calories || 2800), protein: String(diet.targets?.protein || 220) })
@@ -723,6 +726,62 @@ export default function Body() {
               unit="g"
               color={TEAL}
             />
+
+            {/* Quick manual log */}
+            <div style={{ borderTop: '1px solid rgba(99,102,241,0.15)', paddingTop: 16, marginTop: 4 }}>
+              <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 8, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.28em', marginBottom: 10 }}>
+                LOG MEAL
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, marginBottom: 10 }}>
+                {[
+                  { key: 'calories', label: 'KCAL',    color: VIOLET, placeholder: '600' },
+                  { key: 'protein',  label: 'PROTEIN g', color: TEAL,  placeholder: '40' },
+                  { key: 'carbs',    label: 'CARBS g',   color: GOLD,  placeholder: '70' },
+                  { key: 'fats',     label: 'FATS g',    color: PINK,  placeholder: '15' },
+                ].map(({ key, label, color, placeholder }) => (
+                  <div key={key}>
+                    <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 7, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 5 }}>{label}</div>
+                    <input
+                      type="number"
+                      value={quickLog[key]}
+                      onChange={e => setQuickLog(q => ({ ...q, [key]: e.target.value }))}
+                      placeholder={placeholder}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          logMeal(quickLog.calories, quickLog.protein, quickLog.carbs, quickLog.fats)
+                          setQuickLog({ calories: '', protein: '', carbs: '', fats: '' })
+                        }
+                      }}
+                      style={{
+                        ...S.input,
+                        borderColor: quickLog[key] ? `${color}70` : 'rgba(99,102,241,0.25)',
+                        color: quickLog[key] ? color : TEXT1,
+                        fontWeight: 700,
+                        fontSize: 15,
+                        padding: '8px 10px',
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => {
+                  if (!quickLog.calories && !quickLog.protein) return
+                  logMeal(quickLog.calories || 0, quickLog.protein || 0, quickLog.carbs || 0, quickLog.fats || 0)
+                  setQuickLog({ calories: '', protein: '', carbs: '', fats: '' })
+                }}
+                style={{
+                  ...S.primaryBtn,
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #a78bfa, #6366f1)',
+                  boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
+                  padding: '11px 0',
+                  fontSize: 13,
+                }}
+              >
+                + ADD MEAL
+              </button>
+            </div>
           </div>
 
           {/* Photo Meal Log card */}
