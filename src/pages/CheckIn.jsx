@@ -83,7 +83,8 @@ const DEFAULT_EVENING = [
   // Non-Negotiables
   { id: 'en7',  category: 'Non-Negotiables',    text: 'Did you complete all your non-negotiables today?',               type: T.BINARY,  required: true },
   { id: 'en7b', category: 'Non-Negotiables',    text: 'Which ones did you miss?',                                       type: T.MULTI,   options: ['No PMO','Cold Shower','Prayer','Training','Other'], showIf: a => a['en7'] === 'NO', required: false },
-  { id: 'en9',  category: 'Non-Negotiables',    text: 'Did you pray or have a moment of reflection?',                   type: T.BINARY,  required: true },
+  { id: 'en9',  category: 'Non-Negotiables',    text: 'Did you pray today?',                                            type: T.BINARY,  required: true },
+  { id: 'en9b', category: 'Non-Negotiables',    text: 'Did you read the Bible today?',                                  type: T.BINARY,  required: true },
   // Body & Nutrition
   { id: 'eb10', category: 'Body & Nutrition',   text: 'Did you train today?',                                           type: T.BINARY,  required: true },
   { id: 'eb11', category: 'Body & Nutrition',   text: 'How was the training session?',                                  type: T.SINGLE,  options: ['Exceptional','Good','Average','Below average','Just showed up'], showIf: a => a['eb10'] === 'YES', required: false },
@@ -224,6 +225,17 @@ function syncToSections(tab, answers, dateStr) {
     if (answers['em19'] != null) daily.logs[dateStr].stress       = answers['em19']
     if (answers['ed1']  != null) daily.logs[dateStr].dailyRating  = answers['ed1']
     if (answers['ek27'] != null) daily.logs[dateStr].reading      = answers['ek27'] === 'YES' ? 1 : 0
+    if (answers['en9']  != null) daily.logs[dateStr].prayed       = answers['en9']  === 'YES' ? 1 : 0
+    if (answers['en9b'] != null) daily.logs[dateStr].readBible    = answers['en9b'] === 'YES' ? 1 : 0
+    if (Array.isArray(answers['em21'])) {
+      daily.logs[dateStr].meditated  = answers['em21'].includes('Meditated') ? 1 : 0
+      daily.logs[dateStr].mentalRead = answers['em21'].includes('Read') ? 1 : 0
+    }
+    if (answers['ed3'] != null) {
+      const WORK_HOURS_MAP = { 'Less than 2': 1, '2–4': 3, '4–6': 5, '6–8': 7, '8–10': 9, 'More than 10': 11 }
+      const est = WORK_HOURS_MAP[answers['ed3']]
+      if (est != null) daily.logs[dateStr].bizHours = est
+    }
 
     if (answers['eb_calories'] != null || answers['eb_protein'] != null) {
       const dietRaw = localStorage.getItem('marko_diet')

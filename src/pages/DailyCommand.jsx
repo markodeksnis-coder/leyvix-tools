@@ -173,7 +173,9 @@ export default function DailyCommand({ onNavigate }) {
     )
   }, [checkInData])
 
-  // 30-day trend data for the metrics graph
+  // 30-day trend data for the metrics graph — wellbeing scores (0-10) + lifestyle metrics (normalized to 0-10)
+  const norm = (v, max) => v == null ? null : Math.min(10, +((v / max) * 10).toFixed(2))
+
   const trendData = useMemo(() => {
     const MOOD_NUM = { 'Excellent': 9, 'Good': 7, 'Neutral': 5, 'Fluctuated': 5, 'Low': 3, 'Very low': 1 }
     return Array.from({ length: 30 }, (_, i) => {
@@ -182,8 +184,20 @@ export default function DailyCommand({ onNavigate }) {
       const ma  = checkInData?.morning?.[ds]?.answers || {}
       const ea  = checkInData?.evening?.[ds]?.answers  || {}
       const log = (dailyData.logs || {})[ds] || {}
+      const diet = (dietData.history || []).find(h => h.date === ds)
       const label = `${dt.getMonth() + 1}/${dt.getDate()}`
       const hasData = Object.keys(ma).length > 0 || Object.keys(ea).length > 0
+
+      const calories = diet?.calories || null
+      const protein  = diet?.protein  || null
+      const steps     = log.steps != null ? +log.steps : null
+      let workoutHours = log.workoutHours != null ? +log.workoutHours : null
+      if (workoutHours == null) {
+        const trained = [...(bodyData?.liftSessions || []), ...(bodyData?.workouts || [])].some(w => w.date === ds)
+        workoutHours = trained ? 1 : null
+      }
+      const bizHours = log.bizHours != null ? +log.bizHours : null
+
       return {
         date: ds, label,
         energy:      ma['me6']  != null ? +ma['me6']  : null,
@@ -191,15 +205,38 @@ export default function DailyCommand({ onNavigate }) {
         dietQuality: ea['eb14'] != null ? +ea['eb14'] : null,
         stress:      ea['em19'] != null ? +ea['em19'] : null,
         mood:        ma['mm11'] != null ? (MOOD_NUM[ma['mm11']] ?? null) : null,
+        calories, caloriesNorm: norm(calories, 3000),
+        protein,  proteinNorm:  norm(protein, 200),
+        steps,    stepsNorm:    norm(steps, 15000),
+        workoutHours, workoutNorm: norm(workoutHours, 3),
+        bizHours, bizHoursNorm: norm(bizHours, 12),
         hasData,
       }
     })
-  }, [checkInData, dailyData])
+  }, [checkInData, dailyData, dietData, bodyData])
 
   const trimmedTrend = useMemo(() => {
     const first = trendData.findIndex(d => d.hasData)
     return first > 0 ? trendData.slice(Math.max(0, first - 1)) : trendData
   }, [trendData])
+
+  // Daily habit tracking — last 7 days
+  const habitHistory7 = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const ds  = daysAgo(6 - i)
+      const log = (dailyData.logs || {})[ds] || {}
+      return {
+        date: ds,
+        dow: ['S', 'M', 'T', 'W', 'T', 'F', 'S'][new Date(ds + 'T12:00:00').getDay()],
+        isToday: ds === todayStr,
+        read:      log.mentalRead === 1,
+        meditated: log.meditated  === 1,
+        prayed:    log.prayed     === 1,
+        bible:     log.readBible  === 1,
+        hasData: Object.keys(log).length > 0,
+      }
+    })
+  }, [dailyData, todayStr])
 
   const dayLabel = `DAY ${String(dayNum).padStart(3, '0')}`
 
@@ -532,17 +569,22 @@ export default function DailyCommand({ onNavigate }) {
             </div>
 
             {/* Legend — bigger and readable */}
-            <div style={{ display: 'flex', gap: 20, marginBottom: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: 16, marginBottom: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
               {[
                 { key: 'energy',      label: 'Energy',      color: GOLD   },
                 { key: 'dayRating',   label: 'Day Rating',  color: VIOLET },
                 { key: 'dietQuality', label: 'Diet Quality',color: GREEN  },
                 { key: 'stress',      label: 'Stress',      color: RED    },
                 { key: 'mood',        label: 'Mood',        color: PINK   },
+                { key: 'caloriesNorm',label: 'Calories',    color: CYAN   },
+                { key: 'proteinNorm', label: 'Protein',     color: '#34d399' },
+                { key: 'stepsNorm',   label: 'Steps',       color: BLUE   },
+                { key: 'workoutNorm', label: 'Workout Hrs', color: '#2dd4bf' },
+                { key: 'bizHoursNorm',label: 'Business Hrs',color: '#fb923c' },
               ].map(({ key, label, color }) => (
-                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                   <div style={{
-                    width: 28, height: 3, background: color, borderRadius: 2,
+                    width: 24, height: 3, background: color, borderRadius: 2,
                     boxShadow: `0 0 8px ${color}`,
                   }} />
                   <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#e2e8f0' }}>{label}</span>
@@ -551,7 +593,7 @@ export default function DailyCommand({ onNavigate }) {
             </div>
 
             {/* Chart */}
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={280}>
               <LineChart data={trimmedTrend} margin={{ top: 8, right: 12, left: -8, bottom: 4 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.1)" vertical={false} />
                 <XAxis
@@ -575,17 +617,90 @@ export default function DailyCommand({ onNavigate }) {
                     borderRadius: 12, fontFamily: 'Inter', fontSize: 12, color: TEXT1,
                     boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
                   }}
-                  formatter={(v, name) => [v != null ? `${v} / 10` : '—', name]}
+                  formatter={(v, name, props) => {
+                    const p = props.payload
+                    if (name === 'Calories')     return [p.calories     != null ? `${p.calories.toLocaleString()} kcal` : '—', name]
+                    if (name === 'Protein')      return [p.protein      != null ? `${p.protein} g`                      : '—', name]
+                    if (name === 'Steps')        return [p.steps        != null ? `${p.steps.toLocaleString()} steps`   : '—', name]
+                    if (name === 'Workout Hrs')  return [p.workoutHours != null ? `${p.workoutHours} hrs`               : '—', name]
+                    if (name === 'Business Hrs') return [p.bizHours     != null ? `${p.bizHours} hrs`                   : '—', name]
+                    return [v != null ? `${v} / 10` : '—', name]
+                  }}
                   labelStyle={{ color: GOLD, fontWeight: 700, fontSize: 11, marginBottom: 6 }}
                   itemStyle={{ padding: '2px 0', fontWeight: 600 }}
                 />
-                <Line type="monotone" dataKey="energy"      name="Energy"       stroke={GOLD}   strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: GOLD }}   activeDot={{ r: 6 }} connectNulls />
-                <Line type="monotone" dataKey="dayRating"   name="Day Rating"   stroke={VIOLET} strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: VIOLET }} activeDot={{ r: 6 }} connectNulls />
-                <Line type="monotone" dataKey="dietQuality" name="Diet Quality" stroke={GREEN}  strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: GREEN }}  activeDot={{ r: 6 }} connectNulls />
-                <Line type="monotone" dataKey="stress"      name="Stress"       stroke={RED}    strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: RED }}    activeDot={{ r: 6 }} connectNulls />
-                <Line type="monotone" dataKey="mood"        name="Mood"         stroke={PINK}   strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: PINK }}   activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="energy"       name="Energy"       stroke={GOLD}          strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: GOLD }}          activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="dayRating"    name="Day Rating"   stroke={VIOLET}        strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: VIOLET }}        activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="dietQuality"  name="Diet Quality" stroke={GREEN}         strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: GREEN }}         activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="stress"       name="Stress"       stroke={RED}           strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: RED }}           activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="mood"         name="Mood"         stroke={PINK}          strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: PINK }}          activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="caloriesNorm" name="Calories"     stroke={CYAN}          strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: CYAN }}          activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="proteinNorm"  name="Protein"      stroke="#34d399"       strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: '#34d399' }}    activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="stepsNorm"    name="Steps"        stroke={BLUE}          strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: BLUE }}          activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="workoutNorm"  name="Workout Hrs"  stroke="#2dd4bf"       strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: '#2dd4bf' }}     activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="bizHoursNorm" name="Business Hrs"stroke="#fb923c"        strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: '#fb923c' }}    activeDot={{ r: 6 }} connectNulls />
               </LineChart>
             </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* ── DAILY HABITS ── */}
+        {habitHistory7.some(d => d.hasData) && (
+          <div className="fade-up delay-2" style={{ ...GLASS, padding: '18px 20px' }}>
+            <div style={{ ...LABEL_STYLE, color: GREEN, textShadow: '0 0 12px rgba(16,185,129,0.4)', marginBottom: 14 }}>
+              Daily Habits — Last 7 Days
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[
+                { key: 'read',      label: 'Read',         color: CYAN   },
+                { key: 'meditated', label: 'Meditated',    color: VIOLET },
+                { key: 'prayed',    label: 'Prayed',       color: GOLD   },
+                { key: 'bible',     label: 'Read Bible',   color: PINK   },
+              ].map(({ key, label, color }) => (
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{
+                    fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#e2e8f0',
+                    minWidth: 100,
+                  }}>{label}</span>
+                  <div style={{ display: 'flex', gap: 7, flex: 1 }}>
+                    {habitHistory7.map((d, i) => (
+                      <div key={i} style={{
+                        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+                      }}>
+                        <div style={{
+                          width: '100%', aspectRatio: '1', borderRadius: 7,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: !d.hasData
+                            ? 'rgba(20,28,52,0.5)'
+                            : d[key] ? `${color}22` : 'rgba(255,85,85,0.08)',
+                          border: d.isToday
+                            ? `2px solid ${color}aa`
+                            : `1px solid ${!d.hasData ? 'rgba(30,41,80,0.5)' : d[key] ? color + '66' : 'rgba(255,85,85,0.3)'}`,
+                        }}>
+                          {d.hasData && (
+                            <span style={{ fontSize: 12, color: d[key] ? color : '#ff7777', fontWeight: 900 }}>
+                              {d[key] ? '✓' : '✗'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 2 }}>
+                <span style={{ minWidth: 100 }} />
+                <div style={{ display: 'flex', gap: 7, flex: 1 }}>
+                  {habitHistory7.map((d, i) => (
+                    <span key={i} style={{
+                      flex: 1, textAlign: 'center', fontFamily: 'Inter', fontSize: 9,
+                      fontWeight: d.isToday ? 700 : 400,
+                      color: d.isToday ? GOLD : '#64748b',
+                    }}>{d.dow}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
