@@ -65,7 +65,6 @@ const DEFAULT_MORNING = [
   // Business
   { id: 'mb21', category: 'Business',       text: 'Do you have any sales calls today?',                               type: T.BINARY,  required: true },
   { id: 'mb21b',category: 'Business',       text: 'How many sales calls?',                                            type: T.NUMERIC, min: 0, max: 20, step: 1, showIf: a => a['mb21'] === 'YES', required: false },
-  { id: 'mb22', category: 'Business',       text: 'What is your outreach goal for today?',                            type: T.SINGLE,  options: ['0','5–10','10–20','20–50','50+'], required: true },
   { id: 'mb23', category: 'Business',       text: 'How confident do you feel about today\'s business execution?',     type: T.SLIDER,  required: true },
   // Mindset
   { id: 'mk24', category: 'Mindset',        text: 'Pick the statement that best describes how you feel entering today.', type: T.SINGLE, options: ['I am ready to attack the day','I will do what needs to be done','I am showing up regardless of how I feel','Today is going to be a challenge','I am not feeling it today'], required: true },
@@ -84,7 +83,6 @@ const DEFAULT_EVENING = [
   // Non-Negotiables
   { id: 'en7',  category: 'Non-Negotiables',    text: 'Did you complete all your non-negotiables today?',               type: T.BINARY,  required: true },
   { id: 'en7b', category: 'Non-Negotiables',    text: 'Which ones did you miss?',                                       type: T.MULTI,   options: ['No PMO','Cold Shower','Prayer','Training','Other'], showIf: a => a['en7'] === 'NO', required: false },
-  { id: 'en8',  category: 'Non-Negotiables',    text: 'Did you take a cold shower?',                                    type: T.BINARY,  required: true },
   { id: 'en9',  category: 'Non-Negotiables',    text: 'Did you pray or have a moment of reflection?',                   type: T.BINARY,  required: true },
   // Body & Nutrition
   { id: 'eb10', category: 'Body & Nutrition',   text: 'Did you train today?',                                           type: T.BINARY,  required: true },
@@ -95,6 +93,8 @@ const DEFAULT_EVENING = [
   { id: 'eb15', category: 'Body & Nutrition',   text: 'Did you eat any junk food or binge?',                            type: T.BINARY,  required: true },
   { id: 'eb15b',category: 'Body & Nutrition',   text: 'How bad was it?',                                                type: T.SINGLE,  options: ['Small slip','Moderate','Full binge'], showIf: a => a['eb15'] === 'YES', required: false },
   { id: 'eb16', category: 'Body & Nutrition',   text: 'How many steps did you take today?',                             type: T.NUMERIC, min: 0, max: 30000, step: 500, required: true },
+  { id: 'eb_calories', category: 'Body & Nutrition', text: 'How many calories did you eat today?',                       type: T.NUMERIC, min: 0, max: 5000, step: 50, required: false },
+  { id: 'eb_protein',  category: 'Body & Nutrition', text: 'How many grams of protein did you eat today?',               type: T.NUMERIC, min: 0, max: 400, step: 5,  required: false },
   { id: 'eb17', category: 'Body & Nutrition',   text: 'How is your energy level ending the day?',                       type: T.SLIDER,  required: true },
   // Mind & Mood
   { id: 'em18', category: 'Mind & Mood',        text: 'How was your mood throughout the day?',                          type: T.SINGLE,  options: ['Excellent','Good','Neutral','Fluctuated','Low','Very low'], required: true },
@@ -223,8 +223,16 @@ function syncToSections(tab, answers, dateStr) {
     if (answers['eb14'] != null) daily.logs[dateStr].dietQuality  = answers['eb14']
     if (answers['em19'] != null) daily.logs[dateStr].stress       = answers['em19']
     if (answers['ed1']  != null) daily.logs[dateStr].dailyRating  = answers['ed1']
-    if (answers['en8']  != null) daily.logs[dateStr].coldShower   = answers['en8'] === 'YES' ? 1 : 0
     if (answers['ek27'] != null) daily.logs[dateStr].reading      = answers['ek27'] === 'YES' ? 1 : 0
+
+    if (answers['eb_calories'] != null || answers['eb_protein'] != null) {
+      const dietRaw = localStorage.getItem('marko_diet')
+      const diet = dietRaw ? JSON.parse(dietRaw) : { targets: {}, history: [] }
+      const history = [...(diet.history || []).filter(h => h.date !== dateStr)]
+      history.push({ date: dateStr, calories: answers['eb_calories'] || 0, protein: answers['eb_protein'] || 0, carbs: 0, fats: 0 })
+      diet.history = history.sort((a, b) => a.date.localeCompare(b.date))
+      localStorage.setItem('marko_diet', JSON.stringify(diet))
+    }
 
     if (answers['eb10'] === 'YES') {
       const bodyRaw  = localStorage.getItem('marko_body')

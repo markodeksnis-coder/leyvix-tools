@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today, daysSinceStart, daysAgo } from '../utils'
 import { getWinDaySettings, calcDayScore, getWinHistory, computeCurrentWinStreak } from '../utils/winLoss'
@@ -126,6 +127,74 @@ export default function DailyCommand({ onNavigate }) {
       days: Math.max(vals.sleep.length, vals.calories.length, vals.steps.length),
     }
   }, [checkInData, dietData, dailyData])
+
+  // All-time check-in averages for every key slider metric
+  const checkinAvg = useMemo(() => {
+    const MOOD_NUM = { 'Excellent': 9, 'Good': 7, 'Neutral': 5, 'Fluctuated': 5, 'Low': 3, 'Very low': 1 }
+    const slots = {
+      energy:      { vals: [], label: 'Energy',      color: GOLD,   src: 'm', id: 'me6'  },
+      sleepQual:   { vals: [], label: 'Sleep Qual',  color: VIOLET, src: 'm', id: 'ms2'  },
+      clarity:     { vals: [], label: 'Clarity',     color: CYAN,   src: 'm', id: 'mm12' },
+      commitment:  { vals: [], label: 'Motivation',  color: GREEN,  src: 'm', id: 'mi18' },
+      mood:        { vals: [], label: 'Mood',        color: PINK,   src: 'm', id: 'mm11', convert: v => MOOD_NUM[v] ?? null },
+      stress:      { vals: [], label: 'Stress',      color: RED,    src: 'e', id: 'mm13' },
+      dayRating:   { vals: [], label: 'Day Rating',  color: GOLD,   src: 'e', id: 'ed1'  },
+      workFocus:   { vals: [], label: 'Work Focus',  color: BLUE,   src: 'e', id: 'ed4'  },
+      dietQuality: { vals: [], label: 'Diet Quality',color: GREEN,  src: 'e', id: 'eb14' },
+      evenStress:  { vals: [], label: 'Anxiety',     color: RED,    src: 'e', id: 'em19' },
+      control:     { vals: [], label: 'Control',     color: CYAN,   src: 'e', id: 'em20' },
+      pride:       { vals: [], label: 'Pride',       color: PINK,   src: 'e', id: 'er33' },
+    }
+    const mornings = checkInData?.morning || {}
+    const evenings  = checkInData?.evening  || {}
+    for (const ds of Object.keys(mornings)) {
+      const ans = mornings[ds]?.answers || {}
+      for (const cfg of Object.values(slots)) {
+        if (cfg.src !== 'm') continue
+        const raw = ans[cfg.id]
+        if (raw == null) continue
+        const v = cfg.convert ? cfg.convert(raw) : +raw
+        if (v != null && !isNaN(v)) cfg.vals.push(v)
+      }
+    }
+    for (const ds of Object.keys(evenings)) {
+      const ans = evenings[ds]?.answers || {}
+      for (const cfg of Object.values(slots)) {
+        if (cfg.src !== 'e') continue
+        const raw = ans[cfg.id]
+        if (raw == null) continue
+        const v = cfg.convert ? cfg.convert(raw) : +raw
+        if (v != null && !isNaN(v)) cfg.vals.push(v)
+      }
+    }
+    const avg = arr => arr.length ? +(arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : null
+    return Object.fromEntries(
+      Object.entries(slots).map(([k, v]) => [k, { ...v, avg: avg(v.vals), count: v.vals.length }])
+    )
+  }, [checkInData])
+
+  // 30-day trend data for the metrics graph
+  const trendData = useMemo(() => {
+    const MOOD_NUM = { 'Excellent': 9, 'Good': 7, 'Neutral': 5, 'Fluctuated': 5, 'Low': 3, 'Very low': 1 }
+    return Array.from({ length: 30 }, (_, i) => {
+      const ds  = daysAgo(29 - i)
+      const dt  = new Date(ds + 'T12:00:00')
+      const ma  = checkInData?.morning?.[ds]?.answers || {}
+      const ea  = checkInData?.evening?.[ds]?.answers  || {}
+      const log = (dailyData.logs || {})[ds] || {}
+      const label = `${dt.getMonth() + 1}/${dt.getDate()}`
+      const hasData = Object.keys(ma).length > 0 || Object.keys(ea).length > 0
+      return {
+        date: ds, label,
+        energy:      ma['me6']  != null ? +ma['me6']  : null,
+        dayRating:   ea['ed1']  != null ? +ea['ed1']  : null,
+        dietQuality: ea['eb14'] != null ? +ea['eb14'] : null,
+        stress:      ea['em19'] != null ? +ea['em19'] : null,
+        mood:        ma['mm11'] != null ? (MOOD_NUM[ma['mm11']] ?? null) : null,
+        hasData,
+      }
+    })
+  }, [checkInData, dailyData])
 
   const dayLabel = `DAY ${String(dayNum).padStart(3, '0')}`
 
@@ -412,6 +481,92 @@ export default function DailyCommand({ onNavigate }) {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* ── CHECK-IN AVERAGES ── */}
+        {Object.values(checkinAvg).some(v => v.avg !== null) && (
+          <div className="fade-up delay-2" style={{ ...GLASS, padding: '18px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <div style={{ ...LABEL_STYLE, color: PINK, textShadow: '0 0 12px rgba(232,121,249,0.4)' }}>All-Time Averages</div>
+              <span style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED }}>from all check-ins</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+              {Object.values(checkinAvg).filter(v => v.avg !== null).map(({ label, avg, color, count }) => (
+                <div key={label} style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  padding: '12px 6px 10px', borderRadius: 12, gap: 3,
+                  background: `${color}10`,
+                  border: `2px solid ${color}55`,
+                  position: 'relative', overflow: 'hidden',
+                }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
+                  <span style={{
+                    fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900,
+                    fontSize: 32, lineHeight: 1, color,
+                    textShadow: `0 0 18px ${color}`,
+                  }}>{avg}</span>
+                  <span style={{ fontFamily: 'Inter', fontSize: 8, color, fontWeight: 700, opacity: 0.7 }}>/10</span>
+                  <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 6, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>{label}</span>
+                  <span style={{ fontFamily: 'Inter', fontSize: 7, color: DARK }}>{count}d</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── METRICS TREND GRAPH ── */}
+        {trendData.some(d => d.hasData) && (
+          <div className="fade-up delay-2" style={{ ...GLASS, padding: '18px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <div style={{ ...LABEL_STYLE, color: CYAN, textShadow: '0 0 12px rgba(34,211,238,0.4)' }}>Metrics Trend — 30 Days</div>
+            </div>
+            <div style={{ display: 'flex', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
+              {[
+                { key: 'energy',      label: 'Energy',      color: GOLD   },
+                { key: 'dayRating',   label: 'Day Rating',  color: VIOLET },
+                { key: 'dietQuality', label: 'Diet',        color: GREEN  },
+                { key: 'stress',      label: 'Stress',      color: RED    },
+                { key: 'mood',        label: 'Mood',        color: PINK   },
+              ].map(({ key, label, color }) => (
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <div style={{ width: 20, height: 2, background: color, borderRadius: 1, boxShadow: `0 0 6px ${color}` }} />
+                  <span style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED }}>{label}</span>
+                </div>
+              ))}
+            </div>
+            <ResponsiveContainer width="100%" height={180}>
+              <LineChart data={trendData} margin={{ top: 4, right: 4, left: -30, bottom: 0 }}>
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontFamily: 'Inter', fontSize: 8, fill: MUTED }}
+                  tickLine={false}
+                  axisLine={false}
+                  interval={4}
+                />
+                <YAxis
+                  domain={[0, 10]}
+                  tick={{ fontFamily: 'Inter', fontSize: 8, fill: MUTED }}
+                  tickLine={false}
+                  axisLine={false}
+                  ticks={[0, 5, 10]}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: 'rgba(4,6,18,0.96)', border: '2px solid rgba(99,102,241,0.65)',
+                    borderRadius: 10, fontFamily: 'Inter', fontSize: 11, color: TEXT1,
+                  }}
+                  formatter={(v, name) => [v != null ? `${v}/10` : '—', name]}
+                  labelStyle={{ color: GOLD, fontWeight: 700, marginBottom: 4 }}
+                  itemStyle={{ padding: '1px 0' }}
+                />
+                <Line type="monotone" dataKey="energy"      name="Energy"     stroke={GOLD}   strokeWidth={2} dot={false} connectNulls />
+                <Line type="monotone" dataKey="dayRating"   name="Day Rating" stroke={VIOLET} strokeWidth={2} dot={false} connectNulls />
+                <Line type="monotone" dataKey="dietQuality" name="Diet"       stroke={GREEN}  strokeWidth={2} dot={false} connectNulls />
+                <Line type="monotone" dataKey="stress"      name="Stress"     stroke={RED}    strokeWidth={2} dot={false} connectNulls />
+                <Line type="monotone" dataKey="mood"        name="Mood"       stroke={PINK}   strokeWidth={2} dot={false} connectNulls />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         )}
 

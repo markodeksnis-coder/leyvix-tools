@@ -1,7 +1,7 @@
 // Win/Loss day calculation engine
 
 export const DEFAULT_WIN_SETTINGS = {
-  threshold: 80,
+  threshold: 65,
   metrics: {
     calories:  { enabled: true,  target: 2000 },
     protein:   { enabled: true,  target: 150  },
@@ -10,6 +10,8 @@ export const DEFAULT_WIN_SETTINGS = {
     workHours: { enabled: true,  target: 7   },
     nonNeg:    { enabled: true               },
     tasks:     { enabled: true               },
+    dailyRating: { enabled: true, threshold: 5 },
+    mood:        { enabled: true             },
   },
 }
 
@@ -22,13 +24,15 @@ export function getWinDaySettings() {
     return {
       threshold: p.threshold ?? d.threshold,
       metrics: {
-        calories:  { ...d.metrics.calories,  ...p.metrics?.calories  },
-        protein:   { ...d.metrics.protein,   ...p.metrics?.protein   },
-        steps:     { ...d.metrics.steps,     ...p.metrics?.steps     },
-        gym:       { ...d.metrics.gym,       ...p.metrics?.gym       },
-        workHours: { ...d.metrics.workHours, ...p.metrics?.workHours },
-        nonNeg:    { ...d.metrics.nonNeg,    ...p.metrics?.nonNeg    },
-        tasks:     { ...d.metrics.tasks,     ...p.metrics?.tasks     },
+        calories:    { ...d.metrics.calories,    ...p.metrics?.calories    },
+        protein:     { ...d.metrics.protein,     ...p.metrics?.protein     },
+        steps:       { ...d.metrics.steps,       ...p.metrics?.steps       },
+        gym:         { ...d.metrics.gym,         ...p.metrics?.gym         },
+        workHours:   { ...d.metrics.workHours,   ...p.metrics?.workHours   },
+        nonNeg:      { ...d.metrics.nonNeg,      ...p.metrics?.nonNeg      },
+        tasks:       { ...d.metrics.tasks,       ...p.metrics?.tasks       },
+        dailyRating: { ...d.metrics.dailyRating, ...p.metrics?.dailyRating },
+        mood:        { ...d.metrics.mood,        ...p.metrics?.mood        },
       },
     }
   } catch { return DEFAULT_WIN_SETTINGS }
@@ -90,6 +94,16 @@ export function calcDayScore(dateStr, settings, dailyData, bodyData, dietData) {
     if (taskItems.length > 0) {
       results.push({ key: 'tasks', label: 'Daily Tasks', pass: taskItems.filter(i => i.checked).length / taskItems.length >= 0.8 })
     }
+  }
+
+  if (s.metrics.dailyRating.enabled && log?.dailyRating != null) {
+    const threshold = s.metrics.dailyRating.threshold ?? 5
+    results.push({ key: 'dailyRating', label: 'Day Rating', pass: log.dailyRating >= threshold })
+  }
+
+  if (s.metrics.mood.enabled && log?.mood != null) {
+    const goodMoods = ['Excellent', 'Good', 'Neutral']
+    results.push({ key: 'mood', label: 'Mood', pass: goodMoods.includes(log.mood) })
   }
 
   const available = results.length
