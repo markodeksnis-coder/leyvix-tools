@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today, daysSinceStart, daysAgo } from '../utils'
 import { getWinDaySettings, calcDayScore, getWinHistory, computeCurrentWinStreak } from '../utils/winLoss'
@@ -21,8 +21,8 @@ const CAT_COLORS = { Body: '#2dd4bf', Business: BLUE, Mind: PINK, Daily: INDIGO,
 
 const LABEL_STYLE = {
   fontFamily: '"Orbitron", monospace',
-  fontSize: 8, fontWeight: 700,
-  color: MUTED, letterSpacing: '0.28em',
+  fontSize: 10, fontWeight: 700,
+  color: '#94a3b8', letterSpacing: '0.18em',
   textTransform: 'uppercase',
 }
 
@@ -137,7 +137,7 @@ export default function DailyCommand({ onNavigate }) {
       clarity:     { vals: [], label: 'Clarity',     color: CYAN,   src: 'm', id: 'mm12' },
       commitment:  { vals: [], label: 'Motivation',  color: GREEN,  src: 'm', id: 'mi18' },
       mood:        { vals: [], label: 'Mood',        color: PINK,   src: 'm', id: 'mm11', convert: v => MOOD_NUM[v] ?? null },
-      stress:      { vals: [], label: 'Stress',      color: RED,    src: 'e', id: 'mm13' },
+      stress:      { vals: [], label: 'Stress',      color: RED,    src: 'm', id: 'mm13' },
       dayRating:   { vals: [], label: 'Day Rating',  color: GOLD,   src: 'e', id: 'ed1'  },
       workFocus:   { vals: [], label: 'Work Focus',  color: BLUE,   src: 'e', id: 'ed4'  },
       dietQuality: { vals: [], label: 'Diet Quality',color: GREEN,  src: 'e', id: 'eb14' },
@@ -195,6 +195,11 @@ export default function DailyCommand({ onNavigate }) {
       }
     })
   }, [checkInData, dailyData])
+
+  const trimmedTrend = useMemo(() => {
+    const first = trendData.findIndex(d => d.hasData)
+    return first > 0 ? trendData.slice(Math.max(0, first - 1)) : trendData
+  }, [trendData])
 
   const dayLabel = `DAY ${String(dayNum).padStart(3, '0')}`
 
@@ -259,7 +264,7 @@ export default function DailyCommand({ onNavigate }) {
               textShadow: `0 0 30px ${scoreColor}88`,
             }}>{pct}%</span>
             <div style={{
-              fontFamily: '"Orbitron", monospace', fontSize: 6, fontWeight: 700,
+              fontFamily: '"Orbitron", monospace', fontSize: 9, fontWeight: 700,
               letterSpacing: '0.1em', color: scoreColor,
               textShadow: `0 0 10px ${scoreColor}66`,
             }}>
@@ -429,7 +434,7 @@ export default function DailyCommand({ onNavigate }) {
                   }}>
                     {value !== null ? value : '—'}
                   </span>
-                  <span style={{ fontFamily: 'Inter', fontSize: 9, color: value !== null ? color : MUTED, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em' }}>{label}</span>
+                  <span style={{ fontFamily: 'Inter', fontSize: 12, color: value !== null ? '#e2e8f0' : MUTED, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</span>
                   {/* bottom progress bar */}
                   <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 5, background: 'rgba(10,15,32,0.8)' }}>
                     <div style={{ height: '100%', width: `${value !== null ? (value/10)*100 : 0}%`, background: `linear-gradient(90deg, ${color}88, ${color})`, borderRadius: 2, boxShadow: `0 0 12px ${color}` }} />
@@ -476,8 +481,8 @@ export default function DailyCommand({ onNavigate }) {
                   }}>
                     {value !== null ? display(value) : '—'}
                   </span>
-                  <span style={{ fontFamily: 'Inter', fontSize: 10, color: value !== null ? color : MUTED, fontWeight: 700, opacity: 0.85 }}>{unit}</span>
-                  <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 7, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 2 }}>{label}</span>
+                  <span style={{ fontFamily: 'Inter', fontSize: 11, color: value !== null ? color : MUTED, fontWeight: 700 }}>{unit}</span>
+                  <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: value !== null ? '#e2e8f0' : MUTED, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
                 </div>
               ))}
             </div>
@@ -495,20 +500,20 @@ export default function DailyCommand({ onNavigate }) {
               {Object.values(checkinAvg).filter(v => v.avg !== null).map(({ label, avg, color, count }) => (
                 <div key={label} style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  padding: '12px 6px 10px', borderRadius: 12, gap: 3,
-                  background: `${color}10`,
+                  padding: '14px 8px 12px', borderRadius: 12, gap: 4,
+                  background: `${color}12`,
                   border: `2px solid ${color}55`,
                   position: 'relative', overflow: 'hidden',
                 }}>
                   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
                   <span style={{
                     fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900,
-                    fontSize: 32, lineHeight: 1, color,
-                    textShadow: `0 0 18px ${color}`,
+                    fontSize: 36, lineHeight: 1, color,
+                    textShadow: `0 0 20px ${color}`,
                   }}>{avg}</span>
-                  <span style={{ fontFamily: 'Inter', fontSize: 8, color, fontWeight: 700, opacity: 0.7 }}>/10</span>
-                  <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 6, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>{label}</span>
-                  <span style={{ fontFamily: 'Inter', fontSize: 7, color: DARK }}>{count}d</span>
+                  <span style={{ fontFamily: 'Inter', fontSize: 10, color, fontWeight: 700, opacity: 0.8 }}>/10</span>
+                  <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: '#e2e8f0', textAlign: 'center', lineHeight: 1.2 }}>{label}</span>
+                  <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#64748b', fontWeight: 500 }}>{count} days</span>
                 </div>
               ))}
             </div>
@@ -517,54 +522,68 @@ export default function DailyCommand({ onNavigate }) {
 
         {/* ── METRICS TREND GRAPH ── */}
         {trendData.some(d => d.hasData) && (
-          <div className="fade-up delay-2" style={{ ...GLASS, padding: '18px 20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <div style={{ ...LABEL_STYLE, color: CYAN, textShadow: '0 0 12px rgba(34,211,238,0.4)' }}>Metrics Trend — 30 Days</div>
+          <div className="fade-up delay-2" style={{ ...GLASS, padding: '22px 24px' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+              <div style={{ ...LABEL_STYLE, color: CYAN, textShadow: '0 0 12px rgba(34,211,238,0.4)' }}>Metrics Trend</div>
+              <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#64748b', fontWeight: 500 }}>
+                last {trimmedTrend.length} days
+              </span>
             </div>
-            <div style={{ display: 'flex', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
+
+            {/* Legend — bigger and readable */}
+            <div style={{ display: 'flex', gap: 20, marginBottom: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
               {[
                 { key: 'energy',      label: 'Energy',      color: GOLD   },
                 { key: 'dayRating',   label: 'Day Rating',  color: VIOLET },
-                { key: 'dietQuality', label: 'Diet',        color: GREEN  },
+                { key: 'dietQuality', label: 'Diet Quality',color: GREEN  },
                 { key: 'stress',      label: 'Stress',      color: RED    },
                 { key: 'mood',        label: 'Mood',        color: PINK   },
               ].map(({ key, label, color }) => (
-                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <div style={{ width: 20, height: 2, background: color, borderRadius: 1, boxShadow: `0 0 6px ${color}` }} />
-                  <span style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED }}>{label}</span>
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{
+                    width: 28, height: 3, background: color, borderRadius: 2,
+                    boxShadow: `0 0 8px ${color}`,
+                  }} />
+                  <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: '#e2e8f0' }}>{label}</span>
                 </div>
               ))}
             </div>
-            <ResponsiveContainer width="100%" height={180}>
-              <LineChart data={trendData} margin={{ top: 4, right: 4, left: -30, bottom: 0 }}>
+
+            {/* Chart */}
+            <ResponsiveContainer width="100%" height={240}>
+              <LineChart data={trimmedTrend} margin={{ top: 8, right: 12, left: -8, bottom: 4 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(99,102,241,0.1)" vertical={false} />
                 <XAxis
                   dataKey="label"
-                  tick={{ fontFamily: 'Inter', fontSize: 8, fill: MUTED }}
+                  tick={{ fontFamily: 'Inter', fontSize: 11, fill: '#94a3b8', fontWeight: 600 }}
                   tickLine={false}
-                  axisLine={false}
-                  interval={4}
+                  axisLine={{ stroke: 'rgba(99,102,241,0.2)' }}
+                  interval="preserveStartEnd"
                 />
                 <YAxis
                   domain={[0, 10]}
-                  tick={{ fontFamily: 'Inter', fontSize: 8, fill: MUTED }}
+                  tick={{ fontFamily: 'Inter', fontSize: 11, fill: '#94a3b8', fontWeight: 600 }}
                   tickLine={false}
                   axisLine={false}
-                  ticks={[0, 5, 10]}
+                  ticks={[0, 2, 4, 6, 8, 10]}
+                  width={28}
                 />
                 <Tooltip
                   contentStyle={{
-                    background: 'rgba(4,6,18,0.96)', border: '2px solid rgba(99,102,241,0.65)',
-                    borderRadius: 10, fontFamily: 'Inter', fontSize: 11, color: TEXT1,
+                    background: 'rgba(4,6,18,0.97)', border: '2px solid rgba(99,102,241,0.65)',
+                    borderRadius: 12, fontFamily: 'Inter', fontSize: 12, color: TEXT1,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
                   }}
-                  formatter={(v, name) => [v != null ? `${v}/10` : '—', name]}
-                  labelStyle={{ color: GOLD, fontWeight: 700, marginBottom: 4 }}
-                  itemStyle={{ padding: '1px 0' }}
+                  formatter={(v, name) => [v != null ? `${v} / 10` : '—', name]}
+                  labelStyle={{ color: GOLD, fontWeight: 700, fontSize: 11, marginBottom: 6 }}
+                  itemStyle={{ padding: '2px 0', fontWeight: 600 }}
                 />
-                <Line type="monotone" dataKey="energy"      name="Energy"     stroke={GOLD}   strokeWidth={2} dot={false} connectNulls />
-                <Line type="monotone" dataKey="dayRating"   name="Day Rating" stroke={VIOLET} strokeWidth={2} dot={false} connectNulls />
-                <Line type="monotone" dataKey="dietQuality" name="Diet"       stroke={GREEN}  strokeWidth={2} dot={false} connectNulls />
-                <Line type="monotone" dataKey="stress"      name="Stress"     stroke={RED}    strokeWidth={2} dot={false} connectNulls />
-                <Line type="monotone" dataKey="mood"        name="Mood"       stroke={PINK}   strokeWidth={2} dot={false} connectNulls />
+                <Line type="monotone" dataKey="energy"      name="Energy"       stroke={GOLD}   strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: GOLD }}   activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="dayRating"   name="Day Rating"   stroke={VIOLET} strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: VIOLET }} activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="dietQuality" name="Diet Quality" stroke={GREEN}  strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: GREEN }}  activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="stress"      name="Stress"       stroke={RED}    strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: RED }}    activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="mood"        name="Mood"         stroke={PINK}   strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: PINK }}   activeDot={{ r: 6 }} connectNulls />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -639,8 +658,8 @@ export default function DailyCommand({ onNavigate }) {
               textShadow: winStreak > 0 ? '0 0 36px rgba(240,192,64,0.7), 0 0 80px rgba(240,192,64,0.3)' : 'none',
             }}>{winStreak}</span>
             <span style={{
-              fontFamily: '"Orbitron", monospace', fontSize: 6, fontWeight: 700,
-              color: winStreak > 0 ? GOLD : DARK, letterSpacing: '0.15em', textAlign: 'center',
+              fontFamily: '"Orbitron", monospace', fontSize: 8, fontWeight: 700,
+              color: winStreak > 0 ? GOLD : DARK, letterSpacing: '0.1em', textAlign: 'center',
             }}>WIN STREAK</span>
           </div>
 

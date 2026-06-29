@@ -127,9 +127,9 @@ export default function Sidebar({ active, onSelect, onSettings }) {
                 }}
               />
               <span style={{
-                fontFamily: '"Orbitron", monospace', fontSize: 7, fontWeight: 700,
-                color: isActive ? color : 'rgba(148,163,184,0.65)',
-                textTransform: 'uppercase', letterSpacing: '0.09em', lineHeight: 1,
+                fontFamily: '"Orbitron", monospace', fontSize: 8, fontWeight: 700,
+                color: isActive ? color : 'rgba(148,163,184,0.8)',
+                textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1,
                 textShadow: isActive ? `0 0 10px ${color}` : 'none',
                 transition: 'all 0.22s',
               }}>{label}</span>
