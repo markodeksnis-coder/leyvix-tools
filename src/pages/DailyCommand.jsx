@@ -104,17 +104,16 @@ export default function DailyCommand({ onNavigate }) {
     stress: eveningAnswers['em19'] != null ? +eveningAnswers['em19'] : null,
   }), [checkInData]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 7-day real averages: sleep hrs, calories, protein, steps
+  // 7-day real averages: sleep hrs (ms1), calories, protein, steps
   const avg7 = useMemo(() => {
     const vals = { sleep: [], calories: [], protein: [], steps: [] }
     for (let i = 0; i < 7; i++) {
-      const ds = daysAgo(i)
-      const ma = checkInData?.morning?.[ds]?.answers || {}
-      if (ma['ms2'] != null) vals.sleep.push(+ma['ms2'])
+      const ds  = daysAgo(i)
+      const log = (dailyData.logs || {})[ds]
+      if (log?.sleepHours != null) vals.sleep.push(+log.sleepHours)
       const dh = (dietData.history || []).find(h => h.date === ds)
       if (dh?.calories) vals.calories.push(dh.calories)
       if (dh?.protein)  vals.protein.push(dh.protein)
-      const log = (dailyData.logs || {})[ds]
       if (log?.steps != null) vals.steps.push(+log.steps)
     }
     const avgF = arr => arr.length ? +(arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : null
@@ -126,7 +125,7 @@ export default function DailyCommand({ onNavigate }) {
       steps:    avgI(vals.steps),
       days: Math.max(vals.sleep.length, vals.calories.length, vals.steps.length),
     }
-  }, [checkInData, dietData, dailyData])
+  }, [dietData, dailyData])
 
   // All-time check-in averages for every key slider metric
   const checkinAvg = useMemo(() => {
@@ -143,7 +142,7 @@ export default function DailyCommand({ onNavigate }) {
       dietQuality: { vals: [], label: 'Diet Quality',color: GREEN,  src: 'e', id: 'eb14' },
       evenStress:  { vals: [], label: 'Anxiety',     color: RED,    src: 'e', id: 'em19' },
       control:     { vals: [], label: 'Control',     color: CYAN,   src: 'e', id: 'em20' },
-      pride:       { vals: [], label: 'Pride',       color: PINK,   src: 'e', id: 'er33' },
+      workHoursAvg:{ vals: [], label: 'Work Hours',  color: '#fb923c', src: 'e', id: 'ed3' },
     }
     const mornings = checkInData?.morning || {}
     const evenings  = checkInData?.evening  || {}
@@ -196,7 +195,8 @@ export default function DailyCommand({ onNavigate }) {
         const trained = [...(bodyData?.liftSessions || []), ...(bodyData?.workouts || [])].some(w => w.date === ds)
         workoutHours = trained ? 1 : null
       }
-      const bizHours = log.bizHours != null ? +log.bizHours : null
+      const bizHours   = log.bizHours    != null ? +log.bizHours    : null
+      const sleepHours = log.sleepHours  != null ? +log.sleepHours  : null
 
       return {
         date: ds, label,
@@ -210,6 +210,7 @@ export default function DailyCommand({ onNavigate }) {
         steps,    stepsNorm:    norm(steps, 15000),
         workoutHours, workoutNorm: norm(workoutHours, 3),
         bizHours, bizHoursNorm: norm(bizHours, 12),
+        sleepHours, sleepNorm: norm(sleepHours, 10),
         hasData,
       }
     })
@@ -343,27 +344,32 @@ export default function DailyCommand({ onNavigate }) {
             </div>
 
             {morningDone ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-                {energy !== null && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontFamily: 'Inter', fontSize: 11, color: MUTED }}>Energy</span>
-                    <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 24, color: GOLD, textShadow: '0 0 14px rgba(240,192,64,0.5)' }}>
-                      {energy}<span style={{ fontSize: 11, color: DARK }}>  /10</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                {[
+                  { label: 'Energy',   value: morningAnswers['me6']  != null ? `${morningAnswers['me6']}/10` : null,  color: GOLD   },
+                  { label: 'Sleep',    value: morningAnswers['ms1']  != null ? `${morningAnswers['ms1']} hrs` : null, color: VIOLET },
+                  { label: 'Mood',     value: morningAnswers['mm11'] || null,                                         color: PINK   },
+                  { label: 'Stress',   value: morningAnswers['mm13'] != null ? `${morningAnswers['mm13']}/10` : null, color: RED    },
+                  { label: 'Clarity',  value: morningAnswers['mm12'] != null ? `${morningAnswers['mm12']}/10` : null, color: CYAN   },
+                  { label: 'Commit',   value: morningAnswers['mi18'] != null ? `${morningAnswers['mi18']}/10` : null, color: GREEN  },
+                ].filter(r => r.value !== null).map(({ label, value, color }) => (
+                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'Inter', fontSize: 11, color: MUTED, fontWeight: 600 }}>{label}</span>
+                    <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 18, color, textShadow: `0 0 10px ${color}88` }}>
+                      {value}
                     </span>
                   </div>
-                )}
+                ))}
                 {word && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontFamily: 'Inter', fontSize: 11, color: MUTED }}>Word</span>
-                    <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 9, fontWeight: 700, color: CYAN, textShadow: '0 0 12px rgba(34,211,238,0.5)', letterSpacing: '0.1em' }}>
-                      {word.toUpperCase()}
-                    </span>
+                  <div style={{ marginTop: 4, paddingTop: 8, borderTop: '1px solid rgba(99,102,241,0.12)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'Inter', fontSize: 10, color: MUTED }}>Word</span>
+                    <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 9, fontWeight: 700, color: CYAN, letterSpacing: '0.1em' }}>{word.toUpperCase()}</span>
                   </div>
                 )}
                 {mit && (
-                  <div style={{ marginTop: 6, paddingTop: 10, borderTop: '1px solid rgba(99,102,241,0.1)' }}>
-                    <div style={{ ...LABEL_STYLE, fontSize: 7, marginBottom: 6 }}>TODAY'S MIT</div>
-                    <div style={{ fontFamily: 'Inter', fontSize: 12, color: TEXT1, fontStyle: 'italic', lineHeight: 1.55 }}>"{mit}"</div>
+                  <div style={{ paddingTop: 6, borderTop: '1px solid rgba(99,102,241,0.1)' }}>
+                    <div style={{ fontFamily: 'Inter', fontSize: 10, color: MUTED, fontWeight: 600, marginBottom: 3 }}>MIT</div>
+                    <div style={{ fontFamily: 'Inter', fontSize: 11, color: TEXT1, lineHeight: 1.5 }}>{mit}</div>
                   </div>
                 )}
               </div>
@@ -411,15 +417,24 @@ export default function DailyCommand({ onNavigate }) {
             </div>
 
             {eveningDone ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-                {overall !== null && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontFamily: 'Inter', fontSize: 11, color: MUTED }}>Overall</span>
-                    <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 24, color: VIOLET, textShadow: '0 0 14px rgba(167,139,250,0.5)' }}>
-                      {overall}<span style={{ fontSize: 11, color: DARK }}>/10</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                {[
+                  { label: 'Overall',    value: eveningAnswers['ed1']  != null ? `${eveningAnswers['ed1']}/10`  : null, color: GOLD   },
+                  { label: 'Work Hrs',   value: eveningAnswers['ed3']  != null ? `${eveningAnswers['ed3']} hrs` : null, color: '#fb923c' },
+                  { label: 'Focus',      value: eveningAnswers['ed4']  != null ? `${eveningAnswers['ed4']}/10`  : null, color: BLUE   },
+                  { label: 'Diet',       value: eveningAnswers['eb14'] != null ? `${eveningAnswers['eb14']}/10` : null, color: GREEN  },
+                  { label: 'Stress',     value: eveningAnswers['em19'] != null ? `${eveningAnswers['em19']}/10` : null, color: RED    },
+                  { label: 'Control',    value: eveningAnswers['em20'] != null ? `${eveningAnswers['em20']}/10` : null, color: CYAN   },
+                  { label: 'Biz Exec',   value: eveningAnswers['eb25'] != null ? `${eveningAnswers['eb25']}/10` : null, color: VIOLET },
+                  { label: 'Steps',      value: eveningAnswers['eb16'] != null ? eveningAnswers['eb16'].toLocaleString() : null, color: '#34d399' },
+                ].filter(r => r.value !== null).map(({ label, value, color }) => (
+                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'Inter', fontSize: 11, color: MUTED, fontWeight: 600 }}>{label}</span>
+                    <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 18, color, textShadow: `0 0 10px ${color}88` }}>
+                      {value}
                     </span>
                   </div>
-                )}
+                ))}
               </div>
             ) : (
               <button
@@ -581,6 +596,7 @@ export default function DailyCommand({ onNavigate }) {
                 { key: 'stepsNorm',   label: 'Steps',       color: BLUE   },
                 { key: 'workoutNorm', label: 'Workout Hrs', color: '#2dd4bf' },
                 { key: 'bizHoursNorm',label: 'Business Hrs',color: '#fb923c' },
+                { key: 'sleepNorm',   label: 'Sleep Hrs',   color: '#c084fc' },
               ].map(({ key, label, color }) => (
                 <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                   <div style={{
@@ -624,6 +640,7 @@ export default function DailyCommand({ onNavigate }) {
                     if (name === 'Steps')        return [p.steps        != null ? `${p.steps.toLocaleString()} steps`   : '—', name]
                     if (name === 'Workout Hrs')  return [p.workoutHours != null ? `${p.workoutHours} hrs`               : '—', name]
                     if (name === 'Business Hrs') return [p.bizHours     != null ? `${p.bizHours} hrs`                   : '—', name]
+                    if (name === 'Sleep Hrs')    return [p.sleepHours   != null ? `${p.sleepHours} hrs`                 : '—', name]
                     return [v != null ? `${v} / 10` : '—', name]
                   }}
                   labelStyle={{ color: GOLD, fontWeight: 700, fontSize: 11, marginBottom: 6 }}
@@ -638,7 +655,8 @@ export default function DailyCommand({ onNavigate }) {
                 <Line type="monotone" dataKey="proteinNorm"  name="Protein"      stroke="#34d399"       strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: '#34d399' }}    activeDot={{ r: 6 }} connectNulls />
                 <Line type="monotone" dataKey="stepsNorm"    name="Steps"        stroke={BLUE}          strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: BLUE }}          activeDot={{ r: 6 }} connectNulls />
                 <Line type="monotone" dataKey="workoutNorm"  name="Workout Hrs"  stroke="#2dd4bf"       strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: '#2dd4bf' }}     activeDot={{ r: 6 }} connectNulls />
-                <Line type="monotone" dataKey="bizHoursNorm" name="Business Hrs"stroke="#fb923c"        strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: '#fb923c' }}    activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="bizHoursNorm" name="Business Hrs" stroke="#fb923c"       strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: '#fb923c' }}    activeDot={{ r: 6 }} connectNulls />
+                <Line type="monotone" dataKey="sleepNorm"    name="Sleep Hrs"   stroke="#c084fc"       strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: '#c084fc' }}    activeDot={{ r: 6 }} connectNulls />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -672,13 +690,18 @@ export default function DailyCommand({ onNavigate }) {
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           background: !d.hasData
                             ? 'rgba(20,28,52,0.5)'
-                            : d[key] ? `${color}22` : 'rgba(255,85,85,0.08)',
+                            : d[key] ? 'rgba(0,255,100,0.12)' : 'rgba(255,0,60,0.14)',
                           border: d.isToday
-                            ? `2px solid ${color}aa`
-                            : `1px solid ${!d.hasData ? 'rgba(30,41,80,0.5)' : d[key] ? color + '66' : 'rgba(255,85,85,0.3)'}`,
+                            ? `2px solid ${color}cc`
+                            : `1px solid ${!d.hasData ? 'rgba(30,41,80,0.5)' : d[key] ? 'rgba(0,255,100,0.5)' : 'rgba(255,0,60,0.45)'}`,
+                          boxShadow: d.hasData ? (d[key] ? '0 0 10px rgba(0,255,100,0.2)' : '0 0 10px rgba(255,0,60,0.2)') : 'none',
                         }}>
                           {d.hasData && (
-                            <span style={{ fontSize: 12, color: d[key] ? color : '#ff7777', fontWeight: 900 }}>
+                            <span style={{
+                              fontSize: 13, fontWeight: 900,
+                              color: d[key] ? '#00ff64' : '#ff003c',
+                              textShadow: d[key] ? '0 0 12px #00ff64' : '0 0 12px #ff003c',
+                            }}>
                               {d[key] ? '✓' : '✗'}
                             </span>
                           )}
@@ -823,38 +846,6 @@ export default function DailyCommand({ onNavigate }) {
           </div>
         </div>
 
-        {/* ── TODAY'S FOCUS ── */}
-        {(mit || word) && (
-          <div className="fade-up delay-4" style={{
-            ...GLASS,
-            border: '2px solid rgba(240,192,64,0.6)',
-            borderLeft: `5px solid ${GOLD}`,
-            borderRadius: '0 16px 16px 0',
-            padding: '16px 18px',
-            boxShadow: '0 0 60px rgba(240,192,64,0.15), inset 0 0 30px rgba(240,192,64,0.04)',
-          }}>
-            <div style={{ ...LABEL_STYLE, color: GOLD, marginBottom: 12, textShadow: '0 0 12px rgba(240,192,64,0.4)' }}>
-              Today's Focus
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {word && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <span style={{ fontFamily: 'Inter', fontSize: 9, color: DARK, minWidth: 40, letterSpacing: '0.1em', textTransform: 'uppercase' }}>WORD</span>
-                  <span style={{ fontFamily: '"Orbitron", monospace', fontWeight: 900, fontSize: 18, color: CYAN, letterSpacing: '0.08em', textShadow: '0 0 18px rgba(34,211,238,0.55)' }}>
-                    {word.toUpperCase()}
-                  </span>
-                </div>
-              )}
-              {mit && (
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
-                  <span style={{ fontFamily: 'Inter', fontSize: 9, color: DARK, minWidth: 40, marginTop: 2, letterSpacing: '0.1em', textTransform: 'uppercase' }}>MIT</span>
-                  <span style={{ fontFamily: 'Inter', fontSize: 13, color: TEXT1, lineHeight: 1.6, fontWeight: 500 }}>{mit}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* ── ACTIVE GOALS ── */}
         {goals.length > 0 && (
           <div className="fade-up delay-5" style={{ ...GLASS, padding: '16px 18px' }}>
@@ -896,42 +887,7 @@ export default function DailyCommand({ onNavigate }) {
           </div>
         )}
 
-        {/* ── LATEST JOURNAL ── */}
-        {latestJournal && (
-          <div className="fade-up delay-6" style={{
-            ...GLASS,
-            border: `2px solid ${latestJournal.isWin ? 'rgba(240,192,64,0.62)' : 'rgba(255,85,85,0.55)'}`,
-            borderLeft: `5px solid ${latestJournal.isWin ? GOLD : RED}`,
-            borderRadius: '0 16px 16px 0',
-            padding: '16px 18px',
-            boxShadow: `0 0 50px ${latestJournal.isWin ? 'rgba(240,192,64,0.12)' : 'rgba(255,85,85,0.1)'}`,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ ...LABEL_STYLE }}>Latest Journal</div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <span style={{ fontFamily: 'Inter', fontSize: 9, color: DARK }}>{latestJournal.date}</span>
-                <span style={{
-                  padding: '3px 9px', borderRadius: 5,
-                  background: latestJournal.isWin ? 'rgba(240,192,64,0.14)' : 'rgba(255,85,85,0.12)',
-                  border: `1px solid ${latestJournal.isWin ? 'rgba(240,192,64,0.4)' : 'rgba(255,85,85,0.35)'}`,
-                  fontFamily: '"Orbitron", monospace', fontSize: 7, fontWeight: 700,
-                  color: latestJournal.isWin ? GOLD : RED,
-                  letterSpacing: '0.05em',
-                }}>{latestJournal.isWin ? 'WIN' : 'LOSS'}</span>
-              </div>
-            </div>
-            <p style={{ fontFamily: 'Inter', fontSize: 12, color: TEXT2, lineHeight: 1.7, margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-              {latestJournal.aiReflection || latestJournal.manualNote || '—'}
-            </p>
-            <button
-              onClick={() => onNavigate?.('journal')}
-              style={{ marginTop: 10, background: 'none', border: 'none', color: MUTED, fontSize: 10, fontFamily: 'Inter', cursor: 'pointer', padding: 0, transition: 'color 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.color = INDIGO }}
-              onMouseLeave={e => { e.currentTarget.style.color = MUTED }}
-            >
-              View all entries →
-            </button>
-          </div>
+        {false && null /* Latest Journal removed */}
         )}
 
         {/* ── EMPTY STATE ── */}

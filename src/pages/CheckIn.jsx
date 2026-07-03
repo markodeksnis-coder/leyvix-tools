@@ -41,7 +41,6 @@ const DEFAULT_MORNING = [
   { id: 'ms1',  category: 'Sleep',          text: 'How many hours did you sleep?',                                    type: T.NUMERIC, min: 4,  max: 12,    step: 0.5, required: true },
   { id: 'ms2',  category: 'Sleep',          text: 'How would you rate your sleep quality?',                           type: T.SLIDER,  required: true },
   { id: 'ms3',  category: 'Sleep',          text: 'What time did you wake up?',                                       type: T.SINGLE,  options: ['Before 6am','6am','6:30am','7am','7:30am','8am','After 8am'], required: true },
-  { id: 'ms4',  category: 'Sleep',          text: 'Did you wake up before your alarm or after?',                      type: T.SINGLE,  options: ['Before','With alarm','After','No alarm'], required: true },
   { id: 'ms5',  category: 'Sleep',          text: 'How rested do you feel right now?',                                type: T.SLIDER,  required: true },
   // Body & Energy
   { id: 'me6',  category: 'Body & Energy',  text: 'How is your energy level right now?',                              type: T.SLIDER,  required: true },
@@ -54,14 +53,11 @@ const DEFAULT_MORNING = [
   { id: 'mm12', category: 'Mind & Mood',    text: 'How clear does your mind feel?',                                   type: T.SLIDER,  required: true },
   { id: 'mm13', category: 'Mind & Mood',    text: 'What is your stress level?',                                       type: T.SLIDER,  required: true },
   { id: 'mm14', category: 'Mind & Mood',    text: 'Do you feel motivated today?',                                     type: T.SINGLE,  options: ['Very motivated','Motivated','Neutral','Unmotivated','Fighting it'], required: true },
-  { id: 'mm15', category: 'Mind & Mood',    text: 'Did you have any notable dreams?',                                 type: T.BINARY,  required: true },
-  { id: 'mm15b',category: 'Mind & Mood',    text: 'Describe your dream briefly.',                                     type: T.TEXT,    showIf: a => a['mm15'] === 'YES', required: false },
   // Intentions
   { id: 'mi16', category: 'Intentions',     text: 'What is your single most important task today?',                   type: T.TEXT,    required: true },
   { id: 'mi17', category: 'Intentions',     text: 'What is your one word intention for today?',                       type: T.TEXT,    placeholder: 'Focus, Execute, Discipline, Recover...', required: true },
   { id: 'mi18', category: 'Intentions',     text: 'How committed are you to having a great day?',                     type: T.SLIDER,  required: true },
   { id: 'mi19', category: 'Intentions',     text: 'Is there anything that could get in the way of your day?',         type: T.SINGLE,  options: ['Nothing','Low energy','Distractions','External obligations','Uncertainty','Other'], required: true },
-  { id: 'mi20', category: 'Intentions',     text: 'What are you grateful for this morning?',                          type: T.TEXT,    required: false },
   // Business
   { id: 'mb21', category: 'Business',       text: 'Do you have any sales calls today?',                               type: T.BINARY,  required: true },
   { id: 'mb21b',category: 'Business',       text: 'How many sales calls?',                                            type: T.NUMERIC, min: 0, max: 20, step: 1, showIf: a => a['mb21'] === 'YES', required: false },
@@ -76,20 +72,22 @@ const DEFAULT_EVENING = [
   { id: 'ed1',  category: 'Daily Execution',    text: 'How would you rate today overall?',                              type: T.SLIDER,  required: true },
   { id: 'ed2',  category: 'Daily Execution',    text: 'Did you complete your most important task from this morning?',   type: T.BINARY,  required: true },
   { id: 'ed2b', category: 'Daily Execution',    text: "Why wasn't it completed?",                                       type: T.SINGLE,  options: ['Ran out of time','Got distracted','It wasn\'t clear enough','Something came up','I avoided it'], showIf: a => a['ed2'] === 'NO', required: false },
-  { id: 'ed3',  category: 'Daily Execution',    text: 'How many hours did you actually work today?',                    type: T.SINGLE,  options: ['Less than 2','2–4','4–6','6–8','8–10','More than 10'], required: true },
+  { id: 'ed3',  category: 'Daily Execution',    text: 'How many hours did you work today?',                             type: T.NUMERIC, min: 0, max: 16, step: 0.5, required: true },
   { id: 'ed4',  category: 'Daily Execution',    text: 'How focused were you during work?',                              type: T.SLIDER,  required: true },
   { id: 'ed5',  category: 'Daily Execution',    text: 'Did you do deep focused work or mostly reactive tasks?',         type: T.SINGLE,  options: ['Mostly deep work','Mix of both','Mostly reactive','Barely worked'], required: true },
   { id: 'ed6',  category: 'Daily Execution',    text: 'What percentage of your to-do list did you complete?',           type: T.SINGLE,  options: ['0–25%','25–50%','50–75%','75–100%','100%'], required: true },
+  // Sleep (tracked in evening for next morning)
+  { id: 'es_bedtime', category: 'Sleep',        text: 'What time are you going to sleep tonight?',                      type: T.SINGLE,  options: ['Before 9pm','9pm','10pm','10:30pm','11pm','11:30pm','12am','After 12am'], required: false },
   // Non-Negotiables
   { id: 'en7',  category: 'Non-Negotiables',    text: 'Did you complete all your non-negotiables today?',               type: T.BINARY,  required: true },
   { id: 'en7b', category: 'Non-Negotiables',    text: 'Which ones did you miss?',                                       type: T.MULTI,   options: ['No PMO','Cold Shower','Prayer','Training','Other'], showIf: a => a['en7'] === 'NO', required: false },
   { id: 'en9',  category: 'Non-Negotiables',    text: 'Did you pray today?',                                            type: T.BINARY,  required: true },
   { id: 'en9b', category: 'Non-Negotiables',    text: 'Did you read the Bible today?',                                  type: T.BINARY,  required: true },
+  { id: 'em_meditated', category: 'Non-Negotiables', text: 'Did you meditate today?',                                   type: T.BINARY,  required: true },
+  { id: 'em_read',      category: 'Non-Negotiables', text: 'Did you read today?',                                       type: T.BINARY,  required: true },
   // Body & Nutrition
   { id: 'eb10', category: 'Body & Nutrition',   text: 'Did you train today?',                                           type: T.BINARY,  required: true },
   { id: 'eb11', category: 'Body & Nutrition',   text: 'How was the training session?',                                  type: T.SINGLE,  options: ['Exceptional','Good','Average','Below average','Just showed up'], showIf: a => a['eb10'] === 'YES', required: false },
-  { id: 'eb12', category: 'Body & Nutrition',   text: 'Did you hit your calorie target today?',                         type: T.SINGLE,  options: ['Under by a lot','Slightly under','Hit it','Slightly over','Over by a lot'], required: true },
-  { id: 'eb13', category: 'Body & Nutrition',   text: 'Did you hit your protein target?',                               type: T.SINGLE,  options: ['Under by a lot','Slightly under','Hit it','Slightly over'], required: true },
   { id: 'eb14', category: 'Body & Nutrition',   text: 'How clean was your diet today?',                                 type: T.SLIDER,  required: true },
   { id: 'eb15', category: 'Body & Nutrition',   text: 'Did you eat any junk food or binge?',                            type: T.BINARY,  required: true },
   { id: 'eb15b',category: 'Body & Nutrition',   text: 'How bad was it?',                                                type: T.SINGLE,  options: ['Small slip','Moderate','Full binge'], showIf: a => a['eb15'] === 'YES', required: false },
@@ -101,22 +99,17 @@ const DEFAULT_EVENING = [
   { id: 'em18', category: 'Mind & Mood',        text: 'How was your mood throughout the day?',                          type: T.SINGLE,  options: ['Excellent','Good','Neutral','Fluctuated','Low','Very low'], required: true },
   { id: 'em19', category: 'Mind & Mood',        text: 'Did you experience any anxiety or stress today?',                type: T.SLIDER,  required: true },
   { id: 'em20', category: 'Mind & Mood',        text: 'How in control did you feel today?',                             type: T.SLIDER,  required: true },
-  { id: 'em21', category: 'Mind & Mood',        text: 'Did you do anything for your mental state today?',               type: T.MULTI,   options: ['Read','Meditated','Journaled','Walked','None','Other'], required: true },
   // Business
   { id: 'eb22', category: 'Business',           text: 'How many sales calls did you conduct today?',                    type: T.NUMERIC, min: 0, max: 20, step: 1, required: true },
   { id: 'eb23', category: 'Business',           text: 'How many appointments were booked today?',                       type: T.NUMERIC, min: 0, max: 20, step: 1, required: true },
   { id: 'eb24', category: 'Business',           text: 'Did you do outreach today?',                                     type: T.BINARY,  required: true },
   { id: 'eb24b',category: 'Business',           text: 'How heavy was your outreach?',                                   type: T.SINGLE,  options: ['Light','Moderate','Heavy'], showIf: a => a['eb24'] === 'YES', required: false },
   { id: 'eb25', category: 'Business',           text: 'How would you rate your business execution today?',               type: T.SLIDER,  required: true },
-  { id: 'eb26', category: 'Business',           text: 'What was your biggest business win today?',                      type: T.TEXT,    required: false },
   // Knowledge & Growth
   { id: 'ek27', category: 'Knowledge & Growth', text: 'Did you learn something today?',                                 type: T.BINARY,  required: true },
   { id: 'ek28', category: 'Knowledge & Growth', text: 'What did you learn from?',                                       type: T.SINGLE,  options: ['YouTube video','Book','Podcast','Mentor','Experience','Other'], showIf: a => a['ek27'] === 'YES', required: false },
   { id: 'ek29', category: 'Knowledge & Growth', text: 'Did you add anything to your Arsenal today?',                    type: T.BINARY,  required: true },
   // Reflection
-  { id: 'er30', category: 'Reflection',         text: 'What was the best moment of today?',                             type: T.TEXT,    required: false },
-  { id: 'er31', category: 'Reflection',         text: 'What would you do differently if you could repeat today?',       type: T.TEXT,    required: false },
-  { id: 'er32', category: 'Reflection',         text: 'What is one thing you want to carry into tomorrow?',             type: T.TEXT,    required: false },
   { id: 'er33', category: 'Reflection',         text: 'How proud are you of how you showed up today?',                  type: T.SLIDER,  required: true },
   { id: 'er34', category: 'Reflection',         text: 'Pick the statement that best describes today.',                  type: T.SINGLE,  options: ['I dominated today','I did what I had to do','I showed up but underperformed','I wasted today','Today was out of my control'], required: true },
 ]
@@ -212,6 +205,7 @@ function syncToSections(tab, answers, dateStr) {
   if (!daily.logs[dateStr]) daily.logs[dateStr] = {}
 
   if (tab === 'morning') {
+    if (answers['ms1']  != null) daily.logs[dateStr].sleepHours = +answers['ms1']
     if (answers['ms2']  != null) daily.logs[dateStr].sleep      = answers['ms2']
     if (answers['me6']  != null) daily.logs[dateStr].energy     = answers['me6']
     if (answers['mm11'] != null) daily.logs[dateStr].mood       = answers['mm11']
@@ -224,18 +218,13 @@ function syncToSections(tab, answers, dateStr) {
     if (answers['eb14'] != null) daily.logs[dateStr].dietQuality  = answers['eb14']
     if (answers['em19'] != null) daily.logs[dateStr].stress       = answers['em19']
     if (answers['ed1']  != null) daily.logs[dateStr].dailyRating  = answers['ed1']
-    if (answers['ek27'] != null) daily.logs[dateStr].reading      = answers['ek27'] === 'YES' ? 1 : 0
-    if (answers['en9']  != null) daily.logs[dateStr].prayed       = answers['en9']  === 'YES' ? 1 : 0
-    if (answers['en9b'] != null) daily.logs[dateStr].readBible    = answers['en9b'] === 'YES' ? 1 : 0
-    if (Array.isArray(answers['em21'])) {
-      daily.logs[dateStr].meditated  = answers['em21'].includes('Meditated') ? 1 : 0
-      daily.logs[dateStr].mentalRead = answers['em21'].includes('Read') ? 1 : 0
-    }
-    if (answers['ed3'] != null) {
-      const WORK_HOURS_MAP = { 'Less than 2': 1, '2–4': 3, '4–6': 5, '6–8': 7, '8–10': 9, 'More than 10': 11 }
-      const est = WORK_HOURS_MAP[answers['ed3']]
-      if (est != null) daily.logs[dateStr].bizHours = est
-    }
+    if (answers['ek27']        != null) daily.logs[dateStr].reading   = answers['ek27']        === 'YES' ? 1 : 0
+    if (answers['en9']         != null) daily.logs[dateStr].prayed    = answers['en9']         === 'YES' ? 1 : 0
+    if (answers['en9b']        != null) daily.logs[dateStr].readBible = answers['en9b']        === 'YES' ? 1 : 0
+    if (answers['em_meditated']!= null) daily.logs[dateStr].meditated = answers['em_meditated']=== 'YES' ? 1 : 0
+    if (answers['em_read']     != null) daily.logs[dateStr].mentalRead= answers['em_read']     === 'YES' ? 1 : 0
+    if (answers['ed3']         != null) daily.logs[dateStr].bizHours  = +answers['ed3']
+    if (answers['es_bedtime']  != null) daily.logs[dateStr].bedtime   = answers['es_bedtime']
 
     if (answers['eb_calories'] != null || answers['eb_protein'] != null) {
       const dietRaw = localStorage.getItem('marko_diet')
