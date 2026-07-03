@@ -1,89 +1,91 @@
 import { useState, useMemo } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import { getWinRatePoints, getWinDaySettings } from '../utils/winLoss'
 import WinDaySettings from '../components/WinDaySettings'
-import { Settings2 } from 'lucide-react'
+import { Settings2, Plus, X } from 'lucide-react'
 
+// ─── Metric definitions ────────────────────────────────────────────────────────
 const DEFAULT_METRICS = [
-  { id: 'diet_quality',  name: 'Diet Quality',    unit: '%',    maxVal: 100,   color: '#f0c040', icon: '🥗' },
-  { id: 'gym_session',   name: 'Workout Hours',   unit: 'hrs',  maxVal: 3,     color: '#22d3ee', icon: '🏋️' },
-  { id: 'sleep_quality', name: 'Sleep Quality',   unit: '/10',  maxVal: 10,    color: '#8b5cf6', icon: '🌙' },
-  { id: 'steps',         name: 'Steps',           unit: 'steps',maxVal: 15000, color: '#1ad9a0', icon: '👟' },
-  { id: 'cold_shower',   name: 'Cold Shower',     unit: 'binary',maxVal: 1,   color: '#3b82f6', icon: '❄️' },
-  { id: 'work_output',   name: 'Work Output',     unit: '/10',  maxVal: 10,    color: '#fb923c', icon: '💼' },
-  { id: 'reading',       name: 'Study Hours',     unit: 'hrs',  maxVal: 4,     color: '#e879f9', icon: '📖' },
-  { id: 'daily_score',   name: 'Daily Score',     unit: '%',    maxVal: 100,   color: '#6366f1', icon: '⚡' },
+  // Wellbeing
+  { id: 'daily_rating',  name: 'Day Rating',      unit: '/10',    maxVal: 10,    color: '#f0c040', icon: '⚡', group: 'Wellbeing' },
+  { id: 'energy',        name: 'Energy',           unit: '/10',    maxVal: 10,    color: '#22d3ee', icon: '🔋', group: 'Wellbeing' },
+  { id: 'stress',        name: 'Stress',           unit: '/10',    maxVal: 10,    color: '#f43f5e', icon: '🧠', group: 'Wellbeing' },
+  { id: 'pride',         name: 'Pride Score',      unit: '/10',    maxVal: 10,    color: '#c084fc', icon: '🏆', group: 'Wellbeing' },
+  // Recovery
+  { id: 'sleep_hours',   name: 'Sleep Hours',      unit: 'hrs',    maxVal: 10,    color: '#8b5cf6', icon: '🌙', group: 'Recovery' },
+  { id: 'sleep_quality', name: 'Sleep Quality',    unit: '/10',    maxVal: 10,    color: '#a78bfa', icon: '😴', group: 'Recovery' },
+  // Body
+  { id: 'steps',         name: 'Steps',            unit: '',       maxVal: 15000, color: '#1ad9a0', icon: '👟', group: 'Body' },
+  { id: 'trained',       name: 'Trained',          unit: 'binary', maxVal: 1,     color: '#2dd4bf', icon: '🏋️', group: 'Body' },
+  // Nutrition
+  { id: 'calories',      name: 'Calories',         unit: 'kcal',   maxVal: 3500,  color: '#fb923c', icon: '🍽️', group: 'Nutrition' },
+  { id: 'protein',       name: 'Protein',          unit: 'g',      maxVal: 250,   color: '#f97316', icon: '🥩', group: 'Nutrition' },
+  { id: 'diet_quality',  name: 'Diet Quality',     unit: '/10',    maxVal: 10,    color: '#34d399', icon: '🥗', group: 'Nutrition' },
+  // Work
+  { id: 'biz_hours',     name: 'Hours Worked',     unit: 'hrs',    maxVal: 16,    color: '#818cf8', icon: '💼', group: 'Work' },
+  { id: 'work_output',   name: 'Focus Score',      unit: '/10',    maxVal: 10,    color: '#6366f1', icon: '🎯', group: 'Work' },
+  // Business
+  { id: 'sales_calls',   name: 'Sales Calls',      unit: '',       maxVal: 20,    color: '#e879f9', icon: '📞', group: 'Business' },
+  { id: 'meetings',      name: 'Meetings Booked',  unit: '',       maxVal: 10,    color: '#d946ef', icon: '📅', group: 'Business' },
+  // Habits
+  { id: 'prayed',        name: 'Prayed',           unit: 'binary', maxVal: 1,     color: '#fbbf24', icon: '🙏', group: 'Habits' },
+  { id: 'read_bible',    name: 'Read Bible',       unit: 'binary', maxVal: 1,     color: '#f472b6', icon: '📖', group: 'Habits' },
+  { id: 'meditated',     name: 'Meditated',        unit: 'binary', maxVal: 1,     color: '#60a5fa', icon: '🧘', group: 'Habits' },
+  { id: 'reading',       name: 'Read',             unit: 'binary', maxVal: 1,     color: '#4ade80', icon: '📚', group: 'Habits' },
 ]
 
-// Built-in metrics that need manual daily logging → which field in marko_daily.logs to write
-const DAILY_LOG_FIELDS = {
-  gym_session: 'workoutHours',
-  reading:     'studyHours',
+const GROUP_ORDER = ['Wellbeing', 'Recovery', 'Body', 'Nutrition', 'Work', 'Business', 'Habits']
+const GROUP_COLORS = {
+  Wellbeing: '#f0c040', Recovery: '#8b5cf6', Body: '#1ad9a0',
+  Nutrition: '#fb923c', Work: '#818cf8', Business: '#e879f9', Habits: '#60a5fa',
 }
 
+// ─── Metric value resolver ─────────────────────────────────────────────────────
 function getMetricValue(metricId, dateStr, dailyData, bodyData, dietData) {
   const log = dailyData.logs?.[dateStr]
-  const items = log?.items || []
   switch (metricId) {
-    case 'diet_quality': {
-      // Primary: calorie/protein compliance from Body page
-      const h = (dietData.history || []).find(h => h.date === dateStr)
-      if (h) {
-        const cT = dietData.targets?.calories || 2400
-        const pT = dietData.targets?.protein || 200
-        return Math.round(((Math.min(h.calories, cT) / cT) + (Math.min(h.protein, pT) / pT)) / 2 * 100)
-      }
-      // Fallback: diet quality rating from evening check-in (1-10 → 0-100)
-      return log?.dietQuality != null ? Math.round(log.dietQuality * 10) : null
-    }
-    case 'gym_session': {
-      // Primary: manually logged hours via LifeCycles
-      if (log?.workoutHours != null) return log.workoutHours
-      // Fallback: workout session logged in Body → count as 1 hr
-      const trained = [...(bodyData.workouts || []), ...(bodyData.liftSessions || [])].some(w => w.date === dateStr)
-      if (trained) return 1
+    case 'daily_rating':  return log?.dailyRating  ?? null
+    case 'energy':        return log?.energy        ?? null
+    case 'stress':        return log?.stress        ?? null
+    case 'pride':         return log?.pride         ?? null
+    case 'sleep_hours':   return log?.sleepHours    ?? null
+    case 'sleep_quality': return log?.sleep         ?? null
+    case 'steps':         return log?.steps         ?? null
+    case 'diet_quality':  return log?.dietQuality   ?? null
+    case 'biz_hours':     return log?.bizHours      ?? null
+    case 'work_output':   return log?.workOutput    ?? null
+    case 'sales_calls':   return log?.salesCalls    ?? null
+    case 'meetings':      return log?.meetingsBooked ?? null
+    case 'prayed':        return log?.prayed        ?? null
+    case 'read_bible':    return log?.readBible     ?? null
+    case 'meditated':     return log?.meditated     ?? null
+    case 'reading':       return log?.mentalRead    ?? null
+    case 'trained': {
+      const hit = [...(bodyData.workouts || []), ...(bodyData.liftSessions || [])].some(w => w.date === dateStr)
+      if (hit) return 1
       return log != null ? 0 : null
     }
-    case 'sleep_quality':
-      return log?.sleep ?? null
-    case 'steps':
-      return log?.steps ?? null
-    case 'cold_shower': {
-      // Primary: DailyOS non-negotiable item
-      const item = items.find(i => i.isNonNeg && /cold shower/i.test(i.title))
-      if (item != null) return item.checked ? 1 : 0
-      // Fallback: evening check-in answer
-      return log?.coldShower ?? null
+    case 'calories': {
+      const h = (dietData.history || []).find(h => h.date === dateStr)
+      return (h?.calories > 0 ? h.calories : null)
     }
-    case 'work_output':
-      return log?.workOutput ?? null
-    case 'reading': {
-      // Primary: manually logged hours via LifeCycles
-      if (log?.studyHours != null) return log.studyHours
-      // Fallback: DailyOS task item or check-in binary (treat as 1 hr if done)
-      const item = items.find(i => !i.isNonNeg && /read|learn/i.test(i.title))
-      if (item != null) return item.checked ? 1 : 0
-      return log?.reading != null ? log.reading : null
-    }
-    case 'daily_score': {
-      // Primary: DailyOS checklist completion
-      if (items.length > 0) return Math.round(items.filter(i => i.checked).length / items.length * 100)
-      // Fallback: overall day rating from evening check-in (1-10 → 0-100)
-      return log?.dailyRating != null ? Math.round(log.dailyRating * 10) : null
+    case 'protein': {
+      const h = (dietData.history || []).find(h => h.date === dateStr)
+      return (h?.protein > 0 ? h.protein : null)
     }
     default: return null
   }
 }
 
+// ─── Stats computation ─────────────────────────────────────────────────────────
 function computeStats(points) {
   const valid = points.filter(p => p.value !== null)
   if (valid.length < 3) return null
-
   const values = valid.map(p => p.value)
   const mean = values.reduce((s, v) => s + v, 0) / values.length
   const high = Math.max(...values)
-  const low = Math.min(...values)
+  const low  = Math.min(...values)
 
   let currentStreak = 0
   for (let i = valid.length - 1; i >= 0; i--) {
@@ -97,43 +99,33 @@ function computeStats(points) {
     if (p.value >= mean) { run++ }
     else { if (run > 0) cycles.push(run); run = 0 }
   }
-
-  const avgCycle = cycles.length > 0
-    ? cycles.reduce((s, c) => s + c, 0) / cycles.length
-    : 0
-
+  const avgCycle = cycles.length > 0 ? cycles.reduce((s, c) => s + c, 0) / cycles.length : 0
   return { mean, high, low, currentStreak, avgCycle, cycleCount: cycles.length }
 }
 
 function generateInsight(metricName, stats) {
   if (!stats) return { text: 'Log at least 3 days to detect your pattern.', type: 'neutral' }
-  const { mean, high, low, currentStreak, avgCycle, cycleCount } = stats
-
-  if (currentStreak === 0) {
-    return { text: `You are currently below your average for ${metricName}. Start a new high streak today.`, type: 'warning' }
-  }
-  if (cycleCount < 2 || avgCycle === 0) {
-    return { text: `${currentStreak} day${currentStreak > 1 ? 's' : ''} above average for ${metricName}. Keep logging to detect your cycle pattern.`, type: 'positive' }
-  }
+  const { currentStreak, avgCycle, cycleCount } = stats
+  if (currentStreak === 0)
+    return { text: `Currently below average for ${metricName}. Start a new high streak today.`, type: 'warning' }
+  if (cycleCount < 2 || avgCycle === 0)
+    return { text: `${currentStreak} day${currentStreak !== 1 ? 's' : ''} above average. Keep logging to detect your cycle.`, type: 'positive' }
   const daysLeft = Math.round(avgCycle - currentStreak)
-  if (daysLeft <= 1 && daysLeft >= 0) {
-    return { text: `You have stayed above your floor for ${currentStreak} day${currentStreak > 1 ? 's' : ''} — historically you drop around day ${Math.round(avgCycle)}. Stay locked in today.`, type: 'warning' }
-  }
-  if (currentStreak > avgCycle * 1.2 && cycleCount >= 2) {
-    return { text: `You just broke your average cycle of ${avgCycle.toFixed(1)} days. New record: ${currentStreak} consecutive days above average. Keep going.`, type: 'positive' }
-  }
-  return { text: `Your average cycle is ${avgCycle.toFixed(1)} high days. You are on day ${currentStreak} — you have approximately ${daysLeft} more day${daysLeft !== 1 ? 's' : ''} before your historical drop point.`, type: 'positive' }
+  if (daysLeft <= 1 && daysLeft >= 0)
+    return { text: `Day ${currentStreak} of a high run — your historical drop point is ~day ${Math.round(avgCycle)}. Stay locked in.`, type: 'warning' }
+  if (currentStreak > avgCycle * 1.2)
+    return { text: `New record — broke your avg cycle of ${avgCycle.toFixed(1)}d. Day ${currentStreak} and still climbing.`, type: 'positive' }
+  return { text: `Avg cycle: ${avgCycle.toFixed(1)} high days. Day ${currentStreak} — ~${daysLeft} day${daysLeft !== 1 ? 's' : ''} until historical drop point.`, type: 'positive' }
 }
 
+// ─── Oscillation graph ─────────────────────────────────────────────────────────
 function OscillationGraph({ points, mean, metricId, color }) {
   const valid = points.filter(p => p.value !== null)
   if (valid.length < 3) {
     return (
-      <div style={{
-        height: 160, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8,
-      }}>
-        <div style={{ fontSize: 28, opacity: 0.3 }}>📊</div>
-        <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#475569', fontStyle: 'italic' }}>Log 3+ days to unlock chart</span>
+      <div style={{ height: 130, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 6 }}>
+        <span style={{ fontSize: 22, opacity: 0.25 }}>〜</span>
+        <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#334155', letterSpacing: '0.1em' }}>LOG 3+ DAYS TO UNLOCK</span>
       </div>
     )
   }
@@ -142,40 +134,31 @@ function OscillationGraph({ points, mean, metricId, color }) {
   const minVal = Math.min(...values)
   const maxVal = Math.max(...values)
   const range = maxVal - minVal || 1
-  const domainMin = Math.max(0, minVal - range * 0.15)
-  const domainMax = maxVal + range * 0.15
+  const domainMin = Math.max(0, minVal - range * 0.2)
+  const domainMax = maxVal + range * 0.2
 
   return (
-    <ResponsiveContainer width="100%" height={160}>
-      <AreaChart data={points} margin={{ top: 8, right: 16, bottom: 0, left: 16 }}>
+    <ResponsiveContainer width="100%" height={130}>
+      <AreaChart data={points} margin={{ top: 6, right: 12, bottom: 0, left: 12 }}>
         <defs>
-          <linearGradient id={`fill-${metricId}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%"  stopColor={color} stopOpacity={0.28} />
+          <linearGradient id={`g-${metricId}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%"  stopColor={color} stopOpacity={0.32} />
             <stop offset="95%" stopColor={color} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <XAxis
-          dataKey="label"
-          tick={{ fill: '#475569', fontSize: 9, fontFamily: 'Inter' }}
-          axisLine={false} tickLine={false}
-          interval="preserveStartEnd"
-        />
+        <XAxis dataKey="label" tick={{ fill: '#334155', fontSize: 8, fontFamily: 'Inter' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
         <YAxis domain={[domainMin, domainMax]} hide />
         <Tooltip
-          contentStyle={{ background: 'rgba(5,8,20,0.92)', border: `1px solid ${color}40`, borderRadius: 8, fontSize: 11, fontFamily: 'Inter', boxShadow: `0 0 20px ${color}20` }}
-          labelStyle={{ color: '#94a3b8', marginBottom: 4 }}
+          contentStyle={{ background: 'rgba(3,4,16,0.97)', border: `1px solid ${color}40`, borderRadius: 10, fontSize: 11, fontFamily: 'Inter', boxShadow: `0 0 24px ${color}25` }}
+          labelStyle={{ color: '#64748b', marginBottom: 3 }}
           itemStyle={{ color }}
-          formatter={(v) => [v !== null ? (Number.isInteger(v) ? v : v.toFixed(1)) : '—', '']}
+          formatter={v => [v !== null ? (Number.isInteger(v) ? v : v.toFixed(1)) : '—', '']}
         />
-        <ReferenceLine y={mean} stroke={color} strokeDasharray="5 4" strokeWidth={2} strokeOpacity={0.8} />
-        <Area
-          type="monotone"
-          dataKey="value"
-          stroke={color}
-          strokeWidth={3.5}
-          fill={`url(#fill-${metricId})`}
-          dot={{ fill: color, r: 4, strokeWidth: 2, stroke: '#fff' }}
-          activeDot={{ fill: color, r: 7, strokeWidth: 2, stroke: '#fff' }}
+        <ReferenceLine y={mean} stroke={color} strokeDasharray="4 3" strokeWidth={1.5} strokeOpacity={0.7} />
+        <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2.5}
+          fill={`url(#g-${metricId})`}
+          dot={{ fill: color, r: 3, strokeWidth: 0 }}
+          activeDot={{ fill: color, r: 5, strokeWidth: 2, stroke: 'rgba(255,255,255,0.3)' }}
           connectNulls
         />
       </AreaChart>
@@ -183,158 +166,158 @@ function OscillationGraph({ points, mean, metricId, color }) {
   )
 }
 
-function StatBox({ label, value, unit, color }) {
-  const display = value === null ? '—' : Number.isInteger(value) ? value : value.toFixed(1)
-  const unitStr = unit === 'binary' || unit === 'steps' ? '' : unit
-  return (
-    <div style={{
-      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-      padding: '14px 8px',
-      background: `${color}0C`,
-      borderRadius: 10,
-      border: `2px solid ${color}55`,
-      boxShadow: `0 0 20px ${color}12`,
-    }}>
-      <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 28, lineHeight: 1, color, filter: `drop-shadow(0 0 8px ${color}60)` }}>
-        {display}{unitStr && <span style={{ fontSize: 14 }}>{unitStr}</span>}
-      </span>
-      <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{label}</span>
-    </div>
-  )
-}
-
-function MetricCard({ metric, points, mean, stats, onEdit, onDelete }) {
+// ─── Metric card ───────────────────────────────────────────────────────────────
+function MetricCard({ metric, points, mean, stats, onDelete }) {
   const insight = generateInsight(metric.name, stats)
-  const color = metric.color || '#6366f1'
+  const c = metric.color || '#6366f1'
+  const avg = stats?.mean ?? null
   const high = stats?.high ?? null
   const low  = stats?.low  ?? null
-  const avg  = stats?.mean ?? null
+  const streak = stats?.currentStreak ?? 0
+  const isBinary = metric.unit === 'binary'
+  const insightC = insight.type === 'warning' ? '#f43f5e' : insight.type === 'positive' ? '#1ad9a0' : '#6366f1'
 
-  const insightColor = insight.type === 'warning' ? '#f43f5e' : insight.type === 'positive' ? '#1ad9a0' : '#8b5cf6'
+  const fmt = (v) => {
+    if (v === null) return '—'
+    if (isBinary) return `${Math.round(v * 100)}%`
+    if (metric.unit === '' || metric.unit === 'kcal' || metric.unit === 'g') return Number.isInteger(v) ? v : v.toFixed(0)
+    return Number.isInteger(v) ? v : v.toFixed(1)
+  }
+  const unitLabel = isBinary ? '' : metric.unit
 
   return (
     <div style={{
-      background: 'rgba(6,9,22,0.85)',
-      backdropFilter: 'blur(28px)',
-      WebkitBackdropFilter: 'blur(28px)',
-      border: `2px solid ${color}70`,
-      borderRadius: 20,
+      background: 'rgba(4,6,20,0.65)',
+      backdropFilter: 'blur(40px)',
+      WebkitBackdropFilter: 'blur(40px)',
+      border: `1px solid ${c}35`,
+      borderRadius: 18,
       overflow: 'hidden',
-      boxShadow: `0 0 60px ${color}18, 0 6px 36px rgba(0,0,0,0.55), inset 0 1px 0 ${color}18`,
-      transition: 'border-color 0.3s, box-shadow 0.3s',
+      boxShadow: `0 0 40px ${c}10, 0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 ${c}12`,
+      transition: 'border-color 0.25s, box-shadow 0.25s',
       position: 'relative',
     }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = `${color}CC`; e.currentTarget.style.boxShadow = `0 0 100px ${color}35, 0 12px 50px rgba(0,0,0,0.65), inset 0 1px 0 ${color}28` }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = `${color}70`; e.currentTarget.style.boxShadow = `0 0 60px ${color}18, 0 6px 36px rgba(0,0,0,0.55), inset 0 1px 0 ${color}18` }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = `${c}70`; e.currentTarget.style.boxShadow = `0 0 70px ${c}20, 0 8px 40px rgba(0,0,0,0.65), inset 0 1px 0 ${c}20` }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = `${c}35`; e.currentTarget.style.boxShadow = `0 0 40px ${c}10, 0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 ${c}12` }}
     >
-      {/* Top accent bar */}
-      <div style={{ height: 5, background: `linear-gradient(90deg, ${color}44, ${color}, ${color}CC, ${color}44)`, boxShadow: `0 0 20px ${color}60` }} />
+      {/* Glow top line */}
+      <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${c}CC, ${c}, ${c}CC, transparent)`, boxShadow: `0 0 12px ${c}80` }} />
 
-      {/* Header */}
-      <div style={{ padding: '20px 24px 12px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      {/* Header row */}
+      <div style={{ padding: '16px 18px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{
-            width: 44, height: 44, borderRadius: 12,
-            background: `${color}28`, border: `2px solid ${color}70`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 20, flexShrink: 0,
-            boxShadow: `0 0 20px ${color}30`,
+            width: 36, height: 36, borderRadius: 10,
+            background: `${c}16`, border: `1px solid ${c}40`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0,
           }}>
-            {metric.icon || '📊'}
+            {metric.icon}
           </div>
           <div>
-            <div style={{
-              fontFamily: '"Orbitron", sans-serif', fontSize: 15, fontWeight: 700,
-              letterSpacing: '0.06em', color: 'white', lineHeight: 1,
-            }}>
+            <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 11, fontWeight: 700, color: 'rgba(226,232,240,0.92)', letterSpacing: '0.08em' }}>
               {metric.name.toUpperCase()}
             </div>
-            {stats?.currentStreak > 0 && (
-              <div style={{ marginTop: 5, display: 'flex', alignItems: 'center', gap: 5 }}>
-                <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#1ad9a0', boxShadow: '0 0 6px #1ad9a0' }} />
-                <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#1ad9a0', fontWeight: 600 }}>
-                  {stats.currentStreak}d above average
-                </span>
+            {streak > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 3 }}>
+                <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#1ad9a0', boxShadow: '0 0 5px #1ad9a0' }} />
+                <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#1ad9a0', fontWeight: 600, letterSpacing: '0.05em' }}>{streak}d above avg</span>
               </div>
             )}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {onEdit && (
-            <button onClick={onEdit} style={{ padding: '4px 10px', border: `1px solid ${color}30`, background: `${color}10`, color, fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', borderRadius: 6 }}>
-              Edit
-            </button>
-          )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 30, lineHeight: 1, color: c, filter: `drop-shadow(0 0 10px ${c}70)` }}>
+              {fmt(avg)}<span style={{ fontSize: 13, opacity: 0.7 }}>{unitLabel}</span>
+            </div>
+            <div style={{ fontFamily: 'Inter', fontSize: 8, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.1em' }}>30d avg</div>
+          </div>
           {onDelete && (
-            <button onClick={onDelete} style={{ padding: '4px 10px', border: '1px solid rgba(239,68,68,0.3)', background: 'transparent', color: '#f43f5e', fontFamily: 'Inter', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', borderRadius: 6 }}>
-              Del
+            <button onClick={onDelete} style={{ width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(239,68,68,0.25)', background: 'transparent', borderRadius: 6, cursor: 'pointer', padding: 0 }}>
+              <X size={11} color="#f43f5e" />
             </button>
           )}
         </div>
       </div>
 
-      {/* Stat row */}
-      <div style={{ display: 'flex', gap: 8, padding: '0 24px 16px' }}>
-        <StatBox label="High" value={high} unit={metric.unit} color="#1ad9a0" />
-        <StatBox label="Avg"  value={avg}  unit={metric.unit} color={color} />
-        <StatBox label="Low"  value={low}  unit={metric.unit} color="#f43f5e" />
+      {/* High / Low stat row */}
+      <div style={{ display: 'flex', gap: 8, padding: '0 18px 12px' }}>
+        {[{ l: 'BEST', v: high, c2: '#1ad9a0' }, { l: 'LOW', v: low, c2: '#f43f5e' }].map(({ l, v, c2 }) => (
+          <div key={l} style={{ flex: 1, padding: '8px 10px', background: `${c2}0A`, border: `1px solid ${c2}25`, borderRadius: 10, textAlign: 'center' }}>
+            <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 20, color: c2, lineHeight: 1 }}>{fmt(v)}<span style={{ fontSize: 10, opacity: 0.7 }}>{unitLabel}</span></div>
+            <div style={{ fontFamily: 'Inter', fontSize: 8, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 2 }}>{l}</div>
+          </div>
+        ))}
       </div>
 
       {/* Chart */}
-      <div style={{ padding: '0 8px 8px' }}>
-        <OscillationGraph points={points} mean={mean ?? 0} metricId={metric.id} color={color} />
+      <div style={{ padding: '0 4px' }}>
+        <OscillationGraph points={points} mean={mean ?? 0} metricId={metric.id} color={c} />
       </div>
 
-      {/* Insight bar */}
-      <div style={{
-        margin: '0 16px 16px',
-        padding: '12px 16px',
-        background: `${insightColor}12`,
-        border: `2px solid ${insightColor}50`,
-        borderLeft: `5px solid ${insightColor}`,
-        borderRadius: '0 10px 10px 0',
-        boxShadow: `0 0 20px ${insightColor}15`,
-      }}>
-        <span style={{ fontFamily: 'Inter', fontSize: 12, color: '#e2e8f0', lineHeight: 1.6 }}>{insight.text}</span>
+      {/* Insight */}
+      <div style={{ margin: '8px 14px 14px', padding: '10px 14px', background: `${insightC}0A`, border: `1px solid ${insightC}35`, borderLeft: `3px solid ${insightC}`, borderRadius: '0 8px 8px 0' }}>
+        <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#94a3b8', lineHeight: 1.55 }}>{insight.text}</span>
       </div>
     </div>
   )
 }
 
+// ─── Avg stat tile ──────────────────────────────────────────────────────────────
+function AvgTile({ icon, label, value, unit, sub, color }) {
+  return (
+    <div style={{
+      padding: '18px 16px', borderRadius: 16,
+      background: `${color}08`,
+      backdropFilter: 'blur(32px)',
+      border: `1px solid ${color}30`,
+      boxShadow: `0 0 40px ${color}0C, inset 0 1px 0 ${color}10`,
+      display: 'flex', flexDirection: 'column', gap: 6,
+      position: 'relative', overflow: 'hidden',
+    }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${color}80, transparent)` }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+        <span style={{ fontSize: 16 }}>{icon}</span>
+        <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.12em' }}>{label}</span>
+      </div>
+      <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 36, lineHeight: 1, color, filter: `drop-shadow(0 0 14px ${color}70)` }}>
+        {value}<span style={{ fontSize: 16, opacity: 0.6, marginLeft: 2 }}>{unit}</span>
+      </div>
+      {sub && <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#334155' }}>{sub}</div>}
+    </div>
+  )
+}
+
+// ─── Group header ──────────────────────────────────────────────────────────────
+function GroupHeader({ name, color }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '32px 0 16px', gridColumn: '1 / -1' }}>
+      <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, boxShadow: `0 0 10px ${color}` }} />
+      <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 10, fontWeight: 700, color, letterSpacing: '0.2em', textTransform: 'uppercase', textShadow: `0 0 16px ${color}80` }}>
+        {name}
+      </span>
+      <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${color}40, transparent)` }} />
+    </div>
+  )
+}
+
+// ─── Main component ────────────────────────────────────────────────────────────
 export default function LifeCycles() {
-  const [dailyData, setDailyData] = useLocalStorage('marko_daily', { logs: {}, nonNegotiables: [], taskTemplates: [] })
-  const [bodyData] = useLocalStorage('marko_body', { workouts: [], liftSessions: [] })
-  const [dietData] = useLocalStorage('marko_diet', { targets: { calories: 2400, protein: 200 }, history: [] })
+  const [dailyData, setDailyData] = useLocalStorage('marko_daily', { logs: {} })
+  const [bodyData]  = useLocalStorage('marko_body',  { workouts: [], liftSessions: [] })
+  const [dietData]  = useLocalStorage('marko_diet',  { targets: {}, history: [] })
   const [cyclesConfig, setCyclesConfig] = useLocalStorage('marko_cycles_config', { customMetrics: [], customLogs: {} })
 
   const [showAddMetric, setShowAddMetric] = useState(false)
   const [newMetricName, setNewMetricName] = useState('')
   const [newMetricMax, setNewMetricMax] = useState('10')
-  const [editingMetric, setEditingMetric] = useState(null)
-  const [customLogInputs, setCustomLogInputs] = useState({})
-  const [dailyLogInputs, setDailyLogInputs] = useState({})
   const [showWinSettings, setShowWinSettings] = useState(false)
 
-  const logDailyMetric = (metricId) => {
-    const field = DAILY_LOG_FIELDS[metricId]
-    const val = parseFloat(dailyLogInputs[metricId])
-    if (!field || isNaN(val)) return
-    const ds = new Date().toISOString().split('T')[0]
-    setDailyData(d => ({
-      ...d,
-      logs: { ...(d.logs || {}), [ds]: { ...(d.logs?.[ds] || {}), [field]: val } }
-    }))
-    setDailyLogInputs(prev => ({ ...prev, [metricId]: '' }))
-  }
-
-  const allMetrics = [...DEFAULT_METRICS, ...(cyclesConfig.customMetrics || [])]
-
-  const winSettings = getWinDaySettings()
+  const winSettings   = getWinDaySettings()
   const winRatePoints = getWinRatePoints(winSettings, dailyData, bodyData, dietData)
-  const winRateMeta = { id: 'daily_win_rate', name: 'Daily Win Rate', unit: 'binary', maxVal: 1 }
-  const winDaysCount = winRatePoints.filter(p => p.value === 1).length
-  const totalDays = winRatePoints.filter(p => p.value !== null).length
-  const winRatePct = totalDays > 0 ? Math.round(winDaysCount / totalDays * 100) : 0
+  const winDaysCount  = winRatePoints.filter(p => p.value === 1).length
+  const totalDays     = winRatePoints.filter(p => p.value !== null).length
+  const winRatePct    = totalDays > 0 ? Math.round(winDaysCount / totalDays * 100) : 0
 
   const last30Days = useMemo(() => {
     const days = []
@@ -346,247 +329,219 @@ export default function LifeCycles() {
     return days
   }, [])
 
+  const allMetrics = [...DEFAULT_METRICS, ...(cyclesConfig.customMetrics || [])]
+
   const metricData = useMemo(() => {
     return allMetrics.map(metric => {
       const points = last30Days.map(({ dateStr, label }) => {
-        let value
-        if (DEFAULT_METRICS.find(m => m.id === metric.id)) {
-          value = getMetricValue(metric.id, dateStr, dailyData, bodyData, dietData)
-        } else {
-          value = cyclesConfig.customLogs?.[metric.id]?.[dateStr] ?? null
-        }
+        const isDefault = DEFAULT_METRICS.find(m => m.id === metric.id)
+        const value = isDefault
+          ? getMetricValue(metric.id, dateStr, dailyData, bodyData, dietData)
+          : (cyclesConfig.customLogs?.[metric.id]?.[dateStr] ?? null)
         return { date: dateStr, label, value }
       })
       const stats = computeStats(points)
-      const mean = stats?.mean ?? 0
-      return { metric, points, stats, mean }
+      return { metric, points, stats, mean: stats?.mean ?? 0 }
     })
   }, [allMetrics, last30Days, dailyData, bodyData, dietData, cyclesConfig])
 
-  const activeMetrics = metricData.filter(m => m.stats !== null)
-  const avgFloor = activeMetrics.length > 0
-    ? Math.round(activeMetrics.reduce((s, m) => s + (m.stats?.low ?? 0), 0) / activeMetrics.length * 10) / 10
-    : 0
-  const longestStreak = activeMetrics.length > 0
-    ? Math.max(...activeMetrics.map(m => m.stats?.currentStreak ?? 0))
-    : 0
+  // 30-day averages for the dashboard tiles
+  const avgStats = useMemo(() => {
+    const avg30 = (metricId) => {
+      const d = metricData.find(m => m.metric.id === metricId)
+      if (!d) return null
+      const valid = d.points.filter(p => p.value !== null).map(p => p.value)
+      return valid.length > 0 ? valid.reduce((s, v) => s + v, 0) / valid.length : null
+    }
+    const count30 = (metricId) => {
+      const d = metricData.find(m => m.metric.id === metricId)
+      if (!d) return null
+      return d.points.filter(p => p.value === 1).length
+    }
+    // Workout streak from today backwards
+    let workoutStreak = 0
+    for (let i = 0; i < 90; i++) {
+      const d = new Date(); d.setDate(d.getDate() - i)
+      const ds = d.toISOString().split('T')[0]
+      const trained = [...(bodyData.workouts || []), ...(bodyData.liftSessions || [])].some(w => w.date === ds)
+      if (trained) workoutStreak++
+      else if (i > 0) break
+    }
+    return {
+      bizHours:   avg30('biz_hours'),
+      calories:   avg30('calories'),
+      protein:    avg30('protein'),
+      steps:      avg30('steps'),
+      salesCalls: avg30('sales_calls'),
+      meetings:   avg30('meetings'),
+      trainedDays: count30('trained'),
+      workoutStreak,
+    }
+  }, [metricData, bodyData])
+
+  const fmt = (v, dec = 1) => v === null ? '—' : (dec === 0 ? Math.round(v) : parseFloat(v.toFixed(dec)))
 
   const addCustomMetric = () => {
     if (!newMetricName.trim()) return
     const id = `custom_${Date.now()}`
-    setCyclesConfig(c => ({
-      ...c,
-      customMetrics: [...(c.customMetrics || []), { id, name: newMetricName.trim(), unit: '', maxVal: parseFloat(newMetricMax) || 10 }]
-    }))
+    const colors = ['#f0c040','#22d3ee','#8b5cf6','#1ad9a0','#fb923c','#e879f9']
+    const color = colors[Math.floor(cyclesConfig.customMetrics?.length ?? 0) % colors.length]
+    setCyclesConfig(c => ({ ...c, customMetrics: [...(c.customMetrics || []), { id, name: newMetricName.trim(), unit: '', maxVal: parseFloat(newMetricMax) || 10, color, icon: '📊', group: 'Custom' }] }))
     setNewMetricName(''); setNewMetricMax('10'); setShowAddMetric(false)
   }
 
   const deleteCustomMetric = (id) => {
-    setCyclesConfig(c => ({
-      ...c,
-      customMetrics: (c.customMetrics || []).filter(m => m.id !== id)
-    }))
+    setCyclesConfig(c => ({ ...c, customMetrics: (c.customMetrics || []).filter(m => m.id !== id) }))
   }
 
-  const logCustomValue = (metricId) => {
-    const val = parseFloat(customLogInputs[metricId])
-    if (isNaN(val)) return
-    const ds = new Date().toISOString().split('T')[0]
-    setCyclesConfig(c => ({
-      ...c,
-      customLogs: { ...(c.customLogs || {}), [metricId]: { ...(c.customLogs?.[metricId] || {}), [ds]: val } }
-    }))
-    setCustomLogInputs(prev => ({ ...prev, [metricId]: '' }))
-  }
+  // Group the metrics
+  const grouped = useMemo(() => {
+    const groups = {}
+    for (const order of [...GROUP_ORDER, 'Custom']) groups[order] = []
+    for (const d of metricData) {
+      const g = d.metric.group || 'Custom'
+      if (!groups[g]) groups[g] = []
+      groups[g].push(d)
+    }
+    return groups
+  }, [metricData])
 
   return (
     <div style={{ background: 'transparent', minHeight: '100%' }}>
-      {/* Header */}
-      <div style={{ borderBottom: '2px solid rgba(34,211,238,0.45)', padding: '24px 40px 20px', position: 'relative', overflow: 'hidden', boxShadow: '0 4px 40px rgba(34,211,238,0.08)' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 5, background: 'linear-gradient(90deg, transparent, #22d3ee 25%, #8b5cf6 60%, #e879f9 85%, transparent)', filter: 'blur(0.5px)' }} />
+
+      {/* ── HEADER ── */}
+      <div style={{
+        borderBottom: '1px solid rgba(34,211,238,0.25)',
+        padding: '22px 36px 18px',
+        position: 'relative', overflow: 'hidden',
+        background: 'rgba(2,4,16,0.7)',
+        backdropFilter: 'blur(40px)',
+      }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, #22d3ee 20%, #8b5cf6 60%, #e879f9 85%, transparent)', boxShadow: '0 0 14px rgba(34,211,238,0.5)' }} />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 1200, margin: '0 auto' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22d3ee', boxShadow: '0 0 8px #22d3ee' }} />
-              <span style={{ fontFamily: 'Inter', fontSize: 10, fontWeight: 600, color: '#94a3b8', letterSpacing: '0.12em', textTransform: 'uppercase' }}>OSCILLATION TRACKING</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#22d3ee', boxShadow: '0 0 8px #22d3ee' }} />
+              <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#475569', letterSpacing: '0.16em', textTransform: 'uppercase' }}>PATTERN ENGINE · 30D</span>
             </div>
             <h1 style={{
-              fontFamily: '"Orbitron",sans-serif', fontSize: 52, fontWeight: 900, lineHeight: 0.9,
-              letterSpacing: '0.02em', margin: 0,
-              background: 'linear-gradient(135deg, #22d3ee 0%, #8b5cf6 60%, #e879f9 100%)',
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text'
-            }}>
-              LIFE CYCLES
-            </h1>
-            <p style={{ fontFamily: 'Inter', fontSize: 10, color: '#64748b', letterSpacing: '0.14em', textTransform: 'uppercase', marginTop: 6 }}>
-              TRACK YOUR PATTERNS · RAISE YOUR FLOOR
-            </p>
+              fontFamily: '"Orbitron", monospace', fontSize: 44, fontWeight: 900, lineHeight: 0.9,
+              margin: 0, letterSpacing: '0.02em',
+              background: 'linear-gradient(135deg, #22d3ee 0%, #8b5cf6 55%, #e879f9 100%)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+            }}>LIFE CYCLES</h1>
+            <p style={{ fontFamily: 'Inter', fontSize: 9, color: '#334155', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 6 }}>TRACK YOUR OSCILLATIONS · RAISE YOUR FLOOR</p>
           </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <button
-              onClick={() => setShowWinSettings(true)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px',
-                background: 'rgba(240,192,64,0.08)', color: '#f0c040',
-                border: '1px solid rgba(240,192,64,0.25)', borderRadius: 10,
-                fontFamily: 'Inter', fontSize: 11, fontWeight: 700,
-                textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              <Settings2 size={13} /> Win Settings
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setShowWinSettings(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px', background: 'rgba(240,192,64,0.07)', color: '#f0c040', border: '1px solid rgba(240,192,64,0.22)', borderRadius: 10, fontFamily: 'Inter', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer', transition: 'all 0.2s' }}>
+              <Settings2 size={12} /> Win Config
             </button>
-            <button
-              onClick={() => setShowAddMetric(!showAddMetric)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '9px 18px',
-                background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)',
-                color: '#fff', border: 'none', borderRadius: 10, fontFamily: 'Inter', fontSize: 11,
-                fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer',
-                boxShadow: '0 0 24px rgba(34,211,238,0.3)',
-              }}
-            >
-              + Add Metric
+            <button onClick={() => setShowAddMetric(!showAddMetric)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 16px', background: 'linear-gradient(135deg, rgba(34,211,238,0.15), rgba(139,92,246,0.1))', color: '#22d3ee', border: '1px solid rgba(34,211,238,0.3)', borderRadius: 10, fontFamily: 'Inter', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 16px rgba(34,211,238,0.15)', transition: 'all 0.2s' }}>
+              <Plus size={12} /> Custom
             </button>
           </div>
         </div>
-
-        {/* Add metric panel */}
         {showAddMetric && (
-          <div style={{
-            maxWidth: 1200, margin: '16px auto 0',
-            padding: '16px 20px', background: 'rgba(8,12,26,0.8)', border: '1px solid rgba(34,211,238,0.2)',
-            borderRadius: 14, display: 'flex', gap: 12, alignItems: 'flex-end',
-          }}>
+          <div style={{ maxWidth: 1200, margin: '14px auto 0', padding: '14px 18px', background: 'rgba(4,6,20,0.8)', border: '1px solid rgba(34,211,238,0.2)', borderRadius: 14, display: 'flex', gap: 10, alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Metric Name</div>
+              <div style={{ fontFamily: 'Inter', fontSize: 8, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 5 }}>Metric Name</div>
               <input value={newMetricName} onChange={e => setNewMetricName(e.target.value)} onKeyDown={e => e.key === 'Enter' && addCustomMetric()} placeholder="e.g. Morning Energy"
-                style={{ width: '100%', background: 'rgba(5,8,20,0.6)', border: '1px solid rgba(99,102,241,0.22)', borderRadius: 8, padding: '9px 14px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }} />
+                style={{ width: '100%', padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, boxSizing: 'border-box' }} />
             </div>
-            <div style={{ width: 120 }}>
-              <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Max Value</div>
-              <input value={newMetricMax} onChange={e => setNewMetricMax(e.target.value)} type="number"
-                style={{ width: '100%', background: 'rgba(5,8,20,0.6)', border: '1px solid rgba(99,102,241,0.22)', borderRadius: 8, padding: '9px 14px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }} />
+            <div style={{ width: 110 }}>
+              <div style={{ fontFamily: 'Inter', fontSize: 8, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 5 }}>Max Value</div>
+              <input value={newMetricMax} onChange={e => setNewMetricMax(e.target.value)} type="number" style={{ width: '100%', padding: '8px 12px', fontFamily: 'Inter', fontSize: 13 }} />
             </div>
-            <button onClick={addCustomMetric} style={{ padding: '9px 20px', background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter', fontSize: 12, fontWeight: 700 }}>Add</button>
-            <button onClick={() => setShowAddMetric(false)} style={{ padding: '9px 16px', border: '1px solid rgba(99,102,241,0.2)', background: 'transparent', color: '#64748b', borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter', fontSize: 12 }}>Cancel</button>
+            <button onClick={addCustomMetric} style={{ padding: '8px 18px', background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter', fontSize: 11, fontWeight: 700 }}>Add</button>
+            <button onClick={() => setShowAddMetric(false)} style={{ padding: '8px 14px', border: '1px solid rgba(99,102,241,0.2)', background: 'transparent', color: '#475569', borderRadius: 8, cursor: 'pointer', fontFamily: 'Inter', fontSize: 11 }}>Cancel</button>
           </div>
         )}
       </div>
 
-      {/* Summary stats */}
-      <div style={{ padding: '20px 40px', maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
-          {[
-            { label: 'Avg Floor', value: avgFloor !== 0 ? String(avgFloor) : '—', sub: 'across all metrics', color: '#22d3ee' },
-            { label: 'Best Streak', value: longestStreak > 0 ? `${longestStreak}d` : '—', sub: 'days above average', color: '#1ad9a0' },
-            { label: 'Tracking', value: allMetrics.length, sub: 'active metrics', color: '#8b5cf6' },
-          ].map((s, i) => (
-            <div key={i} style={{
-              padding: '20px 24px', borderRadius: 16,
-              background: `${s.color}0A`, backdropFilter: 'blur(20px)',
-              border: `2px solid ${s.color}65`,
-              boxShadow: `0 0 50px ${s.color}18, 0 4px 24px rgba(0,0,0,0.4)`,
-              textAlign: 'center',
-            }}>
-              <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 54, color: s.color, lineHeight: 1, filter: `drop-shadow(0 0 20px ${s.color}) drop-shadow(0 0 40px ${s.color}60)` }}>{s.value}</div>
-              <div style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 6 }}>{s.label}</div>
-              <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#475569', marginTop: 2 }}>{s.sub}</div>
-            </div>
-          ))}
-        </div>
+      <div style={{ padding: '24px 36px', maxWidth: 1200, margin: '0 auto' }}>
 
-      {/* Daily Win Rate — full width */}
-      <div style={{
-        background: 'rgba(6,9,22,0.88)', backdropFilter: 'blur(28px)',
-        border: '2px solid rgba(240,192,64,0.72)', borderRadius: 20,
-        overflow: 'hidden', marginBottom: 24,
-        boxShadow: '0 0 70px rgba(240,192,64,0.2), 0 6px 36px rgba(0,0,0,0.5), inset 0 1px 0 rgba(240,192,64,0.15)',
-      }}>
-        <div style={{ height: 5, background: 'linear-gradient(90deg, transparent, #f0c040CC, #f0c040, #fb923c, transparent)', boxShadow: '0 0 20px rgba(240,192,64,0.5)' }} />
-        <div style={{ padding: '20px 28px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 46, height: 46, borderRadius: 12, background: 'rgba(240,192,64,0.2)', border: '2px solid rgba(240,192,64,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, boxShadow: '0 0 24px rgba(240,192,64,0.35)' }}>🏆</div>
-            <div>
-              <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 15, fontWeight: 700, letterSpacing: '0.06em', color: 'white' }}>DAILY WIN RATE</div>
-              <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#94a3b8', marginTop: 3 }}>{winDaysCount} wins out of {totalDays} days logged</div>
-            </div>
+        {/* ── AVERAGES DASHBOARD ── */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+            <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 9, fontWeight: 700, color: '#6366f1', letterSpacing: '0.2em', textTransform: 'uppercase' }}>30-DAY AVERAGES</span>
+            <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(99,102,241,0.4), transparent)' }} />
           </div>
-          <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 52, color: '#f0c040', lineHeight: 1, filter: 'drop-shadow(0 0 20px rgba(240,192,64,0.6))' }}>
-            {winRatePct}<span style={{ fontSize: 24 }}>%</span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 12 }}>
+            <AvgTile icon="💼" label="Work Hours" value={fmt(avgStats.bizHours)} unit="hrs" sub="avg per day" color="#818cf8" />
+            <AvgTile icon="🍽️" label="Calories" value={fmt(avgStats.calories, 0)} unit="kcal" sub="avg per day" color="#fb923c" />
+            <AvgTile icon="🥩" label="Protein" value={fmt(avgStats.protein, 0)} unit="g" sub="avg per day" color="#f97316" />
+            <AvgTile icon="👟" label="Steps" value={avgStats.steps !== null ? fmt(avgStats.steps, 0).toLocaleString?.() ?? fmt(avgStats.steps,0) : '—'} unit="" sub="avg per day" color="#1ad9a0" />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+            <AvgTile icon="📞" label="Sales Calls" value={fmt(avgStats.salesCalls)} unit="" sub="avg per day" color="#e879f9" />
+            <AvgTile icon="📅" label="Meetings" value={fmt(avgStats.meetings)} unit="" sub="avg booked/day" color="#d946ef" />
+            <AvgTile icon="🏋️" label="Workout Days" value={avgStats.trainedDays ?? '—'} unit="/30" sub="sessions this month" color="#2dd4bf" />
+            <AvgTile icon="🔥" label="Win Rate" value={`${winRatePct}`} unit="%" sub={`${winDaysCount} of ${totalDays} days`} color="#f0c040" />
           </div>
         </div>
-        <div style={{ padding: '0 8px 8px' }}>
-          <OscillationGraph points={winRatePoints} mean={0.5} metricId="daily_win_rate" color="#f0c040" />
-        </div>
-        <div style={{ margin: '0 16px 16px', padding: '12px 16px', background: 'rgba(240,192,64,0.1)', border: '2px solid rgba(240,192,64,0.45)', borderLeft: '5px solid #f0c040', borderRadius: '0 10px 10px 0', boxShadow: '0 0 20px rgba(240,192,64,0.1)' }}>
-          <span style={{ fontFamily: 'Inter', fontSize: 12, color: '#cbd5e1', lineHeight: 1.6 }}>
-            {totalDays < 3 ? 'Log at least 3 days to detect your win pattern.' :
-              winRatePct >= 80 ? `You are winning ${winRatePct}% of days. Elite consistency. Protect the streak.` :
-              winRatePct >= 60 ? `You are winning ${winRatePct}% of days. Good, but there are ${totalDays - winDaysCount} loss days to reclaim.` :
-              `You are winning ${winRatePct}% of days. Your loss days outnumber your wins. Start a new run today.`}
-          </span>
-        </div>
-      </div>
 
-      {/* Metric cards — 2-column grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20, paddingBottom: 40 }}>
-        {metricData.map(({ metric, points, stats, mean }) => {
-          const isCustom = !DEFAULT_METRICS.find(m => m.id === metric.id)
-          const isDailyLoggable = !!DAILY_LOG_FIELDS[metric.id]
-          const color = metric.color || '#6366f1'
-          const showLogPanel = isCustom || isDailyLoggable
+        {/* ── WIN RATE OSCILLATION ── */}
+        <div style={{
+          background: 'rgba(4,6,18,0.7)', backdropFilter: 'blur(40px)',
+          border: '1px solid rgba(240,192,64,0.35)', borderRadius: 20,
+          overflow: 'hidden', marginBottom: 12,
+          boxShadow: '0 0 50px rgba(240,192,64,0.1), 0 4px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(240,192,64,0.08)',
+        }}>
+          <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, #f0c040CC, #fb923c, transparent)', boxShadow: '0 0 12px rgba(240,192,64,0.45)' }} />
+          <div style={{ padding: '18px 22px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(240,192,64,0.12)', border: '1px solid rgba(240,192,64,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🏆</div>
+              <div>
+                <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 12, fontWeight: 700, color: 'white', letterSpacing: '0.06em' }}>DAILY WIN RATE</div>
+                <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#475569', marginTop: 2 }}>{winDaysCount} wins · {totalDays} days logged</div>
+              </div>
+            </div>
+            <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 44, color: '#f0c040', lineHeight: 1, filter: 'drop-shadow(0 0 16px rgba(240,192,64,0.6))' }}>
+              {winRatePct}<span style={{ fontSize: 20 }}>%</span>
+            </div>
+          </div>
+          <div style={{ padding: '0 6px' }}>
+            <OscillationGraph points={winRatePoints} mean={0.5} metricId="win_rate" color="#f0c040" />
+          </div>
+          <div style={{ margin: '6px 14px 14px', padding: '10px 14px', background: 'rgba(240,192,64,0.07)', border: '1px solid rgba(240,192,64,0.25)', borderLeft: '3px solid #f0c040', borderRadius: '0 8px 8px 0' }}>
+            <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#94a3b8', lineHeight: 1.55 }}>
+              {totalDays < 3 ? 'Log at least 3 days to detect your win pattern.' :
+                winRatePct >= 80 ? `Winning ${winRatePct}% of days. Elite consistency. Protect the streak.` :
+                winRatePct >= 60 ? `Winning ${winRatePct}% of days. ${totalDays - winDaysCount} loss days to reclaim.` :
+                `Winning ${winRatePct}% of days. Loss days are outpacing wins. Start a new run today.`}
+            </span>
+          </div>
+        </div>
+
+        {/* ── GROUPED METRIC CARDS ── */}
+        {[...GROUP_ORDER, 'Custom'].map(groupName => {
+          const items = grouped[groupName]
+          if (!items || items.length === 0) return null
+          const gColor = GROUP_COLORS[groupName] || '#6366f1'
           return (
-            <div key={metric.id} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-              <MetricCard
-                metric={metric}
-                points={points}
-                mean={mean}
-                stats={stats}
-                onEdit={isCustom ? () => setEditingMetric(metric) : null}
-                onDelete={isCustom ? () => deleteCustomMetric(metric.id) : null}
-              />
-              {showLogPanel && (
-                <div style={{
-                  padding: '10px 20px',
-                  background: `${color}08`,
-                  border: `2px solid ${color}40`, borderTop: 'none',
-                  borderRadius: '0 0 18px 18px', display: 'flex', gap: 10, alignItems: 'center',
-                }}>
-                  <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#64748b' }}>
-                    Log today ({metric.unit === 'binary' ? 'hrs' : metric.unit}):
-                  </span>
-                  <input
-                    type="number"
-                    value={isDailyLoggable ? (dailyLogInputs[metric.id] || '') : (customLogInputs[metric.id] || '')}
-                    onChange={e => isDailyLoggable
-                      ? setDailyLogInputs(prev => ({ ...prev, [metric.id]: e.target.value }))
-                      : setCustomLogInputs(prev => ({ ...prev, [metric.id]: e.target.value }))}
-                    onKeyDown={e => e.key === 'Enter' && (isDailyLoggable ? logDailyMetric(metric.id) : logCustomValue(metric.id))}
-                    placeholder={`0–${metric.maxVal}`}
-                    style={{ width: 80, background: 'rgba(5,8,20,0.7)', border: `2px solid ${color}50`, borderRadius: 6, padding: '5px 10px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }}
+            <div key={groupName}>
+              <GroupHeader name={groupName} color={gColor} />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, paddingBottom: 8 }}>
+                {items.map(({ metric, points, stats, mean }) => (
+                  <MetricCard
+                    key={metric.id}
+                    metric={metric}
+                    points={points}
+                    mean={mean}
+                    stats={stats}
+                    onDelete={!DEFAULT_METRICS.find(m => m.id === metric.id) ? () => deleteCustomMetric(metric.id) : null}
                   />
-                  <button
-                    onClick={() => isDailyLoggable ? logDailyMetric(metric.id) : logCustomValue(metric.id)}
-                    style={{ padding: '5px 14px', background: `linear-gradient(135deg, ${color}, ${color}BB)`, color: '#fff', border: 'none', borderRadius: 6, fontFamily: 'Inter', fontSize: 11, fontWeight: 700, cursor: 'pointer', boxShadow: `0 0 12px ${color}50` }}
-                  >
-                    Save
-                  </button>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
           )
         })}
-      </div>
+
+        <div style={{ height: 40 }} />
       </div>
 
       {showWinSettings && (
-        <WinDaySettings
-          onClose={() => setShowWinSettings(false)}
-          dailyData={dailyData}
-          bodyData={bodyData}
-          dietData={dietData}
-        />
+        <WinDaySettings onClose={() => setShowWinSettings(false)} dailyData={dailyData} bodyData={bodyData} dietData={dietData} />
       )}
     </div>
   )

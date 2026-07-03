@@ -80,7 +80,7 @@ const DEFAULT_EVENING = [
   { id: 'es_bedtime', category: 'Sleep',        text: 'What time are you going to sleep tonight?',                      type: T.SINGLE,  options: ['Before 9pm','9pm','10pm','10:30pm','11pm','11:30pm','12am','After 12am'], required: false },
   // Non-Negotiables
   { id: 'en7',  category: 'Non-Negotiables',    text: 'Did you complete all your non-negotiables today?',               type: T.BINARY,  required: true },
-  { id: 'en7b', category: 'Non-Negotiables',    text: 'Which ones did you miss?',                                       type: T.MULTI,   options: ['No PMO','Cold Shower','Prayer','Training','Other'], showIf: a => a['en7'] === 'NO', required: false },
+  { id: 'en7b', category: 'Non-Negotiables',    text: 'Which ones did you miss?',                                       type: T.MULTI,   options: ['No PMO','Prayer','Training','Other'], showIf: a => a['en7'] === 'NO', required: false },
   { id: 'en9',  category: 'Non-Negotiables',    text: 'Did you pray today?',                                            type: T.BINARY,  required: true },
   { id: 'en9b', category: 'Non-Negotiables',    text: 'Did you read the Bible today?',                                  type: T.BINARY,  required: true },
   { id: 'em_meditated', category: 'Non-Negotiables', text: 'Did you meditate today?',                                   type: T.BINARY,  required: true },
@@ -223,8 +223,11 @@ function syncToSections(tab, answers, dateStr) {
     if (answers['en9b']        != null) daily.logs[dateStr].readBible = answers['en9b']        === 'YES' ? 1 : 0
     if (answers['em_meditated']!= null) daily.logs[dateStr].meditated = answers['em_meditated']=== 'YES' ? 1 : 0
     if (answers['em_read']     != null) daily.logs[dateStr].mentalRead= answers['em_read']     === 'YES' ? 1 : 0
-    if (answers['ed3']         != null) daily.logs[dateStr].bizHours  = +answers['ed3']
-    if (answers['es_bedtime']  != null) daily.logs[dateStr].bedtime   = answers['es_bedtime']
+    if (answers['ed3']         != null) daily.logs[dateStr].bizHours       = +answers['ed3']
+    if (answers['eb22']        != null) daily.logs[dateStr].salesCalls     = +answers['eb22']
+    if (answers['eb23']        != null) daily.logs[dateStr].meetingsBooked = +answers['eb23']
+    if (answers['er33']        != null) daily.logs[dateStr].pride          = answers['er33']
+    if (answers['es_bedtime']  != null) daily.logs[dateStr].bedtime        = answers['es_bedtime']
 
     if (answers['eb_calories'] != null || answers['eb_protein'] != null) {
       const dietRaw = localStorage.getItem('marko_diet')

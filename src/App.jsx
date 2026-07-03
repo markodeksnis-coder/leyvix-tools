@@ -3,7 +3,6 @@ import Sidebar from './components/Sidebar'
 import Settings from './components/Settings'
 import Record from './pages/Record'
 import Insights from './pages/Insights'
-import Body from './pages/Body'
 import Coach from './pages/Coach'
 import GrowthFeed from './pages/GrowthFeed'
 import LifeCycles from './pages/LifeCycles'
@@ -60,7 +59,6 @@ const PAGES = {
   command: DailyCommand,
   record: Record,
   insights: Insights,
-  body: Body,
   coach: Coach,
   'growth-feed': GrowthFeed,
   'life-cycles': LifeCycles,

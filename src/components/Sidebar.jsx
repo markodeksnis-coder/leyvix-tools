@@ -1,4 +1,4 @@
-import { Sun, Moon, Dumbbell, TrendingUp, Activity, Target, BarChart2, Bot, Settings, Zap, Flag, BookOpen, LayoutDashboard } from 'lucide-react'
+import { Sun, Moon, TrendingUp, Activity, Target, BarChart2, Bot, Settings, Zap, Flag, BookOpen, LayoutDashboard } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { getWinHistory, computeCurrentWinStreak, getWinDaySettings } from '../utils/winLoss'
 import { daysSinceStart } from '../utils'
@@ -7,7 +7,6 @@ const PRIMARY = [
   { id: 'command',     label: 'Command', Icon: LayoutDashboard, color: '#818cf8' },
   { id: 'morning',     label: 'Morning', Icon: Sun,             color: '#f0c040' },
   { id: 'evening',     label: 'Evening', Icon: Moon,            color: '#a78bfa' },
-  { id: 'body',        label: 'Body',    Icon: Dumbbell,        color: '#2dd4bf' },
   { id: 'growth-feed', label: 'Growth',  Icon: TrendingUp,      color: '#34d399' },
   { id: 'life-cycles', label: 'Cycles',  Icon: Activity,        color: '#22d3ee' },
 ]
