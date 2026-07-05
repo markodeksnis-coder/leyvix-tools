@@ -239,6 +239,57 @@ export default function DailyCommand({ onNavigate }) {
     })
   }, [dailyData, todayStr])
 
+  // Habit streak risks — streak length looking backwards from yesterday; flag if today not yet done
+  const streakRisks = useMemo(() => {
+    const items = [
+      { key: 'prayed',     label: 'Prayer',  icon: '🙏', todayDone: todayLog.prayed     === 1 },
+      { key: 'readBible',  label: 'Bible',   icon: '📖', todayDone: todayLog.readBible  === 1 },
+      { key: 'mentalRead', label: 'Reading', icon: '📚', todayDone: todayLog.mentalRead === 1 },
+      { key: 'meditated',  label: 'Meditate',icon: '🧘', todayDone: todayLog.meditated  === 1 },
+    ]
+    const risks = []
+    for (const h of items) {
+      let streak = 0
+      for (let i = 1; i <= 60; i++) {
+        const ds = daysAgo(i)
+        const log = (dailyData.logs || {})[ds] || {}
+        if (log[h.key] === 1) streak++
+        else break
+      }
+      if (streak > 0 && !h.todayDone) risks.push({ ...h, streak })
+    }
+    let wStreak = 0
+    for (let i = 1; i <= 60; i++) {
+      const ds = daysAgo(i)
+      const trained = [...(bodyData?.liftSessions || []), ...(bodyData?.workouts || [])].some(w => w.date === ds)
+      if (trained) wStreak++
+      else break
+    }
+    const todayTrained = [...(bodyData?.liftSessions || []), ...(bodyData?.workouts || [])].some(w => w.date === todayStr)
+    if (wStreak > 0 && !todayTrained) risks.push({ key: 'workout', label: 'Training', icon: '💪', streak: wStreak, todayDone: false })
+    return risks
+  }, [dailyData, bodyData, todayLog, todayStr])
+
+  // Daily brief — yesterday's bottleneck + today's edge
+  const dailyBrief = useMemo(() => {
+    const yLog = (dailyData.logs || {})[daysAgo(1)] || {}
+    const yMetrics = [
+      { label: 'Energy',      val: yLog.energy      != null ? +yLog.energy      : null },
+      { label: 'Day Rating',  val: yLog.dailyRating != null ? +yLog.dailyRating : null },
+      { label: 'Diet Quality',val: yLog.dietQuality != null ? +yLog.dietQuality : null },
+      { label: 'Work Focus',  val: yLog.workOutput  != null ? +yLog.workOutput  : null },
+      { label: 'Sleep Qual',  val: yLog.sleep       != null ? +yLog.sleep       : null },
+    ].filter(m => m.val != null)
+    const bottleneck = yMetrics.length > 0 ? yMetrics.reduce((mn, m) => m.val < mn.val ? m : mn) : null
+    const edgeCandidates = [
+      { label: 'Energy',    val: morningAnswers['me6']  != null ? +morningAnswers['me6']  : null },
+      { label: 'Clarity',   val: morningAnswers['mm12'] != null ? +morningAnswers['mm12'] : null },
+      { label: 'Commitment',val: morningAnswers['mi18'] != null ? +morningAnswers['mi18'] : null },
+    ].filter(m => m.val != null)
+    const edge = edgeCandidates.length > 0 ? edgeCandidates.reduce((mx, m) => m.val > mx.val ? m : mx) : null
+    return { bottleneck, edge }
+  }, [dailyData, morningAnswers])
+
   const dayLabel = `DAY ${String(dayNum).padStart(3, '0')}`
 
   return (
@@ -456,6 +507,57 @@ export default function DailyCommand({ onNavigate }) {
             )}
           </div>
         </div>
+
+        {/* ── DAILY BRIEF ── */}
+        {(dailyBrief.bottleneck || dailyBrief.edge || streakRisks.length > 0 || mit) && (
+          <div className="fade-up delay-2" style={{
+            ...GLASS, padding: '18px 20px', position: 'relative', overflow: 'hidden',
+            border: '2px solid rgba(34,211,238,0.45)',
+            boxShadow: '0 6px 40px rgba(0,0,0,0.55), 0 0 60px rgba(34,211,238,0.08), inset 0 1px 0 rgba(34,211,238,0.12)',
+          }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, transparent, rgba(34,211,238,0.9), rgba(99,102,241,0.7), transparent)' }} />
+            <div style={{ ...LABEL_STYLE, color: CYAN, textShadow: '0 0 12px rgba(34,211,238,0.5)', marginBottom: 14 }}>Daily Brief</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
+              {mit && (
+                <div style={{ padding: '12px 14px', borderRadius: 12, background: `${GOLD}12`, border: `1px solid ${GOLD}50` }}>
+                  <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 8, color: GOLD, letterSpacing: '0.15em', marginBottom: 6 }}>MIT TODAY</div>
+                  <div style={{ fontFamily: 'Inter', fontSize: 12, color: TEXT1, lineHeight: 1.5, fontWeight: 600 }}>{mit}</div>
+                </div>
+              )}
+              {dailyBrief.edge && (
+                <div style={{ padding: '12px 14px', borderRadius: 12, background: `${GREEN}10`, border: `1px solid ${GREEN}40` }}>
+                  <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 8, color: GREEN, letterSpacing: '0.15em', marginBottom: 6 }}>TODAY'S EDGE</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 40, color: GREEN, textShadow: `0 0 20px ${GREEN}88` }}>{dailyBrief.edge.val}</span>
+                    <span style={{ fontFamily: 'Inter', fontSize: 11, color: GREEN, fontWeight: 700 }}>{dailyBrief.edge.label}</span>
+                  </div>
+                </div>
+              )}
+              {dailyBrief.bottleneck && (
+                <div style={{ padding: '12px 14px', borderRadius: 12, background: `${RED}0e`, border: `1px solid ${RED}40` }}>
+                  <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 8, color: RED, letterSpacing: '0.15em', marginBottom: 6 }}>YESTERDAY'S GAP</div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 40, color: RED, textShadow: '0 0 20px rgba(255,85,85,0.5)' }}>{dailyBrief.bottleneck.val}</span>
+                    <span style={{ fontFamily: 'Inter', fontSize: 11, color: RED, fontWeight: 700 }}>{dailyBrief.bottleneck.label}</span>
+                  </div>
+                </div>
+              )}
+              {streakRisks.length > 0 && (
+                <div style={{ padding: '12px 14px', borderRadius: 12, background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.4)' }}>
+                  <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 8, color: '#fb923c', letterSpacing: '0.15em', marginBottom: 8 }}>STREAKS AT RISK</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    {streakRisks.map(r => (
+                      <div key={r.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#fb923c', fontWeight: 600 }}>{r.icon} {r.label}</span>
+                        <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 17, color: '#fb923c' }}>{r.streak}🔥</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* ── TODAY'S PULSE ── */}
         {(todayPulse.energy !== null || todayPulse.sleep !== null || todayPulse.mood !== null) && (

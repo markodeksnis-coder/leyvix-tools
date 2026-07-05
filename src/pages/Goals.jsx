@@ -2,6 +2,19 @@ import { useState, useMemo } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today } from '../utils'
 
+const LINKED_METRICS = [
+  { key: '',               label: '— None —'                },
+  { key: 'energy',        label: 'Energy (0-10)',    unit: '/10'   },
+  { key: 'dailyRating',   label: 'Day Rating (0-10)', unit: '/10'  },
+  { key: 'bizHours',      label: 'Business Hours',   unit: 'hrs'   },
+  { key: 'salesCalls',    label: 'Sales Calls',      unit: '/day'  },
+  { key: 'meetingsBooked',label: 'Meetings Booked',  unit: '/day'  },
+  { key: 'steps',         label: 'Steps',            unit: 'steps' },
+  { key: 'sleepHours',    label: 'Sleep Hours',      unit: 'hrs'   },
+  { key: 'workOutput',    label: 'Work Focus (0-10)', unit: '/10'  },
+  { key: 'dietQuality',   label: 'Diet Quality (0-10)',unit: '/10' },
+]
+
 // ── Color constants ────────────────────────────────────────────────────────────
 const GOLD = '#f0c040'
 const BLUE = '#60a5fa'
@@ -50,6 +63,8 @@ function emptyGoal() {
     milestones: [],
     tasks: [],
     archived: false,
+    linkedMetric: '',
+    metricTarget: null,
   }
 }
 
@@ -199,11 +214,32 @@ function TimelineBar({ pct, milestonePositions, upcomingId }) {
   )
 }
 
+// ── Metric auto-progress ───────────────────────────────────────────────────────
+function getMetricProgress(goal, dailyData) {
+  if (!goal.linkedMetric || goal.metricTarget == null || !dailyData?.logs) return null
+  const logs = dailyData.logs
+  const now = new Date()
+  const vals = []
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(now)
+    d.setDate(d.getDate() - i)
+    const ds = d.toISOString().split('T')[0]
+    const v = (logs[ds] || {})[goal.linkedMetric]
+    if (v != null) vals.push(+v)
+  }
+  if (!vals.length) return null
+  const avg = vals.reduce((a, b) => a + b, 0) / vals.length
+  const pct = Math.min(100, (avg / goal.metricTarget) * 100)
+  const metricInfo = LINKED_METRICS.find(m => m.key === goal.linkedMetric)
+  return { avg, pct, metricInfo, n: vals.length }
+}
+
 // ── Goal Card ──────────────────────────────────────────────────────────────────
-function GoalCard({ goal, onEdit, onArchive, onToggleTask }) {
+function GoalCard({ goal, onEdit, onArchive, onToggleTask, dailyData }) {
   const { pct, daysLeft, milestonePositions, upcomingId } = calcTimeline(goal)
   const catColor = CATEGORY_COLORS[goal.category] || CATEGORY_COLORS.Custom
   const tasks = goal.tasks || []
+  const metricProgress = getMetricProgress(goal, dailyData)
 
   return (
     <div
@@ -255,6 +291,29 @@ function GoalCard({ goal, onEdit, onArchive, onToggleTask }) {
           {goal.target && (
             <div style={{ fontSize: 12, color: TEXT2, marginTop: 2, fontFamily: 'Inter, sans-serif' }}>
               {goal.target}
+            </div>
+          )}
+          {metricProgress && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 9, color: MUTED, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  30d avg — {metricProgress.metricInfo?.label || goal.linkedMetric}
+                </span>
+                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 17, color: metricProgress.pct >= 100 ? GREEN : catColor }}>
+                  {metricProgress.avg.toFixed(1)}
+                  <span style={{ fontSize: 9, color: MUTED, fontWeight: 400 }}> / {goal.metricTarget}{metricProgress.metricInfo?.unit}</span>
+                </span>
+              </div>
+              <div style={{ height: 5, background: 'rgba(99,102,241,0.12)', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%', width: `${metricProgress.pct}%`, borderRadius: 3,
+                  background: metricProgress.pct >= 100 ? GREEN : `linear-gradient(90deg, ${catColor}88, ${catColor})`,
+                  boxShadow: `0 0 8px ${catColor}55`, transition: 'width 0.6s ease',
+                }} />
+              </div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 9, color: MUTED, textAlign: 'right', marginTop: 2 }}>
+                {Math.round(metricProgress.pct)}% of target · {metricProgress.n}d sample
+              </div>
             </div>
           )}
         </div>
@@ -441,6 +500,8 @@ function GoalModal({ goal, onSave, onClose }) {
           milestones: goal.milestones.map(m => ({ ...m })),
           tasks: goal.tasks.map(t => ({ ...t })),
           archived: goal.archived,
+          linkedMetric: goal.linkedMetric || '',
+          metricTarget: goal.metricTarget ?? null,
         }
       : emptyGoal()
   )
@@ -640,6 +701,36 @@ function GoalModal({ goal, onSave, onClose }) {
               }}
             />
           </div>
+        </div>
+
+        {/* Linked Metric */}
+        <div style={{ display: 'grid', gridTemplateColumns: form.linkedMetric ? '1fr 1fr' : '1fr', gap: 12 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 9, fontFamily: 'Inter, sans-serif', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT2, marginBottom: 6 }}>
+              Link to Daily Metric
+            </label>
+            <select
+              value={form.linkedMetric}
+              onChange={e => { setField('linkedMetric', e.target.value); if (!e.target.value) setField('metricTarget', null) }}
+              style={{ width: '100%', background: '#040810', border: `1px solid ${BORDER}`, borderRadius: 6, padding: '8px 12px', fontSize: 13, color: '#fff', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box' }}
+            >
+              {LINKED_METRICS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
+            </select>
+          </div>
+          {form.linkedMetric && (
+            <div>
+              <label style={{ display: 'block', fontSize: 9, fontFamily: 'Inter, sans-serif', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT2, marginBottom: 6 }}>
+                Target Value ({LINKED_METRICS.find(m => m.key === form.linkedMetric)?.unit || ''})
+              </label>
+              <input
+                type="number"
+                placeholder="e.g. 8"
+                value={form.metricTarget ?? ''}
+                onChange={e => setField('metricTarget', e.target.value ? +e.target.value : null)}
+                style={{ width: '100%', background: '#040810', border: `1px solid ${BORDER}`, borderRadius: 6, padding: '8px 12px', fontSize: 13, color: '#fff', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Milestones */}
@@ -850,6 +941,7 @@ function GoalModal({ goal, onSave, onClose }) {
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function Goals() {
   const [goals, setGoals] = useLocalStorage('marko_goals', [])
+  const [dailyData]       = useLocalStorage('marko_daily', { logs: {} })
   const [activeFilter, setActiveFilter] = useState('All')
   const [showModal, setShowModal] = useState(false)
   const [editingGoal, setEditingGoal] = useState(null) // null = new goal
@@ -1064,6 +1156,7 @@ export default function Goals() {
               onEdit={openEdit}
               onArchive={handleArchive}
               onToggleTask={handleToggleTask}
+              dailyData={dailyData}
             />
           ))}
         </div>
