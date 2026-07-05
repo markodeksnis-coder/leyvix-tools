@@ -190,11 +190,8 @@ export default function DailyCommand({ onNavigate }) {
       const calories = diet?.calories || null
       const protein  = diet?.protein  || null
       const steps     = log.steps != null ? +log.steps : null
-      let workoutHours = log.workoutHours != null ? +log.workoutHours : null
-      if (workoutHours == null) {
-        const trained = [...(bodyData?.liftSessions || []), ...(bodyData?.workouts || [])].some(w => w.date === ds)
-        workoutHours = trained ? 1 : null
-      }
+      const trained = [...(bodyData?.liftSessions || []), ...(bodyData?.workouts || [])].some(w => w.date === ds)
+      const workoutHours = trained ? 1 : null
       const bizHours   = log.bizHours    != null ? +log.bizHours    : null
       const sleepHours = log.sleepHours  != null ? +log.sleepHours  : null
 
@@ -989,8 +986,6 @@ export default function DailyCommand({ onNavigate }) {
           </div>
         )}
 
-        {false && null /* Latest Journal removed */}
-        )}
 
         {/* ── EMPTY STATE ── */}
         {!morningDone && !eveningDone && metrics.length === 0 && nonNegs.length === 0 && goals.length === 0 && !latestJournal && (

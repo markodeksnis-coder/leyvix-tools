@@ -218,7 +218,6 @@ function syncToSections(tab, answers, dateStr) {
     if (answers['eb14'] != null) daily.logs[dateStr].dietQuality  = answers['eb14']
     if (answers['em19'] != null) daily.logs[dateStr].stress       = answers['em19']
     if (answers['ed1']  != null) daily.logs[dateStr].dailyRating  = answers['ed1']
-    if (answers['ek27']        != null) daily.logs[dateStr].reading   = answers['ek27']        === 'YES' ? 1 : 0
     if (answers['en9']         != null) daily.logs[dateStr].prayed    = answers['en9']         === 'YES' ? 1 : 0
     if (answers['en9b']        != null) daily.logs[dateStr].readBible = answers['en9b']        === 'YES' ? 1 : 0
     if (answers['em_meditated']!= null) daily.logs[dateStr].meditated = answers['em_meditated']=== 'YES' ? 1 : 0

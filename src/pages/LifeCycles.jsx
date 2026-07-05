@@ -64,7 +64,8 @@ function getMetricValue(metricId, dateStr, dailyData, bodyData, dietData) {
     case 'trained': {
       const hit = [...(bodyData.workouts || []), ...(bodyData.liftSessions || [])].some(w => w.date === dateStr)
       if (hit) return 1
-      return log != null ? 0 : null
+      if (log?.dailyRating != null || log?.steps != null || log?.dietQuality != null) return 0
+      return null
     }
     case 'calories': {
       const h = (dietData.history || []).find(h => h.date === dateStr)

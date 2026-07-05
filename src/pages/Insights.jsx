@@ -166,9 +166,13 @@ export default function Insights() {
     const avg  = arr => arr.length ? arr.reduce((a, b) => a + b) / arr.length : 0
     const pavg = arr => arr.length ? arr.reduce((a, b) => a + b) / arr.length : null
     const recovery = (() => {
-      const e = avg(vals.energy), s = avg(vals.sleep)
-      if (!e && !s) return 0
-      return Math.round(((e / 10) * 0.5 + (s / 10) * 0.5) * 100)
+      const energyAvg = vals.energy.length ? avg(vals.energy) : null
+      const sleepAvg  = vals.sleep.length  ? avg(vals.sleep)  : null
+      if (energyAvg === null && sleepAvg === null) return 0
+      const components = []
+      if (energyAvg !== null) components.push(energyAvg / 10)
+      if (sleepAvg  !== null) components.push(sleepAvg  / 10)
+      return Math.round(components.reduce((a, b) => a + b) / components.length * 100)
     })()
     return {
       energy: avg(vals.energy), mood: avg(vals.mood),
