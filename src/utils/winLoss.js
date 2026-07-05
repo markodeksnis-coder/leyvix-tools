@@ -1,4 +1,5 @@
 // Win/Loss day calculation engine
+import { DATA_START_DATE } from '../utils'
 
 export const DEFAULT_WIN_SETTINGS = {
   threshold: 65,
@@ -112,11 +113,12 @@ export function calcDayScore(dateStr, settings, dailyData, bodyData, dietData) {
   return { passed, available, pct, isWin: available > 0 && pct >= s.threshold, metrics: results }
 }
 
-// Last `days` calendar days
+// Last `days` calendar days, capped at DATA_START_DATE
 export function getWinHistory(days, settings, dailyData, bodyData, dietData) {
   return Array.from({ length: days }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (days - 1 - i))
     const ds = d.toISOString().split('T')[0]
+    if (ds < DATA_START_DATE) return { date: ds, passed: 0, available: 0, pct: 0, isWin: false, metrics: [] }
     return { date: ds, ...calcDayScore(ds, settings, dailyData, bodyData, dietData) }
   })
 }
@@ -169,13 +171,14 @@ export function computeLongestWinStreak(settings, dailyData, bodyData, dietData)
   return longest
 }
 
-// For LifeCycles: 30 data points, win=1, loss=0, no data=null
+// For LifeCycles: 30 data points, win=1, loss=0, no data=null (capped at DATA_START_DATE)
 export function getWinRatePoints(settings, dailyData, bodyData, dietData) {
   return Array.from({ length: 30 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (29 - i))
     const ds = d.toISOString().split('T')[0]
-    const r = calcDayScore(ds, settings, dailyData, bodyData, dietData)
     const label = `${d.getMonth() + 1}/${d.getDate()}`
+    if (ds < DATA_START_DATE) return { date: ds, label, value: null }
+    const r = calcDayScore(ds, settings, dailyData, bodyData, dietData)
     return { date: ds, label, value: r.available > 0 ? (r.isWin ? 1 : 0) : null }
   })
 }

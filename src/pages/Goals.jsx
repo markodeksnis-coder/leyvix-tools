@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { today } from '../utils'
+import { today, DATA_START_DATE } from '../utils'
 
 const LINKED_METRICS = [
   { key: '',               label: '— None —'                },
@@ -16,30 +16,26 @@ const LINKED_METRICS = [
 ]
 
 // ── Color constants ────────────────────────────────────────────────────────────
-const GOLD = '#f0c040'
-const BLUE = '#60a5fa'
-const GREEN = '#2dd4bf'
-const RED = '#ff5555'
-const TEXT2 = '#94a3b8'
-const MUTED = '#64748b'
+const GOLD   = '#f0c040'
+const GREEN  = '#1ad9a0'
+const CYAN   = '#22d3ee'
+const VIOLET = '#8b5cf6'
+const PINK   = '#e879f9'
+const RED    = '#ff5555'
+const TEXT2  = '#94a3b8'
+const MUTED  = '#475569'
 const BORDER = 'rgba(99,102,241,0.18)'
-const CARD = 'rgba(8,12,26,0.65)'
-const BG = 'transparent'
+const BG     = 'transparent'
 
 const CATEGORIES = ['Body', 'Business', 'Mind', 'Daily', 'Custom']
 
 const CATEGORY_COLORS = {
-  Body: GREEN,
-  Business: BLUE,
-  Mind: '#e879f9',
-  Daily: '#a855f7',
-  Custom: '#22d3ee',
+  Body:     GREEN,
+  Business: CYAN,
+  Mind:     VIOLET,
+  Daily:    GOLD,
+  Custom:   PINK,
 }
-
-// ── Input / label class helpers ────────────────────────────────────────────────
-const INPUT_CLS = 'w-full rounded-lg px-3 py-2 text-sm text-white placeholder-[#64748b] focus:outline-none transition-colors' // styled inline
-  'w-full bg-[#040810] border border-[#1e3050] rounded px-3 py-2 text-sm text-white placeholder-[#7a95c0] focus:outline-none focus:border-[#f0c040] transition-colors'
-const LABEL_CLS = 'block text-[9px] font-mono uppercase tracking-widest text-[#a0bcdf] mb-1.5'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 let _nextId = Date.now()
@@ -79,24 +75,22 @@ function emptyTask() {
 // ── Timeline math ──────────────────────────────────────────────────────────────
 function calcTimeline(goal) {
   const start = new Date(goal.startDate + 'T00:00:00')
-  const end = new Date(goal.endDate + 'T00:00:00')
-  const now = new Date()
+  const end   = new Date(goal.endDate + 'T00:00:00')
+  const now   = new Date()
 
-  const totalMs = end - start
+  const totalMs   = end - start
   const elapsedMs = now - start
 
-  const pct = Math.min(100, Math.max(0, (elapsedMs / totalMs) * 100))
-
+  const pct      = Math.min(100, Math.max(0, (elapsedMs / totalMs) * 100))
   const daysLeft = Math.ceil((end - now) / 86400000)
 
   const milestonePositions = (goal.milestones || []).map(m => {
     const mDate = new Date(m.date + 'T00:00:00')
-    const mPct = Math.min(100, Math.max(0, ((mDate - start) / totalMs) * 100))
+    const mPct  = Math.min(100, Math.max(0, ((mDate - start) / totalMs) * 100))
     return { ...m, pct: mPct }
   })
 
-  // Find next upcoming milestone (closest future date not yet achieved)
-  const nowStr = now.toISOString().split('T')[0]
+  const nowStr   = now.toISOString().split('T')[0]
   const upcoming = milestonePositions
     .filter(m => !m.achieved && m.date >= nowStr)
     .sort((a, b) => a.date.localeCompare(b.date))[0]
@@ -104,22 +98,77 @@ function calcTimeline(goal) {
   return { pct, daysLeft, milestonePositions, upcomingId: upcoming?.id ?? null }
 }
 
+// ── Metric auto-progress ───────────────────────────────────────────────────────
+function getMetricProgress(goal, dailyData) {
+  if (!goal.linkedMetric || goal.metricTarget == null || !dailyData?.logs) return null
+  const logs = dailyData.logs
+  const now  = new Date()
+  const vals = []
+  for (let i = 0; i < 30; i++) {
+    const d  = new Date(now)
+    d.setDate(d.getDate() - i)
+    const ds = d.toISOString().split('T')[0]
+    if (ds < DATA_START_DATE) continue // skip dates before data start
+    const v = (logs[ds] || {})[goal.linkedMetric]
+    if (v != null) vals.push(+v)
+  }
+  if (!vals.length) return null
+  const avg        = vals.reduce((a, b) => a + b, 0) / vals.length
+  const pct        = Math.min(100, (avg / goal.metricTarget) * 100)
+  const metricInfo = LINKED_METRICS.find(m => m.key === goal.linkedMetric)
+  return { avg, pct, metricInfo, n: vals.length }
+}
+
+// ── Section header ─────────────────────────────────────────────────────────────
+function SectionHeader({ label, color }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '16px 0 8px' }}>
+      <div style={{
+        width: 6, height: 6, borderRadius: '50%',
+        background: color, boxShadow: `0 0 10px ${color}`,
+        flexShrink: 0,
+      }} />
+      <span style={{
+        fontFamily: '"Orbitron", monospace',
+        fontSize: 10, fontWeight: 700, color,
+        letterSpacing: '0.2em', textTransform: 'uppercase',
+      }}>
+        {label}
+      </span>
+      <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${color}40, transparent)` }} />
+    </div>
+  )
+}
+
 // ── Status badge ───────────────────────────────────────────────────────────────
-function StatusLabel({ daysLeft }) {
+function StatusLabel({ daysLeft, color }) {
   if (daysLeft > 0) {
     return (
-      <div style={{ textAlign: 'center', lineHeight: 1 }}>
-        <div
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontWeight: 900,
-            fontSize: 32,
-            color: GOLD,
-          }}
-        >
+      <div style={{
+        background: `${color}18`,
+        border: `1px solid ${color}40`,
+        borderRadius: 10,
+        padding: '8px 14px',
+        textAlign: 'center',
+        lineHeight: 1,
+      }}>
+        <div style={{
+          fontFamily: '"Barlow Condensed", sans-serif',
+          fontWeight: 900,
+          fontSize: 32,
+          color,
+          filter: `drop-shadow(0 0 10px ${color}70)`,
+          lineHeight: 1,
+        }}>
           {daysLeft}
         </div>
-        <div style={{ fontSize: 9, letterSpacing: '0.1em', color: MUTED, fontFamily: 'Inter, sans-serif' }}>
+        <div style={{
+          fontSize: 8,
+          letterSpacing: '0.15em',
+          color: MUTED,
+          fontFamily: 'Inter, sans-serif',
+          marginTop: 4,
+        }}>
           DAYS LEFT
         </div>
       </div>
@@ -127,61 +176,61 @@ function StatusLabel({ daysLeft }) {
   }
   if (daysLeft === 0) {
     return (
-      <div
-        style={{
-          fontFamily: "'Barlow Condensed', sans-serif",
-          fontWeight: 900,
-          fontSize: 18,
-          color: GREEN,
-        }}
-      >
+      <div style={{
+        background: `${GREEN}18`,
+        border: `1px solid ${GREEN}50`,
+        borderRadius: 10,
+        padding: '8px 14px',
+        fontFamily: '"Barlow Condensed", sans-serif',
+        fontWeight: 900,
+        fontSize: 18,
+        color: GREEN,
+        filter: `drop-shadow(0 0 8px ${GREEN}70)`,
+        textAlign: 'center',
+      }}>
         TODAY
       </div>
     )
   }
-  // past
-  const allAchieved =
-    true // we determine this from the parent; for display just show OVERDUE
   return (
-    <div
-      style={{
-        fontFamily: "'Barlow Condensed', sans-serif",
-        fontWeight: 900,
-        fontSize: 18,
-        color: RED,
-      }}
-    >
+    <div style={{
+      background: `${RED}18`,
+      border: `1px solid ${RED}50`,
+      borderRadius: 10,
+      padding: '8px 14px',
+      fontFamily: '"Barlow Condensed", sans-serif',
+      fontWeight: 900,
+      fontSize: 18,
+      color: RED,
+      textAlign: 'center',
+    }}>
       OVERDUE
     </div>
   )
 }
 
 // ── Progress bar with milestone dots ──────────────────────────────────────────
-function TimelineBar({ pct, milestonePositions, upcomingId }) {
+function TimelineBar({ pct, milestonePositions, upcomingId, color }) {
   return (
     <div style={{ position: 'relative', height: 24, display: 'flex', alignItems: 'center' }}>
       {/* Track */}
-      <div
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          height: 6,
-          background: 'rgba(99,102,241,0.15)',
-          borderRadius: 3,
-          overflow: 'visible',
-        }}
-      >
+      <div style={{
+        position: 'absolute',
+        left: 0, right: 0,
+        height: 6,
+        background: 'rgba(255,255,255,0.06)',
+        borderRadius: 3,
+        overflow: 'visible',
+      }}>
         {/* Fill */}
-        <div
-          style={{
-            width: `${pct}%`,
-            height: '100%',
-            background: BLUE,
-            borderRadius: 3,
-            transition: 'width 0.5s ease',
-          }}
-        />
+        <div style={{
+          width: `${pct}%`,
+          height: '100%',
+          background: color,
+          borderRadius: 3,
+          boxShadow: `0 0 10px ${color}80`,
+          transition: 'width 0.5s ease',
+        }} />
       </div>
 
       {/* Milestone dots */}
@@ -199,12 +248,12 @@ function TimelineBar({ pct, milestonePositions, upcomingId }) {
               height: 10,
               borderRadius: '50%',
               background: m.achieved ? GREEN : GOLD,
-              border: `2px solid ${BG}`,
+              border: `2px solid rgba(4,6,20,0.8)`,
               zIndex: 2,
               cursor: 'default',
               boxShadow: isUpcoming
                 ? `0 0 0 3px ${GOLD}55, 0 0 8px 2px ${GOLD}88`
-                : 'none',
+                : m.achieved ? `0 0 6px ${GREEN}80` : 'none',
               animation: isUpcoming ? 'goalPulse 1.8s ease-in-out infinite' : 'none',
             }}
           />
@@ -214,234 +263,306 @@ function TimelineBar({ pct, milestonePositions, upcomingId }) {
   )
 }
 
-// ── Metric auto-progress ───────────────────────────────────────────────────────
-function getMetricProgress(goal, dailyData) {
-  if (!goal.linkedMetric || goal.metricTarget == null || !dailyData?.logs) return null
-  const logs = dailyData.logs
-  const now = new Date()
-  const vals = []
-  for (let i = 0; i < 30; i++) {
-    const d = new Date(now)
-    d.setDate(d.getDate() - i)
-    const ds = d.toISOString().split('T')[0]
-    const v = (logs[ds] || {})[goal.linkedMetric]
-    if (v != null) vals.push(+v)
-  }
-  if (!vals.length) return null
-  const avg = vals.reduce((a, b) => a + b, 0) / vals.length
-  const pct = Math.min(100, (avg / goal.metricTarget) * 100)
-  const metricInfo = LINKED_METRICS.find(m => m.key === goal.linkedMetric)
-  return { avg, pct, metricInfo, n: vals.length }
-}
-
 // ── Goal Card ──────────────────────────────────────────────────────────────────
 function GoalCard({ goal, onEdit, onArchive, onToggleTask, dailyData }) {
   const { pct, daysLeft, milestonePositions, upcomingId } = calcTimeline(goal)
-  const catColor = CATEGORY_COLORS[goal.category] || CATEGORY_COLORS.Custom
-  const tasks = goal.tasks || []
+  const color          = CATEGORY_COLORS[goal.category] || CATEGORY_COLORS.Custom
+  const tasks          = goal.tasks || []
   const metricProgress = getMetricProgress(goal, dailyData)
 
   return (
-    <div
-      style={{
-        background: CARD,
-        border: `1px solid ${BORDER}`,
-        borderRadius: 16,
-        padding: '16px 20px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 12,
-      }}
-    >
-      {/* Top row: title + status */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Category tag */}
-          <span
-            style={{
+    <div style={{
+      background: 'rgba(4,6,20,0.65)',
+      backdropFilter: 'blur(40px)',
+      WebkitBackdropFilter: 'blur(40px)',
+      border: `1px solid ${color}35`,
+      borderRadius: 18,
+      overflow: 'hidden',
+      boxShadow: `0 0 40px ${color}10, 0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 ${color}12`,
+      display: 'flex',
+      flexDirection: 'column',
+    }}>
+      {/* Top glow hairline */}
+      <div style={{
+        height: 1,
+        background: `linear-gradient(90deg, transparent, ${color}CC, ${color}, ${color}CC, transparent)`,
+        boxShadow: `0 0 12px ${color}80`,
+      }} />
+
+      <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {/* Top row: title + status badge */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Category tag */}
+            <span style={{
               display: 'inline-block',
               fontSize: 9,
               fontFamily: 'Inter, sans-serif',
               fontWeight: 700,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
-              color: catColor,
-              border: `1px solid ${catColor}44`,
+              color,
+              border: `1px solid ${color}44`,
               borderRadius: 4,
               padding: '1px 6px',
-              marginBottom: 6,
-            }}
-          >
-            {goal.category}
-          </span>
+              marginBottom: 7,
+              background: `${color}12`,
+            }}>
+              {goal.category}
+            </span>
 
-          <div
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
+            <div style={{
+              fontFamily: '"Barlow Condensed", sans-serif',
               fontWeight: 900,
-              fontSize: 18,
+              fontSize: 20,
               color: '#fff',
               lineHeight: 1.2,
               wordBreak: 'break-word',
+            }}>
+              {goal.title}
+            </div>
+
+            {goal.target && (
+              <div style={{ fontSize: 12, color: TEXT2, marginTop: 3, fontFamily: 'Inter, sans-serif' }}>
+                {goal.target}
+              </div>
+            )}
+
+            {/* Linked metric progress */}
+            {metricProgress && (
+              <div style={{ marginTop: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                  <span style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 9,
+                    color: MUTED,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                  }}>
+                    {metricProgress.n}d avg · {metricProgress.metricInfo?.label || goal.linkedMetric}
+                  </span>
+                  <span style={{
+                    fontFamily: '"Barlow Condensed", sans-serif',
+                    fontWeight: 900,
+                    fontSize: 18,
+                    color: metricProgress.pct >= 100 ? GREEN : color,
+                    filter: `drop-shadow(0 0 8px ${color}60)`,
+                  }}>
+                    {metricProgress.avg.toFixed(1)}
+                    <span style={{ fontSize: 9, color: MUTED, fontWeight: 400 }}>
+                      {' '}/ {goal.metricTarget}{metricProgress.metricInfo?.unit}
+                    </span>
+                  </span>
+                </div>
+                <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%',
+                    width: `${metricProgress.pct}%`,
+                    borderRadius: 3,
+                    background: metricProgress.pct >= 100 ? GREEN : color,
+                    boxShadow: `0 0 10px ${color}80`,
+                    transition: 'width 0.5s ease',
+                  }} />
+                </div>
+                <div style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 9,
+                  color: MUTED,
+                  textAlign: 'right',
+                  marginTop: 3,
+                }}>
+                  {Math.round(metricProgress.pct)}% of target
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Days remaining */}
+          <div style={{ flexShrink: 0 }}>
+            <StatusLabel daysLeft={daysLeft} color={color} />
+          </div>
+        </div>
+
+        {/* Timeline bar */}
+        <TimelineBar
+          pct={pct}
+          milestonePositions={milestonePositions}
+          upcomingId={upcomingId}
+          color={color}
+        />
+
+        {/* Date labels */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          fontSize: 10,
+          color: MUTED,
+          fontFamily: 'Inter, sans-serif',
+          marginTop: -2,
+        }}>
+          <span>{goal.startDate}</span>
+          <span style={{
+            color,
+            fontWeight: 700,
+            filter: `drop-shadow(0 0 6px ${color}50)`,
+          }}>
+            {Math.round(pct)}% elapsed
+          </span>
+          <span>{goal.endDate}</span>
+        </div>
+
+        {/* Milestones list */}
+        {goal.milestones?.length > 0 && (
+          <>
+            <SectionHeader label="Milestones" color={color} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+              {goal.milestones.map(m => (
+                <div key={m.id} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 12,
+                  fontFamily: 'Inter, sans-serif',
+                  color: m.achieved ? GREEN : TEXT2,
+                }}>
+                  {/* Glowing checkbox circle */}
+                  <div style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: '50%',
+                    border: `2px solid ${m.achieved ? GREEN : `${color}55`}`,
+                    background: m.achieved ? `${GREEN}20` : 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: m.achieved ? `0 0 8px ${GREEN}60` : 'none',
+                  }}>
+                    {m.achieved && (
+                      <div style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background: GREEN,
+                        boxShadow: `0 0 6px ${GREEN}`,
+                      }} />
+                    )}
+                  </div>
+                  <span style={{ flex: 1 }}>{m.description}</span>
+                  <span style={{ color: MUTED, fontSize: 10 }}>{m.date}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Tasks */}
+        {tasks.length > 0 && (
+          <>
+            <SectionHeader label="Tasks" color={color} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+              {tasks.map(task => (
+                <label key={task.id} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+                  <input
+                    type="checkbox"
+                    checked={!!task.completed}
+                    onChange={() => onToggleTask(goal.id, task.id)}
+                    style={{ accentColor: color, width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }}
+                  />
+                  <span style={{
+                    fontSize: 13,
+                    fontFamily: 'Inter, sans-serif',
+                    color: task.completed ? MUTED : '#e2e8f0',
+                    textDecoration: task.completed ? 'line-through' : 'none',
+                    flex: 1,
+                  }}>
+                    {task.text}
+                  </span>
+                  <span style={{
+                    fontSize: 9,
+                    fontFamily: 'Inter, sans-serif',
+                    color: task.frequency === 'daily' ? CYAN : VIOLET,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    fontWeight: 700,
+                    flexShrink: 0,
+                  }}>
+                    {task.frequency}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Action buttons */}
+        <div style={{
+          display: 'flex',
+          gap: 8,
+          marginTop: 6,
+          paddingTop: 12,
+          borderTop: `1px solid ${color}15`,
+        }}>
+          <button
+            onClick={() => onEdit(goal)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              background: `${color}10`,
+              border: `1px solid ${color}35`,
+              borderRadius: 8,
+              color,
+              fontSize: 11,
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 600,
+              padding: '6px 13px',
+              cursor: 'pointer',
+              letterSpacing: '0.05em',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = `${color}20`
+              e.currentTarget.style.boxShadow = `0 0 14px ${color}30`
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = `${color}10`
+              e.currentTarget.style.boxShadow = 'none'
             }}
           >
-            {goal.title}
-          </div>
-
-          {goal.target && (
-            <div style={{ fontSize: 12, color: TEXT2, marginTop: 2, fontFamily: 'Inter, sans-serif' }}>
-              {goal.target}
-            </div>
-          )}
-          {metricProgress && (
-            <div style={{ marginTop: 8 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 9, color: MUTED, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                  30d avg — {metricProgress.metricInfo?.label || goal.linkedMetric}
-                </span>
-                <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 17, color: metricProgress.pct >= 100 ? GREEN : catColor }}>
-                  {metricProgress.avg.toFixed(1)}
-                  <span style={{ fontSize: 9, color: MUTED, fontWeight: 400 }}> / {goal.metricTarget}{metricProgress.metricInfo?.unit}</span>
-                </span>
-              </div>
-              <div style={{ height: 5, background: 'rgba(99,102,241,0.12)', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{
-                  height: '100%', width: `${metricProgress.pct}%`, borderRadius: 3,
-                  background: metricProgress.pct >= 100 ? GREEN : `linear-gradient(90deg, ${catColor}88, ${catColor})`,
-                  boxShadow: `0 0 8px ${catColor}55`, transition: 'width 0.6s ease',
-                }} />
-              </div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 9, color: MUTED, textAlign: 'right', marginTop: 2 }}>
-                {Math.round(metricProgress.pct)}% of target · {metricProgress.n}d sample
-              </div>
-            </div>
-          )}
+            <PencilIcon size={12} /> Edit
+          </button>
+          <button
+            onClick={() => onArchive(goal.id)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              background: 'transparent',
+              border: `1px solid ${MUTED}40`,
+              borderRadius: 8,
+              color: MUTED,
+              fontSize: 11,
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 600,
+              padding: '6px 13px',
+              cursor: 'pointer',
+              letterSpacing: '0.05em',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = MUTED
+              e.currentTarget.style.color = '#e2e8f0'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = `${MUTED}40`
+              e.currentTarget.style.color = MUTED
+            }}
+          >
+            <ArchiveIcon size={12} /> Archive
+          </button>
         </div>
-
-        {/* Days remaining */}
-        <div style={{ flexShrink: 0 }}>
-          <StatusLabel daysLeft={daysLeft} />
-        </div>
-      </div>
-
-      {/* Timeline bar */}
-      <TimelineBar pct={pct} milestonePositions={milestonePositions} upcomingId={upcomingId} />
-
-      {/* Progress label */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: MUTED, fontFamily: 'Inter, sans-serif', marginTop: -4 }}>
-        <span>{goal.startDate}</span>
-        <span style={{ color: BLUE }}>{Math.round(pct)}% elapsed</span>
-        <span>{goal.endDate}</span>
-      </div>
-
-      {/* Milestones list */}
-      {goal.milestones?.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <div style={{ fontSize: 9, letterSpacing: '0.12em', color: MUTED, fontFamily: 'Inter, sans-serif', fontWeight: 700, textTransform: 'uppercase' }}>
-            Milestones
-          </div>
-          {goal.milestones.map(m => (
-            <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontFamily: 'Inter, sans-serif', color: m.achieved ? GREEN : TEXT2 }}>
-              <span style={{ fontSize: 8, color: m.achieved ? GREEN : GOLD }}>
-                {m.achieved ? '●' : '◦'}
-              </span>
-              <span style={{ flex: 1 }}>{m.description}</span>
-              <span style={{ color: MUTED, fontSize: 10 }}>{m.date}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Tasks */}
-      {tasks.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <div style={{ fontSize: 9, letterSpacing: '0.12em', color: MUTED, fontFamily: 'Inter, sans-serif', fontWeight: 700, textTransform: 'uppercase' }}>
-            Tasks
-          </div>
-          {tasks.map(task => (
-            <label
-              key={task.id}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}
-            >
-              <input
-                type="checkbox"
-                checked={!!task.completed}
-                onChange={() => onToggleTask(goal.id, task.id)}
-                style={{ accentColor: GOLD, width: 14, height: 14, cursor: 'pointer', flexShrink: 0 }}
-              />
-              <span
-                style={{
-                  fontSize: 13,
-                  fontFamily: 'Inter, sans-serif',
-                  color: task.completed ? MUTED : '#e2e8f0',
-                  textDecoration: task.completed ? 'line-through' : 'none',
-                  flex: 1,
-                }}
-              >
-                {task.text}
-              </span>
-              <span
-                style={{
-                  fontSize: 9,
-                  fontFamily: 'Inter, sans-serif',
-                  color: task.frequency === 'daily' ? BLUE : '#a855f7',
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  flexShrink: 0,
-                }}
-              >
-                {task.frequency}
-              </span>
-            </label>
-          ))}
-        </div>
-      )}
-
-      {/* Action buttons */}
-      <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-        <button
-          onClick={() => onEdit(goal)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-            background: 'transparent',
-            border: `1px solid ${BORDER}`,
-            borderRadius: 6,
-            color: TEXT2,
-            fontSize: 12,
-            fontFamily: 'Inter, sans-serif',
-            padding: '5px 10px',
-            cursor: 'pointer',
-            transition: 'border-color 0.2s, color 0.2s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.color = GOLD }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.color = TEXT2 }}
-        >
-          <PencilIcon size={12} /> Edit
-        </button>
-        <button
-          onClick={() => onArchive(goal.id)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-            background: 'transparent',
-            border: `1px solid ${BORDER}`,
-            borderRadius: 6,
-            color: TEXT2,
-            fontSize: 12,
-            fontFamily: 'Inter, sans-serif',
-            padding: '5px 10px',
-            cursor: 'pointer',
-            transition: 'border-color 0.2s, color 0.2s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = MUTED; e.currentTarget.style.color = '#e2e8f0' }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.color = TEXT2 }}
-        >
-          <ArchiveIcon size={12} /> Archive
-        </button>
       </div>
     </div>
   )
@@ -487,19 +608,46 @@ function TrashIcon({ size = 13 }) {
   )
 }
 
+// ── Shared input style factory ─────────────────────────────────────────────────
+const inputStyle = (accentColor = BORDER) => ({
+  width: '100%',
+  background: 'rgba(4,6,20,0.8)',
+  border: `1px solid ${accentColor}35`,
+  borderRadius: 8,
+  padding: '9px 12px',
+  fontSize: 14,
+  color: '#fff',
+  fontFamily: 'Inter, sans-serif',
+  outline: 'none',
+  boxSizing: 'border-box',
+  colorScheme: 'dark',
+  transition: 'border-color 0.2s',
+})
+
+const labelStyle = {
+  display: 'block',
+  fontSize: 9,
+  fontFamily: '"Orbitron", monospace',
+  fontWeight: 700,
+  letterSpacing: '0.16em',
+  textTransform: 'uppercase',
+  color: MUTED,
+  marginBottom: 6,
+}
+
 // ── Add/Edit modal ─────────────────────────────────────────────────────────────
 function GoalModal({ goal, onSave, onClose }) {
   const [form, setForm] = useState(() =>
     goal
       ? {
-          title: goal.title,
-          category: goal.category,
-          target: goal.target,
-          startDate: goal.startDate,
-          endDate: goal.endDate,
-          milestones: goal.milestones.map(m => ({ ...m })),
-          tasks: goal.tasks.map(t => ({ ...t })),
-          archived: goal.archived,
+          title:        goal.title,
+          category:     goal.category,
+          target:       goal.target,
+          startDate:    goal.startDate,
+          endDate:      goal.endDate,
+          milestones:   goal.milestones.map(m => ({ ...m })),
+          tasks:        goal.tasks.map(t => ({ ...t })),
+          archived:     goal.archived,
           linkedMetric: goal.linkedMetric || '',
           metricTarget: goal.metricTarget ?? null,
         }
@@ -509,14 +657,14 @@ function GoalModal({ goal, onSave, onClose }) {
   const setField = (field, value) => setForm(f => ({ ...f, [field]: value }))
 
   // Milestones
-  const addMilestone = () => setForm(f => ({ ...f, milestones: [...f.milestones, emptyMilestone()] }))
+  const addMilestone    = () => setForm(f => ({ ...f, milestones: [...f.milestones, emptyMilestone()] }))
   const updateMilestone = (id, field, value) =>
     setForm(f => ({ ...f, milestones: f.milestones.map(m => m.id === id ? { ...m, [field]: value } : m) }))
   const deleteMilestone = id =>
     setForm(f => ({ ...f, milestones: f.milestones.filter(m => m.id !== id) }))
 
   // Tasks
-  const addTask = () => setForm(f => ({ ...f, tasks: [...f.tasks, emptyTask()] }))
+  const addTask    = () => setForm(f => ({ ...f, tasks: [...f.tasks, emptyTask()] }))
   const updateTask = (id, field, value) =>
     setForm(f => ({ ...f, tasks: f.tasks.map(t => t.id === id ? { ...t, [field]: value } : t) }))
   const deleteTask = id =>
@@ -527,13 +675,15 @@ function GoalModal({ goal, onSave, onClose }) {
     onSave(form)
   }
 
+  const color = CATEGORY_COLORS[form.category] || CATEGORY_COLORS.Custom
+
   return (
     <div
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.75)',
-        backdropFilter: 'blur(6px)',
+        background: 'rgba(0,0,0,0.80)',
+        backdropFilter: 'blur(8px)',
         zIndex: 50,
         display: 'flex',
         alignItems: 'center',
@@ -542,396 +692,353 @@ function GoalModal({ goal, onSave, onClose }) {
       }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div
-        style={{
-          background: CARD,
-          border: `1px solid ${BORDER}`,
-          borderRadius: 14,
-          width: '100%',
-          maxWidth: 520,
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          padding: '24px 28px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 18,
-        }}
-      >
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
+      <div style={{
+        background: 'rgba(4,6,20,0.92)',
+        backdropFilter: 'blur(40px)',
+        WebkitBackdropFilter: 'blur(40px)',
+        border: `1px solid ${color}40`,
+        borderRadius: 18,
+        boxShadow: `0 0 60px ${color}18, 0 8px 48px rgba(0,0,0,0.8)`,
+        width: '100%',
+        maxWidth: 520,
+        maxHeight: '90vh',
+        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}>
+        {/* Modal top glow hairline */}
+        <div style={{
+          height: 1,
+          background: `linear-gradient(90deg, transparent, ${color}CC, ${color}, ${color}CC, transparent)`,
+          boxShadow: `0 0 12px ${color}80`,
+          flexShrink: 0,
+        }} />
+
+        <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 18, overflowY: 'auto' }}>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{
+              fontFamily: '"Orbitron", monospace',
               fontWeight: 900,
-              fontSize: 20,
-              color: '#fff',
-              letterSpacing: '0.04em',
-            }}
-          >
-            {goal ? 'EDIT GOAL' : 'NEW GOAL'}
-          </div>
-          <button
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', color: MUTED, cursor: 'pointer', padding: 4, lineHeight: 1 }}
-          >
-            <XIcon size={18} />
-          </button>
-        </div>
-
-        {/* Title */}
-        <div>
-          <label className={LABEL_CLS} style={{ display: 'block', fontSize: 9, fontFamily: 'Inter, sans-serif', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT2, marginBottom: 6 }}>
-            Title *
-          </label>
-          <input
-            type="text"
-            placeholder="e.g. Reach 78kg body weight"
-            value={form.title}
-            onChange={e => setField('title', e.target.value)}
-            style={{
-              width: '100%',
-              background: '#040810',
-              border: `1px solid ${BORDER}`,
-              borderRadius: 6,
-              padding: '8px 12px',
-              fontSize: 14,
-              color: '#fff',
-              fontFamily: 'Inter, sans-serif',
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
-          />
-        </div>
-
-        {/* Category */}
-        <div>
-          <label style={{ display: 'block', fontSize: 9, fontFamily: 'Inter, sans-serif', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT2, marginBottom: 6 }}>
-            Category
-          </label>
-          <select
-            value={form.category}
-            onChange={e => setField('category', e.target.value)}
-            style={{
-              width: '100%',
-              background: '#040810',
-              border: `1px solid ${BORDER}`,
-              borderRadius: 6,
-              padding: '8px 12px',
-              fontSize: 14,
-              color: '#fff',
-              fontFamily: 'Inter, sans-serif',
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
-          >
-            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-
-        {/* Target description */}
-        <div>
-          <label style={{ display: 'block', fontSize: 9, fontFamily: 'Inter, sans-serif', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT2, marginBottom: 6 }}>
-            Target description
-          </label>
-          <input
-            type="text"
-            placeholder="What does success look like?"
-            value={form.target}
-            onChange={e => setField('target', e.target.value)}
-            style={{
-              width: '100%',
-              background: '#040810',
-              border: `1px solid ${BORDER}`,
-              borderRadius: 6,
-              padding: '8px 12px',
-              fontSize: 14,
-              color: '#fff',
-              fontFamily: 'Inter, sans-serif',
-              outline: 'none',
-              boxSizing: 'border-box',
-            }}
-          />
-        </div>
-
-        {/* Dates */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div>
-            <label style={{ display: 'block', fontSize: 9, fontFamily: 'Inter, sans-serif', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT2, marginBottom: 6 }}>
-              Start Date
-            </label>
-            <input
-              type="date"
-              value={form.startDate}
-              onChange={e => setField('startDate', e.target.value)}
-              style={{
-                width: '100%',
-                background: '#040810',
-                border: `1px solid ${BORDER}`,
-                borderRadius: 6,
-                padding: '8px 10px',
-                fontSize: 13,
-                color: '#fff',
-                fontFamily: 'Inter, sans-serif',
-                outline: 'none',
-                boxSizing: 'border-box',
-                colorScheme: 'dark',
-              }}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: 9, fontFamily: 'Inter, sans-serif', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT2, marginBottom: 6 }}>
-              End Date
-            </label>
-            <input
-              type="date"
-              value={form.endDate}
-              onChange={e => setField('endDate', e.target.value)}
-              style={{
-                width: '100%',
-                background: '#040810',
-                border: `1px solid ${BORDER}`,
-                borderRadius: 6,
-                padding: '8px 10px',
-                fontSize: 13,
-                color: '#fff',
-                fontFamily: 'Inter, sans-serif',
-                outline: 'none',
-                boxSizing: 'border-box',
-                colorScheme: 'dark',
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Linked Metric */}
-        <div style={{ display: 'grid', gridTemplateColumns: form.linkedMetric ? '1fr 1fr' : '1fr', gap: 12 }}>
-          <div>
-            <label style={{ display: 'block', fontSize: 9, fontFamily: 'Inter, sans-serif', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT2, marginBottom: 6 }}>
-              Link to Daily Metric
-            </label>
-            <select
-              value={form.linkedMetric}
-              onChange={e => { setField('linkedMetric', e.target.value); if (!e.target.value) setField('metricTarget', null) }}
-              style={{ width: '100%', background: '#040810', border: `1px solid ${BORDER}`, borderRadius: 6, padding: '8px 12px', fontSize: 13, color: '#fff', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box' }}
+              fontSize: 16,
+              color,
+              letterSpacing: '0.12em',
+              filter: `drop-shadow(0 0 10px ${color}60)`,
+            }}>
+              {goal ? 'EDIT GOAL' : 'NEW GOAL'}
+            </div>
+            <button
+              onClick={onClose}
+              style={{ background: 'none', border: 'none', color: MUTED, cursor: 'pointer', padding: 4, lineHeight: 1 }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#e2e8f0' }}
+              onMouseLeave={e => { e.currentTarget.style.color = MUTED }}
             >
-              {LINKED_METRICS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
+              <XIcon size={18} />
+            </button>
+          </div>
+
+          {/* Title */}
+          <div>
+            <label style={labelStyle}>Title *</label>
+            <input
+              type="text"
+              placeholder="e.g. Reach 78kg body weight"
+              value={form.title}
+              onChange={e => setField('title', e.target.value)}
+              style={{ ...inputStyle(color), borderColor: `${color}40` }}
+              onFocus={e => { e.currentTarget.style.borderColor = color }}
+              onBlur={e => { e.currentTarget.style.borderColor = `${color}40` }}
+            />
+          </div>
+
+          {/* Category */}
+          <div>
+            <label style={labelStyle}>Category</label>
+            <select
+              value={form.category}
+              onChange={e => setField('category', e.target.value)}
+              style={{ ...inputStyle(color), borderColor: `${color}40` }}
+            >
+              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
-          {form.linkedMetric && (
+
+          {/* Target description */}
+          <div>
+            <label style={labelStyle}>Target description</label>
+            <input
+              type="text"
+              placeholder="What does success look like?"
+              value={form.target}
+              onChange={e => setField('target', e.target.value)}
+              style={{ ...inputStyle(color), borderColor: `${color}30` }}
+              onFocus={e => { e.currentTarget.style.borderColor = color }}
+              onBlur={e => { e.currentTarget.style.borderColor = `${color}30` }}
+            />
+          </div>
+
+          {/* Dates */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
-              <label style={{ display: 'block', fontSize: 9, fontFamily: 'Inter, sans-serif', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT2, marginBottom: 6 }}>
-                Target Value ({LINKED_METRICS.find(m => m.key === form.linkedMetric)?.unit || ''})
-              </label>
+              <label style={labelStyle}>Start Date</label>
               <input
-                type="number"
-                placeholder="e.g. 8"
-                value={form.metricTarget ?? ''}
-                onChange={e => setField('metricTarget', e.target.value ? +e.target.value : null)}
-                style={{ width: '100%', background: '#040810', border: `1px solid ${BORDER}`, borderRadius: 6, padding: '8px 12px', fontSize: 13, color: '#fff', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box' }}
+                type="date"
+                value={form.startDate}
+                onChange={e => setField('startDate', e.target.value)}
+                style={{ ...inputStyle(color), borderColor: `${color}30`, fontSize: 13 }}
               />
             </div>
-          )}
-        </div>
-
-        {/* Milestones */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <label style={{ fontSize: 9, fontFamily: 'Inter, sans-serif', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT2 }}>
-              Milestones
-            </label>
-            <button
-              onClick={addMilestone}
-              style={{
-                background: `${GOLD}18`,
-                border: `1px solid ${GOLD}44`,
-                borderRadius: 6,
-                color: GOLD,
-                fontSize: 11,
-                fontFamily: 'Inter, sans-serif',
-                fontWeight: 600,
-                padding: '3px 10px',
-                cursor: 'pointer',
-              }}
-            >
-              + Add Milestone
-            </button>
+            <div>
+              <label style={labelStyle}>End Date</label>
+              <input
+                type="date"
+                value={form.endDate}
+                onChange={e => setField('endDate', e.target.value)}
+                style={{ ...inputStyle(color), borderColor: `${color}30`, fontSize: 13 }}
+              />
+            </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {form.milestones.map(m => (
-              <div key={m.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+
+          {/* Linked Metric */}
+          <div style={{ display: 'grid', gridTemplateColumns: form.linkedMetric ? '1fr 1fr' : '1fr', gap: 12 }}>
+            <div>
+              <label style={labelStyle}>Link to Daily Metric</label>
+              <select
+                value={form.linkedMetric}
+                onChange={e => {
+                  setField('linkedMetric', e.target.value)
+                  if (!e.target.value) setField('metricTarget', null)
+                }}
+                style={{ ...inputStyle(color), borderColor: `${color}30`, fontSize: 13 }}
+              >
+                {LINKED_METRICS.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
+              </select>
+            </div>
+            {form.linkedMetric && (
+              <div>
+                <label style={labelStyle}>
+                  Target Value ({LINKED_METRICS.find(m => m.key === form.linkedMetric)?.unit || ''})
+                </label>
                 <input
-                  type="date"
-                  value={m.date}
-                  onChange={e => updateMilestone(m.id, 'date', e.target.value)}
-                  style={{
-                    background: '#040810',
-                    border: `1px solid ${BORDER}`,
-                    borderRadius: 6,
-                    padding: '6px 8px',
-                    fontSize: 12,
-                    color: '#fff',
-                    fontFamily: 'Inter, sans-serif',
-                    outline: 'none',
-                    width: 130,
-                    flexShrink: 0,
-                    colorScheme: 'dark',
-                  }}
+                  type="number"
+                  placeholder="e.g. 8"
+                  value={form.metricTarget ?? ''}
+                  onChange={e => setField('metricTarget', e.target.value ? +e.target.value : null)}
+                  style={{ ...inputStyle(color), borderColor: `${color}30`, fontSize: 13 }}
                 />
-                <input
-                  type="text"
-                  placeholder="Description"
-                  value={m.description}
-                  onChange={e => updateMilestone(m.id, 'description', e.target.value)}
-                  style={{
-                    flex: 1,
-                    background: '#040810',
-                    border: `1px solid ${BORDER}`,
-                    borderRadius: 6,
-                    padding: '6px 10px',
-                    fontSize: 12,
-                    color: '#fff',
-                    fontFamily: 'Inter, sans-serif',
-                    outline: 'none',
-                  }}
-                />
-                <button
-                  onClick={() => deleteMilestone(m.id)}
-                  style={{ background: 'none', border: 'none', color: MUTED, cursor: 'pointer', padding: 4, lineHeight: 1, flexShrink: 0 }}
-                  onMouseEnter={e => { e.currentTarget.style.color = RED }}
-                  onMouseLeave={e => { e.currentTarget.style.color = MUTED }}
-                >
-                  <TrashIcon size={13} />
-                </button>
-              </div>
-            ))}
-            {form.milestones.length === 0 && (
-              <div style={{ fontSize: 12, color: MUTED, fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>
-                No milestones yet.
               </div>
             )}
           </div>
-        </div>
 
-        {/* Tasks */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <label style={{ fontSize: 9, fontFamily: 'Inter, sans-serif', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: TEXT2 }}>
-              Tasks
-            </label>
+          {/* Milestones */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <label style={labelStyle}>Milestones</label>
+              <button
+                onClick={addMilestone}
+                style={{
+                  background: `${GOLD}15`,
+                  border: `1px solid ${GOLD}44`,
+                  borderRadius: 7,
+                  color: GOLD,
+                  fontSize: 11,
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 700,
+                  padding: '4px 11px',
+                  cursor: 'pointer',
+                  letterSpacing: '0.04em',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = `${GOLD}25`; e.currentTarget.style.boxShadow = `0 0 10px ${GOLD}30` }}
+                onMouseLeave={e => { e.currentTarget.style.background = `${GOLD}15`; e.currentTarget.style.boxShadow = 'none' }}
+              >
+                + Add Milestone
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {form.milestones.map(m => (
+                <div key={m.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <input
+                    type="date"
+                    value={m.date}
+                    onChange={e => updateMilestone(m.id, 'date', e.target.value)}
+                    style={{
+                      background: 'rgba(4,6,20,0.8)',
+                      border: `1px solid ${MUTED}40`,
+                      borderRadius: 7,
+                      padding: '7px 8px',
+                      fontSize: 12,
+                      color: '#fff',
+                      fontFamily: 'Inter, sans-serif',
+                      outline: 'none',
+                      width: 130,
+                      flexShrink: 0,
+                      colorScheme: 'dark',
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Description"
+                    value={m.description}
+                    onChange={e => updateMilestone(m.id, 'description', e.target.value)}
+                    style={{
+                      flex: 1,
+                      background: 'rgba(4,6,20,0.8)',
+                      border: `1px solid ${MUTED}40`,
+                      borderRadius: 7,
+                      padding: '7px 10px',
+                      fontSize: 12,
+                      color: '#fff',
+                      fontFamily: 'Inter, sans-serif',
+                      outline: 'none',
+                    }}
+                  />
+                  <button
+                    onClick={() => deleteMilestone(m.id)}
+                    style={{ background: 'none', border: 'none', color: MUTED, cursor: 'pointer', padding: 4, lineHeight: 1, flexShrink: 0 }}
+                    onMouseEnter={e => { e.currentTarget.style.color = RED }}
+                    onMouseLeave={e => { e.currentTarget.style.color = MUTED }}
+                  >
+                    <TrashIcon size={13} />
+                  </button>
+                </div>
+              ))}
+              {form.milestones.length === 0 && (
+                <div style={{ fontSize: 12, color: MUTED, fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>
+                  No milestones yet.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Tasks */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <label style={labelStyle}>Tasks</label>
+              <button
+                onClick={addTask}
+                style={{
+                  background: `${CYAN}15`,
+                  border: `1px solid ${CYAN}44`,
+                  borderRadius: 7,
+                  color: CYAN,
+                  fontSize: 11,
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 700,
+                  padding: '4px 11px',
+                  cursor: 'pointer',
+                  letterSpacing: '0.04em',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = `${CYAN}25`; e.currentTarget.style.boxShadow = `0 0 10px ${CYAN}30` }}
+                onMouseLeave={e => { e.currentTarget.style.background = `${CYAN}15`; e.currentTarget.style.boxShadow = 'none' }}
+              >
+                + Add Task
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {form.tasks.map(t => (
+                <div key={t.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Task description"
+                    value={t.text}
+                    onChange={e => updateTask(t.id, 'text', e.target.value)}
+                    style={{
+                      flex: 1,
+                      background: 'rgba(4,6,20,0.8)',
+                      border: `1px solid ${MUTED}40`,
+                      borderRadius: 7,
+                      padding: '7px 10px',
+                      fontSize: 12,
+                      color: '#fff',
+                      fontFamily: 'Inter, sans-serif',
+                      outline: 'none',
+                    }}
+                  />
+                  <select
+                    value={t.frequency}
+                    onChange={e => updateTask(t.id, 'frequency', e.target.value)}
+                    style={{
+                      background: 'rgba(4,6,20,0.8)',
+                      border: `1px solid ${MUTED}40`,
+                      borderRadius: 7,
+                      padding: '7px 8px',
+                      fontSize: 12,
+                      color: '#fff',
+                      fontFamily: 'Inter, sans-serif',
+                      outline: 'none',
+                      width: 82,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                  </select>
+                  <button
+                    onClick={() => deleteTask(t.id)}
+                    style={{ background: 'none', border: 'none', color: MUTED, cursor: 'pointer', padding: 4, lineHeight: 1, flexShrink: 0 }}
+                    onMouseEnter={e => { e.currentTarget.style.color = RED }}
+                    onMouseLeave={e => { e.currentTarget.style.color = MUTED }}
+                  >
+                    <TrashIcon size={13} />
+                  </button>
+                </div>
+              ))}
+              {form.tasks.length === 0 && (
+                <div style={{ fontSize: 12, color: MUTED, fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>
+                  No tasks yet.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Save / Cancel */}
+          <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
             <button
-              onClick={addTask}
+              onClick={onClose}
               style={{
-                background: `${BLUE}18`,
-                border: `1px solid ${BLUE}44`,
-                borderRadius: 6,
-                color: BLUE,
-                fontSize: 11,
+                flex: 1,
+                background: 'transparent',
+                border: `1px solid ${MUTED}50`,
+                borderRadius: 10,
+                color: TEXT2,
+                fontSize: 14,
                 fontFamily: 'Inter, sans-serif',
-                fontWeight: 600,
-                padding: '3px 10px',
+                padding: '11px 0',
                 cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = MUTED; e.currentTarget.style.color = '#e2e8f0' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = `${MUTED}50`; e.currentTarget.style.color = TEXT2 }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={!form.title.trim()}
+              style={{
+                flex: 1,
+                background: form.title.trim()
+                  ? `linear-gradient(135deg, ${color}, ${color}cc)`
+                  : `${color}33`,
+                border: 'none',
+                borderRadius: 10,
+                color: form.title.trim() ? '#0d0b06' : `${color}88`,
+                fontSize: 14,
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 700,
+                padding: '11px 0',
+                cursor: form.title.trim() ? 'pointer' : 'not-allowed',
+                boxShadow: form.title.trim() ? `0 0 20px ${color}40` : 'none',
+                transition: 'all 0.2s',
+                letterSpacing: '0.04em',
               }}
             >
-              + Add Task
+              {goal ? 'Save Changes' : 'Create Goal'}
             </button>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {form.tasks.map(t => (
-              <div key={t.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input
-                  type="text"
-                  placeholder="Task description"
-                  value={t.text}
-                  onChange={e => updateTask(t.id, 'text', e.target.value)}
-                  style={{
-                    flex: 1,
-                    background: '#040810',
-                    border: `1px solid ${BORDER}`,
-                    borderRadius: 6,
-                    padding: '6px 10px',
-                    fontSize: 12,
-                    color: '#fff',
-                    fontFamily: 'Inter, sans-serif',
-                    outline: 'none',
-                  }}
-                />
-                <select
-                  value={t.frequency}
-                  onChange={e => updateTask(t.id, 'frequency', e.target.value)}
-                  style={{
-                    background: '#040810',
-                    border: `1px solid ${BORDER}`,
-                    borderRadius: 6,
-                    padding: '6px 8px',
-                    fontSize: 12,
-                    color: '#fff',
-                    fontFamily: 'Inter, sans-serif',
-                    outline: 'none',
-                    width: 80,
-                    flexShrink: 0,
-                  }}
-                >
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                </select>
-                <button
-                  onClick={() => deleteTask(t.id)}
-                  style={{ background: 'none', border: 'none', color: MUTED, cursor: 'pointer', padding: 4, lineHeight: 1, flexShrink: 0 }}
-                  onMouseEnter={e => { e.currentTarget.style.color = RED }}
-                  onMouseLeave={e => { e.currentTarget.style.color = MUTED }}
-                >
-                  <TrashIcon size={13} />
-                </button>
-              </div>
-            ))}
-            {form.tasks.length === 0 && (
-              <div style={{ fontSize: 12, color: MUTED, fontFamily: 'Inter, sans-serif', fontStyle: 'italic' }}>
-                No tasks yet.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Buttons */}
-        <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
-          <button
-            onClick={onClose}
-            style={{
-              flex: 1,
-              background: 'transparent',
-              border: `1px solid ${BORDER}`,
-              borderRadius: 8,
-              color: TEXT2,
-              fontSize: 14,
-              fontFamily: 'Inter, sans-serif',
-              padding: '10px 0',
-              cursor: 'pointer',
-              transition: 'border-color 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = MUTED }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = BORDER }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={!form.title.trim()}
-            style={{
-              flex: 1,
-              background: form.title.trim() ? GOLD : `${GOLD}55`,
-              border: 'none',
-              borderRadius: 8,
-              color: form.title.trim() ? '#0d0b06' : '#6b5a2a',
-              fontSize: 14,
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 700,
-              padding: '10px 0',
-              cursor: form.title.trim() ? 'pointer' : 'not-allowed',
-              transition: 'background 0.2s',
-            }}
-          >
-            {goal ? 'Save Changes' : 'Create Goal'}
-          </button>
         </div>
       </div>
     </div>
@@ -940,11 +1047,11 @@ function GoalModal({ goal, onSave, onClose }) {
 
 // ── Main page ──────────────────────────────────────────────────────────────────
 export default function Goals() {
-  const [goals, setGoals] = useLocalStorage('marko_goals', [])
-  const [dailyData]       = useLocalStorage('marko_daily', { logs: {} })
+  const [goals, setGoals]   = useLocalStorage('marko_goals', [])
+  const [dailyData]         = useLocalStorage('marko_daily', { logs: {} })
   const [activeFilter, setActiveFilter] = useState('All')
-  const [showModal, setShowModal] = useState(false)
-  const [editingGoal, setEditingGoal] = useState(null) // null = new goal
+  const [showModal, setShowModal]       = useState(false)
+  const [editingGoal, setEditingGoal]   = useState(null)
 
   const activeGoals = useMemo(
     () => (goals || []).filter(g => !g.archived),
@@ -959,21 +1066,12 @@ export default function Goals() {
     [activeGoals, activeFilter]
   )
 
-  const openAdd = () => {
-    setEditingGoal(null)
-    setShowModal(true)
-  }
-
-  const openEdit = goal => {
-    setEditingGoal(goal)
-    setShowModal(true)
-  }
+  const openAdd  = () => { setEditingGoal(null); setShowModal(true) }
+  const openEdit = goal => { setEditingGoal(goal); setShowModal(true) }
 
   const handleSave = formData => {
     if (editingGoal) {
-      setGoals(prev =>
-        (prev || []).map(g => g.id === editingGoal.id ? { ...g, ...formData } : g)
-      )
+      setGoals(prev => (prev || []).map(g => g.id === editingGoal.id ? { ...g, ...formData } : g))
     } else {
       const newGoal = { ...formData, id: uid(), archived: false }
       setGoals(prev => [...(prev || []), newGoal])
@@ -991,12 +1089,7 @@ export default function Goals() {
       (prev || []).map(g =>
         g.id !== goalId
           ? g
-          : {
-              ...g,
-              tasks: (g.tasks || []).map(t =>
-                t.id === taskId ? { ...t, completed: !t.completed } : t
-              ),
-            }
+          : { ...g, tasks: (g.tasks || []).map(t => t.id === taskId ? { ...t, completed: !t.completed } : t) }
       )
     )
   }
@@ -1012,54 +1105,62 @@ export default function Goals() {
       `}</style>
 
       {/* ── Header ── */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28, gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32, gap: 16 }}>
         <div>
-          <h1
-            style={{
-              fontFamily: "'Orbitron', 'Barlow Condensed', sans-serif",
-              fontWeight: 900,
-              fontStyle: 'italic',
-              fontSize: 48,
-              margin: 0,
-              lineHeight: 1,
-              background: `linear-gradient(90deg, ${GOLD} 0%, ${BLUE} 100%)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}
-          >
-            GOALS &amp; MILESTONES
+          <h1 style={{
+            fontFamily: '"Orbitron", monospace',
+            fontSize: 44,
+            fontWeight: 900,
+            background: 'linear-gradient(135deg, #f0c040 0%, #e879f9 55%, #8b5cf6 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            letterSpacing: '0.02em',
+            margin: 0,
+            lineHeight: 1,
+          }}>
+            GOALS
           </h1>
-          <p
-            style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: 11,
-              letterSpacing: '0.14em',
-              color: MUTED,
-              margin: '8px 0 0',
-              textTransform: 'uppercase',
-            }}
-          >
+          <p style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: 11,
+            letterSpacing: '0.16em',
+            color: MUTED,
+            margin: '10px 0 0',
+            textTransform: 'uppercase',
+            fontWeight: 600,
+          }}>
             SET TARGETS · TRACK MILESTONES · COMPOUND DAILY
           </p>
         </div>
 
+        {/* Add Goal button — gradient glow style */}
         <button
           onClick={openAdd}
           style={{
-            background: GOLD,
+            background: 'linear-gradient(135deg, #f0c040 0%, #e879f9 100%)',
             border: 'none',
-            borderRadius: 8,
+            borderRadius: 10,
             color: '#0d0b06',
             fontSize: 13,
             fontFamily: 'Inter, sans-serif',
-            fontWeight: 700,
-            padding: '10px 18px',
+            fontWeight: 800,
+            padding: '11px 20px',
             cursor: 'pointer',
             flexShrink: 0,
-            letterSpacing: '0.04em',
+            letterSpacing: '0.06em',
             whiteSpace: 'nowrap',
-            marginTop: 6,
+            marginTop: 4,
+            boxShadow: '0 0 24px #f0c04040, 0 4px 16px rgba(0,0,0,0.4)',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.boxShadow = '0 0 36px #f0c04060, 0 4px 20px rgba(0,0,0,0.5)'
+            e.currentTarget.style.transform = 'translateY(-1px)'
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.boxShadow = '0 0 24px #f0c04040, 0 4px 16px rgba(0,0,0,0.4)'
+            e.currentTarget.style.transform = 'none'
           }}
         >
           + Add Goal
@@ -1070,24 +1171,25 @@ export default function Goals() {
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 28 }}>
         {['All', ...CATEGORIES].map(cat => {
           const isActive = activeFilter === cat
-          const color = cat === 'All' ? GOLD : (CATEGORY_COLORS[cat] || CATEGORY_COLORS.Custom)
+          const color    = cat === 'All' ? GOLD : (CATEGORY_COLORS[cat] || CATEGORY_COLORS.Custom)
           return (
             <button
               key={cat}
               onClick={() => setActiveFilter(cat)}
               style={{
                 background: isActive ? `${color}22` : 'transparent',
-                border: `1px solid ${isActive ? color : BORDER}`,
+                border: `1px solid ${isActive ? color : `${MUTED}50`}`,
                 borderRadius: 20,
                 color: isActive ? color : MUTED,
                 fontSize: 11,
                 fontFamily: 'Inter, sans-serif',
                 fontWeight: 700,
-                letterSpacing: '0.08em',
+                letterSpacing: '0.1em',
                 textTransform: 'uppercase',
-                padding: '5px 14px',
+                padding: '5px 15px',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
+                boxShadow: isActive ? `0 0 12px ${color}30` : 'none',
               }}
             >
               {cat}
@@ -1098,25 +1200,21 @@ export default function Goals() {
 
       {/* ── Goals grid / empty state ── */}
       {filteredGoals.length === 0 ? (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: 320,
-            gap: 12,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontWeight: 900,
-              fontSize: 28,
-              color: BORDER,
-              letterSpacing: '0.12em',
-            }}
-          >
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: 320,
+          gap: 12,
+        }}>
+          <div style={{
+            fontFamily: '"Barlow Condensed", sans-serif',
+            fontWeight: 900,
+            fontSize: 28,
+            color: `${MUTED}60`,
+            letterSpacing: '0.12em',
+          }}>
             NO ACTIVE GOALS
           </div>
           <div style={{ fontSize: 13, color: MUTED, fontFamily: 'Inter, sans-serif' }}>
@@ -1126,29 +1224,28 @@ export default function Goals() {
             onClick={openAdd}
             style={{
               marginTop: 8,
-              background: `${GOLD}18`,
-              border: `1px solid ${GOLD}55`,
-              borderRadius: 8,
+              background: `${GOLD}15`,
+              border: `1px solid ${GOLD}50`,
+              borderRadius: 10,
               color: GOLD,
               fontSize: 13,
               fontFamily: 'Inter, sans-serif',
               fontWeight: 700,
-              padding: '9px 20px',
+              padding: '10px 22px',
               cursor: 'pointer',
-              letterSpacing: '0.04em',
+              letterSpacing: '0.05em',
+              boxShadow: `0 0 16px ${GOLD}20`,
             }}
           >
             + Add Goal
           </button>
         </div>
       ) : (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-            gap: 18,
-          }}
-        >
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+          gap: 18,
+        }}>
           {filteredGoals.map(goal => (
             <GoalCard
               key={goal.id}

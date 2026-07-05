@@ -47,7 +47,6 @@ initSeedData()
       if (a['em19'] != null && log.stress      == null) log.stress      = +a['em19']
       if (a['ed1']  != null && log.dailyRating == null) log.dailyRating = +a['ed1']
       if (a['en8']  != null && log.coldShower  == null) log.coldShower  = a['en8'] === 'YES' ? 1 : 0
-      if (a['ek27'] != null && log.reading     == null) log.reading     = a['ek27'] === 'YES' ? 1 : 0
     })
 
     localStorage.setItem('marko_daily', JSON.stringify(daily))
