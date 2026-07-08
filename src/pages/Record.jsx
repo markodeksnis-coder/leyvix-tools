@@ -7,45 +7,51 @@ import { Trophy } from 'lucide-react'
 import WeeklyReview from '../components/WeeklyReview'
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
-const BG          = '#020609'
-const SURF        = '#040810'
-const CARD_BG     = '#080e1a'
-const CARD_BORDER = '#1e3050'
-const GOLD        = '#f0c040'
-const CYAN        = '#22d3ee'
-const BLUE        = '#4d9fff'
-const GREEN       = '#1ad9a0'
-const PURPLE      = '#8b5cf6'
-const PINK        = '#e879f9'
-const RED         = '#f43f5e'
-const TEXT2       = '#a0bcdf'
-const MUTED       = '#7a95c0'
-const WIN_GOLD    = '#f0c040'
-const LOSS_RED    = '#ff5555'
+const GOLD   = '#f0c040'
+const INDIGO = '#818cf8'
+const VIOLET = '#a78bfa'
+const CYAN   = '#22d3ee'
+const TEAL   = '#2dd4bf'
+const GREEN  = '#10b981'
+const RED    = '#ff5555'
+const PINK   = '#e879f9'
+const BLUE   = '#60a5fa'
+const TEXT1  = '#e2e8f0'
+const TEXT2  = '#94a3b8'
+const MUTED  = '#64748b'
+const DARK   = '#334155'
 
-const LABEL_STYLE = {
-  fontFamily: 'Inter, sans-serif',
-  fontSize: 9,
-  fontWeight: 600,
-  letterSpacing: '0.3em',
-  textTransform: 'uppercase',
-  color: TEXT2,
+const WIN_GOLD  = GOLD
+const LOSS_RED  = RED
+
+const CARD_STYLE = {
+  background: 'rgba(8,12,26,0.65)',
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  border: '1px solid rgba(99,102,241,0.18)',
+  borderRadius: 16,
 }
 
-const HEADING_STYLE = {
-  fontFamily: '"Orbitron", "Space Grotesk", sans-serif',
+const LABEL_STYLE = {
+  fontFamily: '"Orbitron", monospace',
+  fontSize: 9,
   fontWeight: 700,
+  color: MUTED,
+  letterSpacing: '0.28em',
   textTransform: 'uppercase',
+  marginBottom: 12,
 }
 
 const TOOLTIP_PROPS = {
   contentStyle: {
-    background: '#080e1a',
-    border: '1px solid #1e3050',
+    background: 'rgba(8,12,26,0.9)',
+    border: '1px solid rgba(99,102,241,0.2)',
+    borderRadius: 8,
     fontSize: 10,
     fontFamily: 'Inter, sans-serif',
+    color: TEXT2,
   },
-  labelStyle: { color: '#a0bcdf' },
+  labelStyle: { color: TEXT2 },
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -168,12 +174,12 @@ function Pill({ children, color }) {
       background: `${color}18`,
       border: `1px solid ${color}40`,
       borderRadius: 999,
-      padding: '4px 10px',
-      fontFamily: 'Inter, sans-serif',
-      fontSize: 11,
+      padding: '5px 12px',
+      fontFamily: '"Orbitron", monospace',
+      fontSize: 10,
       fontWeight: 700,
       color,
-      letterSpacing: '0.05em',
+      letterSpacing: '0.08em',
     }}>
       {children}
     </div>
@@ -183,22 +189,34 @@ function Pill({ children, color }) {
 function StatBlock({ accent, label, value, delta, valueFontOverride }) {
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #0d1628 0%, #080e1a 100%)',
-      border: '1px solid #1e3050',
-      boxShadow: '0 0 0 1px rgba(30,48,80,0.8), inset 0 1px 0 rgba(30,48,80,0.4)',
+      ...CARD_STYLE,
       borderTop: `2px solid ${accent}`,
-      padding: 16,
+      padding: '18px 16px 14px',
       flex: 1,
       minWidth: 0,
+      position: 'relative',
+      overflow: 'hidden',
     }}>
+      {/* subtle glow behind value */}
+      <div style={{
+        position: 'absolute',
+        top: -20,
+        right: -20,
+        width: 80,
+        height: 80,
+        background: `${accent}14`,
+        borderRadius: '50%',
+        filter: 'blur(20px)',
+        pointerEvents: 'none',
+      }} />
       <div style={{ ...LABEL_STYLE, marginBottom: 8 }}>{label}</div>
       <div style={{
-        fontFamily: valueFontOverride ?? '"Orbitron", "Space Grotesk", sans-serif',
+        fontFamily: valueFontOverride ?? '"Barlow Condensed", sans-serif',
         fontWeight: 900,
-        textTransform: 'uppercase',
-        fontSize: 44,
+        fontSize: 48,
         lineHeight: 1,
         color: accent,
+        textShadow: `0 0 24px ${accent}55`,
         marginBottom: 6,
       }}>
         {value}
@@ -218,23 +236,22 @@ function StatBlock({ accent, label, value, delta, valueFontOverride }) {
 function GraphBox({ title, footer, children }) {
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #0d1628 0%, #080e1a 100%)',
-      border: '1px solid #1e3050',
-      boxShadow: '0 0 0 1px rgba(30,48,80,0.8), inset 0 1px 0 rgba(30,48,80,0.4)',
-      padding: 16,
+      ...CARD_STYLE,
+      padding: 18,
       display: 'flex',
       flexDirection: 'column',
-      minHeight: 220,
+      minHeight: 230,
     }}>
-      <div style={{ ...LABEL_STYLE, marginBottom: 12 }}>{title}</div>
+      <div style={{ ...LABEL_STYLE }}>{title}</div>
       <div style={{ flex: 1, minHeight: 120 }}>
         {children}
       </div>
       <div style={{
-        marginTop: 12,
+        marginTop: 10,
         fontFamily: 'Inter, sans-serif',
         fontSize: 10,
-        color: TEXT2,
+        color: MUTED,
+        letterSpacing: '0.04em',
       }}>
         {footer}
       </div>
@@ -250,24 +267,54 @@ function EmptyState() {
       justifyContent: 'center',
       height: '100%',
       minHeight: 100,
-      fontFamily: 'Inter, sans-serif',
-      fontSize: 10,
+      fontFamily: '"Orbitron", monospace',
+      fontSize: 9,
       color: MUTED,
-      letterSpacing: '0.1em',
+      letterSpacing: '0.2em',
     }}>
       START LOGGING TO SEE DATA
     </div>
   )
 }
 
-function TrophyCard({ label, value, unit, date, accent = '#f0c040' }) {
+function TrophyCard({ label, value, unit, date, accent = GOLD }) {
   if (value === null || value === undefined || value === 0) return null
   return (
-    <div style={{ background: 'linear-gradient(135deg, #0d1628 0%, #080e1a 100%)', border: '1px solid #1e3050', borderTop: `2px solid ${accent}`, padding: 16, position: 'relative', minWidth: 0 }}>
-      <Trophy size={14} color={accent} style={{ position: 'absolute', top: 12, right: 12 }} />
-      <div style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#a0bcdf', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>{label}</div>
-      <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 35, color: accent, lineHeight: 1 }}>{value}{unit ? <span style={{ fontSize: 16, marginLeft: 4, color: '#7a95c0' }}>{unit}</span> : null}</div>
-      {date && <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#7a95c0', marginTop: 4 }}>{date}</div>}
+    <div style={{
+      ...CARD_STYLE,
+      borderTop: `2px solid ${accent}`,
+      padding: 18,
+      position: 'relative',
+      minWidth: 0,
+      overflow: 'hidden',
+    }}>
+      {/* glow */}
+      <div style={{
+        position: 'absolute',
+        top: -10,
+        right: -10,
+        width: 60,
+        height: 60,
+        background: `${accent}18`,
+        borderRadius: '50%',
+        filter: 'blur(16px)',
+        pointerEvents: 'none',
+      }} />
+      <Trophy size={13} color={accent} style={{ position: 'absolute', top: 14, right: 14, opacity: 0.8 }} />
+      <div style={{ ...LABEL_STYLE, marginBottom: 8, color: MUTED }}>{label}</div>
+      <div style={{
+        fontFamily: '"Barlow Condensed", sans-serif',
+        fontWeight: 900,
+        fontSize: 38,
+        color: accent,
+        lineHeight: 1,
+        textShadow: `0 0 20px ${accent}44`,
+      }}>
+        {value}{unit ? <span style={{ fontSize: 16, marginLeft: 4, color: MUTED }}>{unit}</span> : null}
+      </div>
+      {date && (
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: MUTED, marginTop: 6 }}>{date}</div>
+      )}
     </div>
   )
 }
@@ -651,69 +698,85 @@ export default function Record() {
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div style={{
-      background: BG,
+      background: 'transparent',
       minHeight: '100%',
+      overflowY: 'auto',
       display: 'flex',
       flexDirection: 'column',
-      gap: 1,
+      gap: 0,
     }}>
-      {/* ── TopBar ── */}
+      {/* ── Page Header ── */}
       <div style={{
-        background: SURF,
-        borderBottom: `1px solid ${CARD_BORDER}`,
-        padding: '12px 20px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        ...CARD_STYLE,
+        borderRadius: 0,
+        borderLeft: 'none',
+        borderRight: 'none',
+        borderTop: 'none',
+        borderBottom: '1px solid rgba(99,102,241,0.18)',
+        background: 'rgba(8,12,26,0.80)',
+        padding: '0 20px 0',
         flexShrink: 0,
+        position: 'relative',
+        overflow: 'hidden',
       }}>
-        {/* Left */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <div style={{ ...LABEL_STYLE }}>{dateDisplay}</div>
-          <div style={{
-            fontFamily: '"Orbitron", sans-serif',
-            fontWeight: 900,
-            fontSize: 22,
-            textTransform: 'uppercase',
-            background: 'linear-gradient(135deg, #8b5cf6, #22d3ee)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-            lineHeight: 1,
-          }}>
-            THE RECORD
-          </div>
-          {/* View toggle */}
-          <div style={{ display: 'flex', gap: 16, marginTop: 4 }}>
-            {['dashboard', 'records', 'heatmap'].map(v => (
-              <button
-                key={v}
-                onClick={() => setView(v)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  borderBottom: view === v ? `2px solid ${WIN_GOLD}` : '2px solid transparent',
-                  padding: '2px 0',
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: 9,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.12em',
-                  color: view === v ? WIN_GOLD : MUTED,
-                  cursor: 'pointer',
-                  transition: 'color 0.15s, border-color 0.15s',
-                }}
-              >
-                {v === 'dashboard' ? 'DASHBOARD' : v === 'records' ? 'RECORDS' : 'HEATMAP'}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* top accent line */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 2,
+          background: `linear-gradient(90deg, ${GOLD}, ${VIOLET}, transparent)`,
+        }} />
 
-        {/* Right: pills */}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <Pill color={GOLD}>🔥 {streak}d</Pill>
-          <Pill color={CYAN}>{todayTotal > 0 ? `${todayPct}%` : '—'}</Pill>
+        <div style={{ paddingTop: 16, paddingBottom: 12, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+          {/* Left */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ ...LABEL_STYLE, marginBottom: 0 }}>{dateDisplay}</div>
+            <div style={{
+              fontFamily: '"Orbitron", monospace',
+              fontWeight: 900,
+              fontSize: 26,
+              textTransform: 'uppercase',
+              color: GOLD,
+              textShadow: `0 0 32px ${GOLD}66`,
+              letterSpacing: '0.12em',
+              lineHeight: 1,
+            }}>
+              RECORD
+            </div>
+            {/* View toggle */}
+            <div style={{ display: 'flex', gap: 20, marginTop: 6 }}>
+              {['dashboard', 'records', 'heatmap'].map(v => (
+                <button
+                  key={v}
+                  onClick={() => setView(v)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    borderBottom: view === v ? `2px solid ${GOLD}` : '2px solid transparent',
+                    padding: '3px 0',
+                    fontFamily: '"Orbitron", monospace',
+                    fontSize: 9,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.2em',
+                    color: view === v ? GOLD : MUTED,
+                    cursor: 'pointer',
+                    transition: 'color 0.15s, border-color 0.15s',
+                  }}
+                >
+                  {v === 'dashboard' ? 'DASHBOARD' : v === 'records' ? 'RECORDS' : 'HEATMAP'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Right: pills */}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', paddingBottom: 28 }}>
+            <Pill color={GOLD}>🔥 {streak}d</Pill>
+            <Pill color={CYAN}>{todayTotal > 0 ? `${todayPct}%` : '—'}</Pill>
+          </div>
         </div>
       </div>
 
@@ -721,22 +784,42 @@ export default function Record() {
       {/* DASHBOARD VIEW                                                        */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {view === 'dashboard' && (
-        <>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '14px 14px 24px' }}>
           {/* Weekly Review Banner */}
           {showWeeklyBanner && (
-            <div style={{ background: 'linear-gradient(135deg, #f0c04018, #f0c04008)', border: '1px solid #f0c04040', borderLeft: '3px solid #f0c040', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+            <div className="fade-up delay-0" style={{
+              ...CARD_STYLE,
+              borderLeft: `3px solid ${GOLD}`,
+              padding: '14px 18px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: `linear-gradient(135deg, rgba(240,192,64,0.08), rgba(240,192,64,0.03))`,
+            }}>
               <div>
-                <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 12, color: '#f0c040', letterSpacing: '0.1em' }}>WEEKLY REVIEW READY</div>
-                <div style={{ fontFamily: 'Inter', fontSize: 11, color: '#a0bcdf', marginTop: 3 }}>Sunday review session — 10-15 minutes</div>
+                <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 11, color: GOLD, letterSpacing: '0.12em', marginBottom: 4 }}>WEEKLY REVIEW READY</div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: TEXT2 }}>Sunday review session — 10-15 minutes</div>
               </div>
-              <button onClick={() => setShowWeeklyReview(true)} style={{ padding: '8px 18px', background: '#f0c040', color: '#000', border: 'none', borderRadius: 6, fontFamily: 'Inter', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer' }}>
+              <button onClick={() => setShowWeeklyReview(true)} style={{
+                padding: '9px 20px',
+                background: `linear-gradient(135deg, ${GOLD}, #fb923c)`,
+                color: '#000',
+                border: 'none',
+                borderRadius: 8,
+                fontFamily: '"Orbitron", monospace',
+                fontSize: 9,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.12em',
+                cursor: 'pointer',
+              }}>
                 Begin Review
               </button>
             </div>
           )}
 
           {/* ── 5 Stat Blocks ── */}
-          <div style={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+          <div className="fade-up delay-1" style={{ display: 'flex', gap: 10 }}>
             <StatBlock
               accent={GOLD}
               label="DAY STREAK"
@@ -756,13 +839,13 @@ export default function Record() {
               delta="goal: 10/wk"
             />
             <StatBlock
-              accent={PURPLE}
+              accent={VIOLET}
               label="CALORIES TODAY"
               value={caloriesToday > 0 ? caloriesToday : '—'}
               delta={`target: ${calTarget}kcal`}
             />
             <StatBlock
-              accent={WIN_GOLD}
+              accent={GOLD}
               label="WIN STREAK"
               value={winStreak}
               delta={`best: ${longestWinStreak}d`}
@@ -771,30 +854,27 @@ export default function Record() {
           </div>
 
           {/* ── 30-Day Win Calendar ── */}
-          <div style={{
-            background: 'linear-gradient(135deg, #0d1628 0%, #080e1a 100%)',
-            border: '1px solid #1e3050',
-            boxShadow: '0 0 0 1px rgba(30,48,80,0.8), inset 0 1px 0 rgba(30,48,80,0.4)',
-            padding: '16px 20px',
-            flexShrink: 0,
+          <div className="fade-up delay-2" style={{
+            ...CARD_STYLE,
+            padding: '18px 20px',
           }}>
-            <div style={{ ...LABEL_STYLE, marginBottom: 12 }}>30-DAY WIN CALENDAR</div>
+            <div style={{ ...LABEL_STYLE }}>30-DAY WIN CALENDAR</div>
 
             {/* Calendar grid + tooltip wrapper */}
             <div style={{ position: 'relative' }}>
               {/* Squares */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                 {winHistory30.map((day) => {
                   const isToday = day.date === todayStr
                   const hasData = day.available > 0
 
                   let bgColor
                   if (!hasData) {
-                    bgColor = '#080e1a'
+                    bgColor = 'rgba(99,102,241,0.06)'
                   } else if (day.isWin) {
                     bgColor = WIN_GOLD
                   } else {
-                    bgColor = 'rgba(239,68,68,0.7)'
+                    bgColor = 'rgba(255,85,85,0.6)'
                   }
 
                   return (
@@ -805,12 +885,19 @@ export default function Record() {
                       style={{
                         width: 28,
                         height: 28,
-                        borderRadius: 4,
+                        borderRadius: 6,
                         background: bgColor,
-                        border: isToday ? `2px solid ${WIN_GOLD}` : '2px solid transparent',
+                        border: isToday
+                          ? `2px solid ${GOLD}`
+                          : hasData && day.isWin
+                            ? '1px solid rgba(240,192,64,0.3)'
+                            : hasData
+                              ? '1px solid rgba(255,85,85,0.25)'
+                              : '1px solid rgba(99,102,241,0.12)',
                         cursor: 'default',
                         flexShrink: 0,
                         transition: 'opacity 0.1s',
+                        boxShadow: isToday ? `0 0 8px ${GOLD}55` : hasData && day.isWin ? `0 0 6px ${GOLD}22` : 'none',
                       }}
                     />
                   )
@@ -824,22 +911,23 @@ export default function Record() {
                   top: 36,
                   left: 0,
                   zIndex: 10,
-                  background: '#080e1a',
-                  border: `1px solid ${hoveredDay.available > 0 && hoveredDay.isWin ? WIN_GOLD : hoveredDay.available > 0 ? LOSS_RED : '#1e3050'}`,
-                  borderRadius: 6,
-                  padding: '8px 12px',
+                  background: 'rgba(8,12,26,0.95)',
+                  border: `1px solid ${hoveredDay.available > 0 && hoveredDay.isWin ? WIN_GOLD + '55' : hoveredDay.available > 0 ? LOSS_RED + '44' : 'rgba(99,102,241,0.2)'}`,
+                  borderRadius: 10,
+                  padding: '10px 14px',
                   pointerEvents: 'none',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 4,
-                  minWidth: 120,
+                  minWidth: 130,
+                  backdropFilter: 'blur(12px)',
                 }}>
                   <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: TEXT2, letterSpacing: '0.05em' }}>
                     {hoveredDay.date}
                   </div>
                   {hoveredDay.available > 0 ? (
                     <>
-                      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 18, color: hoveredDay.isWin ? WIN_GOLD : LOSS_RED, letterSpacing: '0.05em' }}>
+                      <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 20, color: hoveredDay.isWin ? WIN_GOLD : LOSS_RED, letterSpacing: '0.05em', textShadow: hoveredDay.isWin ? `0 0 12px ${WIN_GOLD}55` : `0 0 12px ${LOSS_RED}44` }}>
                         {hoveredDay.isWin ? 'WIN' : 'LOSS'}
                       </div>
                       <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: MUTED }}>
@@ -858,22 +946,36 @@ export default function Record() {
             {/* Below calendar: Best Win Streak + Loss Streak */}
             <div style={{
               display: 'flex',
-              gap: 20,
-              marginTop: hoveredDay ? 60 : 14,
+              gap: 24,
+              marginTop: hoveredDay ? 62 : 16,
               alignItems: 'center',
               transition: 'margin-top 0.1s',
             }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <div style={{ ...LABEL_STYLE }}>BEST WIN STREAK</div>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 31, lineHeight: 1, color: WIN_GOLD }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <div style={{ ...LABEL_STYLE, marginBottom: 0 }}>BEST WIN STREAK</div>
+                <div style={{
+                  fontFamily: '"Barlow Condensed", sans-serif',
+                  fontWeight: 900,
+                  fontSize: 52,
+                  lineHeight: 1,
+                  color: WIN_GOLD,
+                  textShadow: `0 0 28px ${WIN_GOLD}66`,
+                }}>
                   {longestWinStreak}d
                 </div>
               </div>
 
               {lossStreak > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <div style={{ ...LABEL_STYLE }}>LOSS STREAK</div>
-                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: 31, lineHeight: 1, color: LOSS_RED }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <div style={{ ...LABEL_STYLE, marginBottom: 0 }}>LOSS STREAK</div>
+                  <div style={{
+                    fontFamily: '"Barlow Condensed", sans-serif',
+                    fontWeight: 900,
+                    fontSize: 52,
+                    lineHeight: 1,
+                    color: LOSS_RED,
+                    textShadow: `0 0 28px ${LOSS_RED}55`,
+                  }}>
                     {lossStreak}d
                   </div>
                 </div>
@@ -882,7 +984,7 @@ export default function Record() {
           </div>
 
           {/* ── 2×2 Graph Grid ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+          <div className="fade-up delay-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
 
             {/* Graph 1: Weight — 14 days */}
             <GraphBox
@@ -893,17 +995,17 @@ export default function Record() {
                 <>
                   <ResponsiveContainer width="100%" height={140}>
                     <BarChart data={weightData} margin={{ top: 4, right: 4, bottom: 0, left: -24 }}>
-                      <XAxis dataKey="day" tick={{ fill: TEXT2, fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: TEXT2, fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
+                      <XAxis dataKey="day" tick={{ fill: MUTED, fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: MUTED, fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
                       <Tooltip {...TOOLTIP_PROPS} />
-                      <Bar dataKey="weight" radius={[1, 1, 0, 0]}>
+                      <Bar dataKey="weight" radius={[3, 3, 0, 0]}>
                         {weightData.map((entry, i) => (
-                          <Cell key={i} fill={entry.isToday ? GOLD : CYAN} />
+                          <Cell key={i} fill={entry.isToday ? GOLD : CYAN} fillOpacity={entry.isToday ? 1 : 0.75} />
                         ))}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
-                  <div style={{ ...HEADING_STYLE, fontSize: 24, color: CYAN, marginTop: 4 }}>
+                  <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 26, color: CYAN, marginTop: 4, textShadow: `0 0 16px ${CYAN}44` }}>
                     {latestWeight != null ? `${latestWeight} kg` : '—'}
                   </div>
                 </>
@@ -921,13 +1023,13 @@ export default function Record() {
                 <>
                   <ResponsiveContainer width="100%" height={140}>
                     <BarChart data={callsData} margin={{ top: 4, right: 4, bottom: 0, left: -24 }}>
-                      <XAxis dataKey="day" tick={{ fill: TEXT2, fontSize: 8, fontFamily: 'Inter' }} axisLine={false} tickLine={false} interval={4} />
-                      <YAxis tick={{ fill: TEXT2, fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} allowDecimals={false} />
+                      <XAxis dataKey="day" tick={{ fill: MUTED, fontSize: 8, fontFamily: 'Inter' }} axisLine={false} tickLine={false} interval={4} />
+                      <YAxis tick={{ fill: MUTED, fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} allowDecimals={false} />
                       <Tooltip {...TOOLTIP_PROPS} />
-                      <Bar dataKey="count" fill={GREEN} radius={[1, 1, 0, 0]} />
+                      <Bar dataKey="count" fill={GREEN} radius={[3, 3, 0, 0]} fillOpacity={0.85} />
                     </BarChart>
                   </ResponsiveContainer>
-                  <div style={{ ...HEADING_STYLE, fontSize: 24, color: GREEN, marginTop: 4 }}>
+                  <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 26, color: GREEN, marginTop: 4, textShadow: `0 0 16px ${GREEN}44` }}>
                     {callsMonthTotal}
                   </div>
                 </>
@@ -945,13 +1047,13 @@ export default function Record() {
                 <>
                   <ResponsiveContainer width="100%" height={140}>
                     <BarChart data={proteinData} margin={{ top: 4, right: 4, bottom: 0, left: -24 }}>
-                      <XAxis dataKey="day" tick={{ fill: TEXT2, fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: TEXT2, fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} domain={[0, 'auto']} />
+                      <XAxis dataKey="day" tick={{ fill: MUTED, fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: MUTED, fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} domain={[0, 'auto']} />
                       <Tooltip {...TOOLTIP_PROPS} />
-                      <Bar dataKey="protein" fill={PURPLE} radius={[1, 1, 0, 0]} />
+                      <Bar dataKey="protein" fill={VIOLET} radius={[3, 3, 0, 0]} fillOpacity={0.85} />
                     </BarChart>
                   </ResponsiveContainer>
-                  <div style={{ ...HEADING_STYLE, fontSize: 24, color: PURPLE, marginTop: 4 }}>
+                  <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 26, color: VIOLET, marginTop: 4, textShadow: `0 0 16px ${VIOLET}44` }}>
                     avg {proteinAvg}g
                   </div>
                 </>
@@ -969,17 +1071,17 @@ export default function Record() {
                 <>
                   <ResponsiveContainer width="100%" height={140}>
                     <BarChart data={scoreData} margin={{ top: 4, right: 4, bottom: 0, left: -24 }}>
-                      <XAxis dataKey="day" tick={{ fill: TEXT2, fontSize: 8, fontFamily: 'Inter' }} axisLine={false} tickLine={false} interval={6} />
-                      <YAxis tick={{ fill: TEXT2, fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} domain={[0, 100]} />
+                      <XAxis dataKey="day" tick={{ fill: MUTED, fontSize: 8, fontFamily: 'Inter' }} axisLine={false} tickLine={false} interval={6} />
+                      <YAxis tick={{ fill: MUTED, fontSize: 9, fontFamily: 'Inter' }} axisLine={false} tickLine={false} domain={[0, 100]} />
                       <Tooltip {...TOOLTIP_PROPS} />
-                      <Bar dataKey="score" radius={[1, 1, 0, 0]}>
+                      <Bar dataKey="score" radius={[3, 3, 0, 0]}>
                         {scoreData.map((entry, i) => (
-                          <Cell key={i} fill={GOLD} fillOpacity={entry.opacity} />
+                          <Cell key={i} fill={GOLD} fillOpacity={entry.opacity * 0.85} />
                         ))}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
-                  <div style={{ ...HEADING_STYLE, fontSize: 24, color: GOLD, marginTop: 4 }}>
+                  <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 26, color: GOLD, marginTop: 4, textShadow: `0 0 16px ${GOLD}44` }}>
                     avg {scoreAvg}%
                   </div>
                 </>
@@ -992,20 +1094,26 @@ export default function Record() {
 
           {/* ── Goals Widget ── */}
           {activeGoals.length > 0 && (
-            <div style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 16, flexShrink: 0 }}>
-              <div style={{ ...LABEL_STYLE, marginBottom: 12 }}>ACTIVE GOALS</div>
-              <div style={{ display: 'flex', gap: 8 }}>
+            <div className="fade-up delay-4" style={{ ...CARD_STYLE, padding: 18 }}>
+              <div style={{ ...LABEL_STYLE }}>ACTIVE GOALS</div>
+              <div style={{ display: 'flex', gap: 10 }}>
                 {activeGoals.slice(0, 2).map(g => {
                   const total = (new Date(g.endDate) - new Date(g.startDate)) / 86400000
                   const elapsed = (new Date() - new Date(g.startDate)) / 86400000
                   const pct = Math.min(100, Math.max(0, Math.round(elapsed / total * 100)))
                   const daysLeft = Math.ceil((new Date(g.endDate) - new Date()) / 86400000)
                   return (
-                    <div key={g.id} style={{ flex: 1, background: '#020609', border: '1px solid #1e3050', borderRadius: 8, padding: 12 }}>
-                      <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 14, color: 'white', marginBottom: 4 }}>{g.title}</div>
-                      <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#f0c040', marginBottom: 8 }}>{daysLeft > 0 ? `${daysLeft} DAYS LEFT` : 'OVERDUE'}</div>
-                      <div style={{ height: 4, background: '#1e3050', borderRadius: 2, position: 'relative' }}>
-                        <div style={{ height: 4, background: '#4d9fff', borderRadius: 2, width: `${pct}%` }} />
+                    <div key={g.id} style={{
+                      flex: 1,
+                      background: 'rgba(5,8,20,0.75)',
+                      border: '1px solid rgba(99,102,241,0.18)',
+                      borderRadius: 10,
+                      padding: 14,
+                    }}>
+                      <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 15, color: TEXT1, marginBottom: 4 }}>{g.title}</div>
+                      <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 8, color: GOLD, marginBottom: 10, letterSpacing: '0.15em' }}>{daysLeft > 0 ? `${daysLeft} DAYS LEFT` : 'OVERDUE'}</div>
+                      <div style={{ height: 4, background: 'rgba(99,102,241,0.15)', borderRadius: 2, position: 'relative' }}>
+                        <div style={{ height: 4, background: `linear-gradient(90deg, ${GOLD}, #fb923c)`, borderRadius: 2, width: `${pct}%`, boxShadow: `0 0 8px ${GOLD}44` }} />
                       </div>
                     </div>
                   )
@@ -1016,61 +1124,80 @@ export default function Record() {
 
           {/* ── Latest Reflection ── */}
           {lastJournalEntry && (
-            <div style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 16, borderLeft: `3px solid ${lastJournalEntry.isWin ? '#f0c040' : '#ff5555'}`, flexShrink: 0 }}>
-              <div style={{ ...LABEL_STYLE, marginBottom: 8 }}>LATEST REFLECTION</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <span style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 18, color: '#f0c040' }}>DAY {String(lastJournalEntry.dayNumber).padStart(3, '0')}</span>
-                <span style={{ fontFamily: 'Inter', fontSize: 10, color: '#a0bcdf' }}>{lastJournalEntry.date}</span>
-                <span style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 700, color: lastJournalEntry.isWin ? '#000000' : '#ffffff', background: lastJournalEntry.isWin ? '#f0c040' : '#ff5555', border: 'none', borderRadius: 4, padding: '2px 8px' }}>{lastJournalEntry.isWin ? 'WIN' : 'LOSS'}</span>
+            <div className="fade-up delay-5" style={{
+              ...CARD_STYLE,
+              padding: 18,
+              borderLeft: `3px solid ${lastJournalEntry.isWin ? GOLD : RED}`,
+              background: lastJournalEntry.isWin
+                ? 'rgba(240,192,64,0.05)'
+                : 'rgba(255,85,85,0.05)',
+              border: lastJournalEntry.isWin
+                ? '1px solid rgba(240,192,64,0.3)'
+                : '1px solid rgba(255,85,85,0.25)',
+            }}>
+              <div style={{ ...LABEL_STYLE }}>LATEST REFLECTION</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 20, color: GOLD, textShadow: `0 0 12px ${GOLD}44` }}>DAY {String(lastJournalEntry.dayNumber).padStart(3, '0')}</span>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: TEXT2 }}>{lastJournalEntry.date}</span>
+                <span style={{
+                  fontFamily: '"Orbitron", monospace',
+                  fontSize: 8,
+                  fontWeight: 700,
+                  color: lastJournalEntry.isWin ? '#000' : '#fff',
+                  background: lastJournalEntry.isWin ? GOLD : RED,
+                  borderRadius: 5,
+                  padding: '3px 9px',
+                  letterSpacing: '0.12em',
+                }}>{lastJournalEntry.isWin ? 'WIN' : 'LOSS'}</span>
               </div>
-              <div style={{ fontFamily: 'Inter', fontSize: 12, color: '#d1d5db', lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: TEXT2, lineHeight: 1.65, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                 {lastJournalEntry.aiReflection}
               </div>
             </div>
           )}
-        </>
+        </div>
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {/* RECORDS VIEW                                                          */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {view === 'records' && (
-        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ padding: '18px 14px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* Body Records */}
-          <div>
-            <div style={{ ...LABEL_STYLE, marginBottom: 10 }}>BODY RECORDS</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
-              <TrophyCard label="Bench Press PR" value={prs.bench} unit="kg" accent="#f0c040" />
-              <TrophyCard label="Squat PR" value={prs.squat} unit="kg" accent="#f0c040" />
-              <TrophyCard label="Deadlift PR" value={prs.deadlift} unit="kg" accent="#f0c040" />
-              <TrophyCard label="Lowest Weight" value={lowestWeight} unit="kg" accent="#22d3ee" />
-              <TrophyCard label="Highest Single Protein" value={highestProtein} unit="g" accent="#1ad9a0" />
-              <TrophyCard label="Best Calorie Accuracy" value={highestCalAccuracy} unit="%" accent="#1ad9a0" />
+          <div className="fade-up delay-0">
+            <div style={{ ...LABEL_STYLE }}>BODY RECORDS</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+              <TrophyCard label="Bench Press PR" value={prs.bench} unit="kg" accent={GOLD} />
+              <TrophyCard label="Squat PR" value={prs.squat} unit="kg" accent={GOLD} />
+              <TrophyCard label="Deadlift PR" value={prs.deadlift} unit="kg" accent={GOLD} />
+              <TrophyCard label="Lowest Weight" value={lowestWeight} unit="kg" accent={CYAN} />
+              <TrophyCard label="Highest Single Protein" value={highestProtein} unit="g" accent={TEAL} />
+              <TrophyCard label="Best Calorie Accuracy" value={highestCalAccuracy} unit="%" accent={GREEN} />
             </div>
           </div>
           {/* Streak Records */}
-          <div>
-            <div style={{ ...LABEL_STYLE, marginBottom: 10 }}>STREAK RECORDS</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
-              <TrophyCard label="Longest Win Streak" value={longestWinStreakVal} unit="d" accent="#f0c040" />
-              <TrophyCard label="Longest Non-Neg Streak" value={longestNNStreak} unit="d" accent="#8b5cf6" />
-              <TrophyCard label="Longest Day Streak" value={longestStreak} unit="d" accent="#22d3ee" />
+          <div className="fade-up delay-1">
+            <div style={{ ...LABEL_STYLE }}>STREAK RECORDS</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+              <TrophyCard label="Longest Win Streak" value={longestWinStreakVal} unit="d" accent={GOLD} />
+              <TrophyCard label="Longest Non-Neg Streak" value={longestNNStreak} unit="d" accent={VIOLET} />
+              <TrophyCard label="Longest Day Streak" value={longestStreak} unit="d" accent={CYAN} />
             </div>
           </div>
           {/* Daily Performance */}
-          <div>
-            <div style={{ ...LABEL_STYLE, marginBottom: 10 }}>DAILY PERFORMANCE</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
-              <TrophyCard label="Highest Day Score" value={highestDayScore.value > 0 ? highestDayScore.value : null} unit="%" date={highestDayScore.date} accent="#f0c040" />
-              <TrophyCard label="Most Tasks Done" value={mostTasksDay.value > 0 ? mostTasksDay.value : null} unit=" tasks" date={mostTasksDay.date} accent="#f0c040" />
+          <div className="fade-up delay-2">
+            <div style={{ ...LABEL_STYLE }}>DAILY PERFORMANCE</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+              <TrophyCard label="Highest Day Score" value={highestDayScore.value > 0 ? highestDayScore.value : null} unit="%" date={highestDayScore.date} accent={GOLD} />
+              <TrophyCard label="Most Tasks Done" value={mostTasksDay.value > 0 ? mostTasksDay.value : null} unit=" tasks" date={mostTasksDay.date} accent={GOLD} />
             </div>
           </div>
           {/* Business */}
-          <div>
-            <div style={{ ...LABEL_STYLE, marginBottom: 10 }}>BUSINESS RECORDS</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
-              <TrophyCard label="Most Appts in One Day" value={maxApptDay > 0 ? maxApptDay : null} accent="#4d9fff" />
-              <TrophyCard label="Most Calls in One Day" value={maxCallsDay > 0 ? maxCallsDay : null} accent="#4d9fff" />
+          <div className="fade-up delay-3">
+            <div style={{ ...LABEL_STYLE }}>BUSINESS RECORDS</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+              <TrophyCard label="Most Appts in One Day" value={maxApptDay > 0 ? maxApptDay : null} accent={BLUE} />
+              <TrophyCard label="Most Calls in One Day" value={maxCallsDay > 0 ? maxCallsDay : null} accent={BLUE} />
             </div>
           </div>
         </div>
@@ -1080,24 +1207,24 @@ export default function Record() {
       {/* HEATMAP VIEW                                                          */}
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {view === 'heatmap' && (
-        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ ...LABEL_STYLE }}>{year} MOOD &amp; ENERGY HEATMAP</div>
+        <div style={{ padding: '18px 14px 28px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="fade-up delay-0" style={{ ...LABEL_STYLE }}>{year} MOOD &amp; ENERGY HEATMAP</div>
 
           {/* Heatmap container */}
-          <div style={{ position: 'relative', overflowX: 'auto' }}>
+          <div className="fade-up delay-1" style={{ ...CARD_STYLE, padding: 18, position: 'relative', overflowX: 'auto' }}>
             {/* Month labels row */}
-            <div style={{ display: 'flex', marginBottom: 4, position: 'relative', height: 14 }}>
+            <div style={{ display: 'flex', marginBottom: 6, position: 'relative', height: 14 }}>
               {monthLabels.map(({ col, label }) => (
                 <div
                   key={`${col}-${label}`}
                   style={{
                     position: 'absolute',
                     left: col * 12,
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 9,
+                    fontFamily: '"Orbitron", monospace',
+                    fontSize: 8,
                     color: MUTED,
-                    fontWeight: 600,
-                    letterSpacing: '0.05em',
+                    fontWeight: 700,
+                    letterSpacing: '0.1em',
                   }}
                 >
                   {label}
@@ -1150,22 +1277,23 @@ export default function Record() {
                 left: '50%',
                 transform: 'translateX(-50%)',
                 zIndex: 100,
-                background: '#080e1a',
-                border: '1px solid #1e3050',
-                borderRadius: 6,
-                padding: '8px 14px',
+                background: 'rgba(8,12,26,0.95)',
+                border: '1px solid rgba(99,102,241,0.2)',
+                borderRadius: 10,
+                padding: '10px 16px',
                 pointerEvents: 'none',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 4,
-                minWidth: 140,
+                minWidth: 150,
+                backdropFilter: 'blur(16px)',
               }}>
                 <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: TEXT2 }}>{heatmapTooltip.ds}</div>
-                <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 20, color: heatmapTooltip.score !== null ? scoreToColor(heatmapTooltip.score) : MUTED }}>
+                <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 22, color: heatmapTooltip.score !== null ? scoreToColor(heatmapTooltip.score) : MUTED }}>
                   {heatmapTooltip.score !== null ? `Score: ${heatmapTooltip.score.toFixed(1)}` : 'No data'}
                 </div>
                 {heatmapTooltip.isWin !== undefined && (
-                  <div style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 700, color: heatmapTooltip.isWin ? WIN_GOLD : LOSS_RED }}>
+                  <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 8, fontWeight: 700, color: heatmapTooltip.isWin ? WIN_GOLD : LOSS_RED, letterSpacing: '0.15em' }}>
                     {heatmapTooltip.isWin ? 'WIN' : 'LOSS'}
                   </div>
                 )}
@@ -1174,40 +1302,40 @@ export default function Record() {
           </div>
 
           {/* Color legend */}
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="fade-up delay-2" style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', paddingLeft: 4 }}>
             {[
-              { color: '#080e1a', label: 'No data' },
+              { color: 'rgba(99,102,241,0.06)', label: 'No data' },
               { color: '#7f1d1d', label: '1-3' },
               { color: 'rgba(239,68,68,0.5)', label: '4-5' },
               { color: '#92740a', label: '6-7' },
               { color: '#f0c040', label: '8' },
               { color: '#1ad9a0', label: '9-10' },
             ].map(({ color, label }) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <div style={{ width: 10, height: 10, background: color, borderRadius: 2, border: '1px solid #1e3050' }} />
-                <span style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED }}>{label}</span>
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <div style={{ width: 10, height: 10, background: color, borderRadius: 2, border: '1px solid rgba(99,102,241,0.18)' }} />
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 9, color: MUTED }}>{label}</span>
               </div>
             ))}
           </div>
 
           {/* Insight blocks */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1, marginTop: 1 }}>
-            <div style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 16 }}>
-              <div style={{ ...LABEL_STYLE, color: '#1ad9a0', marginBottom: 4 }}>BEST DAY OF WEEK</div>
-              <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 35, color: '#1ad9a0' }}>{bestDow}</div>
+          <div className="fade-up delay-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+            <div style={{ ...CARD_STYLE, padding: 18, borderTop: `2px solid ${GREEN}` }}>
+              <div style={{ ...LABEL_STYLE, color: GREEN }}>BEST DAY OF WEEK</div>
+              <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 40, color: GREEN, textShadow: `0 0 20px ${GREEN}44` }}>{bestDow}</div>
             </div>
-            <div style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 16 }}>
-              <div style={{ ...LABEL_STYLE, color: '#ff5555', marginBottom: 4 }}>WORST DAY OF WEEK</div>
-              <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 35, color: '#ff5555' }}>{worstDow}</div>
+            <div style={{ ...CARD_STYLE, padding: 18, borderTop: `2px solid ${RED}` }}>
+              <div style={{ ...LABEL_STYLE, color: RED }}>WORST DAY OF WEEK</div>
+              <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 40, color: RED, textShadow: `0 0 20px ${RED}44` }}>{worstDow}</div>
             </div>
-            <div style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 16 }}>
-              <div style={{ ...LABEL_STYLE, color: '#f0c040', marginBottom: 4 }}>LONGEST HIGH STREAK</div>
-              <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 35, color: '#f0c040' }}>{longestHighStreak}d</div>
-              <div style={{ fontFamily: 'Inter', fontSize: 10, color: '#7a95c0' }}>consecutive days above 7</div>
+            <div style={{ ...CARD_STYLE, padding: 18, borderTop: `2px solid ${GOLD}` }}>
+              <div style={{ ...LABEL_STYLE, color: GOLD }}>LONGEST HIGH STREAK</div>
+              <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 40, color: GOLD, textShadow: `0 0 20px ${GOLD}44` }}>{longestHighStreak}d</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: MUTED, marginTop: 4 }}>consecutive days above 7</div>
             </div>
-            <div style={{ background: '#080e1a', border: '1px solid #1e3050', padding: 16 }}>
-              <div style={{ ...LABEL_STYLE, marginBottom: 4 }}>PATTERN</div>
-              <div style={{ fontFamily: 'Inter', fontSize: 11, color: 'white', lineHeight: 1.5 }}>{patternInsight}</div>
+            <div style={{ ...CARD_STYLE, padding: 18 }}>
+              <div style={{ ...LABEL_STYLE }}>PATTERN</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: TEXT1, lineHeight: 1.6 }}>{patternInsight}</div>
             </div>
           </div>
         </div>
@@ -1215,11 +1343,31 @@ export default function Record() {
 
       {/* ── PR Celebration Overlay ── */}
       {celebrating && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9000, background: '#000', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
-          <Trophy size={80} color="#f0c040" />
-          <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 44, color: 'white', letterSpacing: '0.05em', textAlign: 'center', padding: '0 32px' }}>{celebrating.name}</div>
-          <div style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 79, color: '#f0c040', lineHeight: 1 }}>{celebrating.value}{celebrating.unit}</div>
-          <div style={{ fontFamily: '"Orbitron",sans-serif', fontSize: 18, color: '#f0c040', letterSpacing: '0.2em', textShadow: '0 0 20px rgba(240,192,64,0.8)' }}>NEW PERSONAL RECORD</div>
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 9000,
+          background: 'rgba(5,8,20,0.97)',
+          backdropFilter: 'blur(24px)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 20,
+        }}>
+          {/* accent ring */}
+          <div style={{
+            position: 'absolute',
+            width: 280,
+            height: 280,
+            borderRadius: '50%',
+            border: `1px solid ${GOLD}33`,
+            boxShadow: `0 0 80px ${GOLD}22`,
+          }} />
+          <Trophy size={72} color={GOLD} style={{ filter: `drop-shadow(0 0 20px ${GOLD}88)` }} />
+          <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 44, color: TEXT1, letterSpacing: '0.05em', textAlign: 'center', padding: '0 32px' }}>{celebrating.name}</div>
+          <div style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 80, color: GOLD, lineHeight: 1, textShadow: `0 0 40px ${GOLD}88` }}>{celebrating.value}{celebrating.unit}</div>
+          <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 14, color: GOLD, letterSpacing: '0.25em', textShadow: `0 0 24px ${GOLD}99` }}>NEW PERSONAL RECORD</div>
         </div>
       )}
 

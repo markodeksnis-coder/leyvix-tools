@@ -1,3 +1,5 @@
+export const DATA_START_DATE = '2026-06-23'
+
 export const today = () => new Date().toISOString().split('T')[0]
 
 export function daysAgo(n) {

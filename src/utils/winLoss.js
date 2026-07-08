@@ -1,7 +1,8 @@
 // Win/Loss day calculation engine
+import { DATA_START_DATE } from '../utils'
 
 export const DEFAULT_WIN_SETTINGS = {
-  threshold: 80,
+  threshold: 65,
   metrics: {
     calories:  { enabled: true,  target: 2000 },
     protein:   { enabled: true,  target: 150  },
@@ -10,6 +11,8 @@ export const DEFAULT_WIN_SETTINGS = {
     workHours: { enabled: true,  target: 7   },
     nonNeg:    { enabled: true               },
     tasks:     { enabled: true               },
+    dailyRating: { enabled: true, threshold: 5 },
+    mood:        { enabled: true             },
   },
 }
 
@@ -22,13 +25,15 @@ export function getWinDaySettings() {
     return {
       threshold: p.threshold ?? d.threshold,
       metrics: {
-        calories:  { ...d.metrics.calories,  ...p.metrics?.calories  },
-        protein:   { ...d.metrics.protein,   ...p.metrics?.protein   },
-        steps:     { ...d.metrics.steps,     ...p.metrics?.steps     },
-        gym:       { ...d.metrics.gym,       ...p.metrics?.gym       },
-        workHours: { ...d.metrics.workHours, ...p.metrics?.workHours },
-        nonNeg:    { ...d.metrics.nonNeg,    ...p.metrics?.nonNeg    },
-        tasks:     { ...d.metrics.tasks,     ...p.metrics?.tasks     },
+        calories:    { ...d.metrics.calories,    ...p.metrics?.calories    },
+        protein:     { ...d.metrics.protein,     ...p.metrics?.protein     },
+        steps:       { ...d.metrics.steps,       ...p.metrics?.steps       },
+        gym:         { ...d.metrics.gym,         ...p.metrics?.gym         },
+        workHours:   { ...d.metrics.workHours,   ...p.metrics?.workHours   },
+        nonNeg:      { ...d.metrics.nonNeg,      ...p.metrics?.nonNeg      },
+        tasks:       { ...d.metrics.tasks,       ...p.metrics?.tasks       },
+        dailyRating: { ...d.metrics.dailyRating, ...p.metrics?.dailyRating },
+        mood:        { ...d.metrics.mood,        ...p.metrics?.mood        },
       },
     }
   } catch { return DEFAULT_WIN_SETTINGS }
@@ -92,17 +97,28 @@ export function calcDayScore(dateStr, settings, dailyData, bodyData, dietData) {
     }
   }
 
+  if (s.metrics.dailyRating.enabled && log?.dailyRating != null) {
+    const threshold = s.metrics.dailyRating.threshold ?? 5
+    results.push({ key: 'dailyRating', label: 'Day Rating', pass: log.dailyRating >= threshold })
+  }
+
+  if (s.metrics.mood.enabled && log?.mood != null) {
+    const goodMoods = ['Excellent', 'Good', 'Neutral']
+    results.push({ key: 'mood', label: 'Mood', pass: goodMoods.includes(log.mood) })
+  }
+
   const available = results.length
   const passed = results.filter(r => r.pass).length
   const pct = available > 0 ? Math.round((passed / available) * 100) : 0
   return { passed, available, pct, isWin: available > 0 && pct >= s.threshold, metrics: results }
 }
 
-// Last `days` calendar days
+// Last `days` calendar days, capped at DATA_START_DATE
 export function getWinHistory(days, settings, dailyData, bodyData, dietData) {
   return Array.from({ length: days }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (days - 1 - i))
     const ds = d.toISOString().split('T')[0]
+    if (ds < DATA_START_DATE) return { date: ds, passed: 0, available: 0, pct: 0, isWin: false, metrics: [] }
     return { date: ds, ...calcDayScore(ds, settings, dailyData, bodyData, dietData) }
   })
 }
@@ -155,13 +171,14 @@ export function computeLongestWinStreak(settings, dailyData, bodyData, dietData)
   return longest
 }
 
-// For LifeCycles: 30 data points, win=1, loss=0, no data=null
+// For LifeCycles: 30 data points, win=1, loss=0, no data=null (capped at DATA_START_DATE)
 export function getWinRatePoints(settings, dailyData, bodyData, dietData) {
   return Array.from({ length: 30 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (29 - i))
     const ds = d.toISOString().split('T')[0]
-    const r = calcDayScore(ds, settings, dailyData, bodyData, dietData)
     const label = `${d.getMonth() + 1}/${d.getDate()}`
+    if (ds < DATA_START_DATE) return { date: ds, label, value: null }
+    const r = calcDayScore(ds, settings, dailyData, bodyData, dietData)
     return { date: ds, label, value: r.available > 0 ? (r.isWin ? 1 : 0) : null }
   })
 }

@@ -6,19 +6,19 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } fro
 import { today, fmtShort } from '../utils'
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
-const BG         = '#020609'
-const SURF       = '#040810'
-const CARD_BG    = '#080e1a'
-const CARD_BORDER= '#1e3050'
+const BG         = 'transparent'
+const SURF       = 'rgba(5,8,20,0.75)'
+const CARD_BG    = 'rgba(8,12,26,0.65)'
+const CARD_BORDER= 'rgba(99,102,241,0.18)'
 const GOLD       = '#f0c040'
 const CYAN       = '#22d3ee'
-const BLUE       = '#4d9fff'
-const GREEN      = '#1ad9a0'
+const BLUE       = '#60a5fa'
+const GREEN      = '#2dd4bf'
 const PURPLE     = '#8b5cf6'
 const PINK       = '#e879f9'
 const RED        = '#f43f5e'
-const TEXT2      = '#a0bcdf'
-const MUTED      = '#7a95c0'
+const TEXT2      = '#94a3b8'
+const MUTED      = '#64748b'
 
 const STATUSES = ['Lead', 'Appointment Set', 'No Show', 'Closed', 'Lost']
 
@@ -309,7 +309,7 @@ export default function Business() {
           },
         ].map(stat => (
           <div key={stat.label} style={{
-            background: '#080e1a',
+            background: 'rgba(8,12,26,0.65)',
             border: `1px solid ${CARD_BORDER}`,
             borderTop: `2px solid ${stat.color}`,
             padding: '16px 20px',
@@ -368,7 +368,7 @@ export default function Business() {
 
           {/* Table */}
           <div style={{
-            background: '#080e1a',
+            background: 'rgba(8,12,26,0.65)',
             border: `1px solid ${CARD_BORDER}`,
             borderRadius: 10,
             overflow: 'hidden',
@@ -480,7 +480,7 @@ export default function Business() {
 
         {/* ── SETTER PERFORMANCE TRACKER ─────────────────────────────────── */}
         <div style={{
-          background: '#080e1a',
+          background: 'rgba(8,12,26,0.65)',
           border: `1px solid ${CARD_BORDER}`,
           borderRadius: 10,
           padding: '20px',

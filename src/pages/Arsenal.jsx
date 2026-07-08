@@ -5,16 +5,16 @@ import Modal from '../components/Modal'
 import { fmtShort } from '../utils'
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
-const BG          = '#020609'
-const SURF        = '#040810'
-const CARD_BORDER = '#1e3050'
+const BG          = 'transparent'
+const SURF        = 'rgba(5,8,20,0.75)'
+const CARD_BORDER = 'rgba(99,102,241,0.18)'
 const GOLD        = '#f0c040'
-const BLUE        = '#4d9fff'
-const GREEN       = '#1ad9a0'
+const BLUE        = '#60a5fa'
+const GREEN       = '#2dd4bf'
 const PURPLE      = '#8b5cf6'
 const RED         = '#ff5555'
-const TEXT2       = '#7a95c0'
-const MUTED       = '#1e3050'
+const TEXT2       = '#64748b'
+const MUTED       = 'rgba(99,102,241,0.18)'
 const CYAN        = '#22d3ee'
 
 const CATEGORIES = [

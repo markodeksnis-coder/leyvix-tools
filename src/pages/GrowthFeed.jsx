@@ -59,7 +59,7 @@ function classifyCategory(text) {
 }
 
 const cls = {
-  input: "w-full bg-[#040810] border border-[#1e3050] px-3 py-2 text-sm text-white placeholder-[#7a95c0] focus:outline-none focus:border-[#8b5cf6] transition-colors rounded-md",
+  input: "w-full bg-[rgba(5,8,20,0.75)] border border-[rgba(99,102,241,0.2)] px-3 py-2 text-sm text-white placeholder-[#64748b] focus:outline-none focus:border-[#8b5cf6] transition-colors rounded-md",
   label: "block text-[9px] font-mono uppercase tracking-widest text-[#4a5a7a] mb-1.5",
 }
 
@@ -68,11 +68,11 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
 
   return (
     <div
-      style={{ background: 'linear-gradient(135deg, #080e1a 0%, #090920 100%)', border: '1px solid #1e3050', borderRadius: 12, boxShadow: '0 0 0 1px rgba(139,92,246,0.05)' }}
+      style={{ background: 'linear-gradient(135deg, #080e1a 0%, #090920 100%)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 12, boxShadow: '0 0 0 1px rgba(139,92,246,0.05)' }}
       className="flex flex-col overflow-hidden transition-all"
     >
       {/* Thumbnail — 16:9 */}
-      <div className="relative group/thumb overflow-hidden" style={{ paddingTop: '56.25%', borderBottom: '1px solid #1e3050' }}>
+      <div className="relative group/thumb overflow-hidden" style={{ paddingTop: '56.25%', borderBottom: '1px solid rgba(99,102,241,0.18)' }}>
         <img
           src={`https://img.youtube.com/vi/${video.video_id}/maxresdefault.jpg`}
           alt={video.title}
@@ -133,10 +133,10 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
                   <button
                     key={n}
                     onClick={() => onRate(video.id, n)}
-                    style={{ width: 26, height: 26, border: '1px solid #1e3050', fontFamily: 'Inter', fontSize: 11, color: '#7a95c0', background: 'transparent', cursor: 'pointer' }}
+                    style={{ width: 26, height: 26, border: '1px solid rgba(99,102,241,0.18)', fontFamily: 'Inter', fontSize: 11, color: '#7a95c0', background: 'transparent', cursor: 'pointer' }}
                     className="flex items-center justify-center transition-colors"
                     onMouseEnter={e => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.color = '#8b5cf6'; e.currentTarget.style.background = 'rgba(139,92,246,0.1)' }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e3050'; e.currentTarget.style.color = '#7a95c0'; e.currentTarget.style.background = 'transparent' }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.18)'; e.currentTarget.style.color = '#64748b'; e.currentTarget.style.background = 'transparent' }}
                   >
                     {n}
                   </button>
@@ -154,10 +154,10 @@ function VideoCard({ video, onWatch, onRate, ratingOpen }) {
               </button>
               <button
                 onClick={() => onWatch(video.id, false)}
-                style={{ border: '1px solid #1e3050', fontFamily: 'Inter', fontSize: 11, color: '#7a95c0', background: 'transparent', cursor: 'pointer', padding: '6px', borderRadius: 6 }}
+                style={{ border: '1px solid rgba(99,102,241,0.18)', fontFamily: 'Inter', fontSize: 11, color: '#7a95c0', background: 'transparent', cursor: 'pointer', padding: '6px', borderRadius: 6 }}
                 className="w-full transition-colors"
                 onMouseEnter={e => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.color = '#8b5cf6' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e3050'; e.currentTarget.style.color = '#7a95c0' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.18)'; e.currentTarget.style.color = '#64748b' }}
               >
                 Rate It
               </button>
@@ -289,7 +289,7 @@ function WeeklyGoalTracker({ goal, setGoal }) {
 
   return (
     <>
-      <div style={{ background: 'linear-gradient(135deg, #080e1a 0%, #090920 100%)', border: '1px solid #1e3050', borderRadius: 10, padding: 16, boxShadow: '0 0 0 1px rgba(139,92,246,0.05)' }}>
+      <div style={{ background: 'linear-gradient(135deg, #080e1a 0%, #090920 100%)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 10, padding: 16, boxShadow: '0 0 0 1px rgba(139,92,246,0.05)' }}>
         {/* Header row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -305,16 +305,16 @@ function WeeklyGoalTracker({ goal, setGoal }) {
                 onChange={e => setGoalInput(e.target.value)}
                 placeholder="hours"
                 autoFocus
-                style={{ width: 60, background: '#020609', border: '1px solid #1e3050', borderRadius: 4, padding: '3px 8px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }}
+                style={{ width: 60, background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 4, padding: '3px 8px', fontFamily: 'Inter', fontSize: 12, color: 'white', outline: 'none' }}
                 onKeyDown={e => { if (e.key === 'Enter') handleSaveGoal(); if (e.key === 'Escape') { setEditingGoal(false); setGoalInput('') } }}
               />
               <button onClick={handleSaveGoal} style={{ padding: '3px 10px', background: '#1ad9a0', color: '#000', border: 'none', borderRadius: 4, fontFamily: 'Inter', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>Save</button>
-              <button onClick={() => { setEditingGoal(false); setGoalInput('') }} style={{ padding: '3px 8px', background: 'transparent', color: '#7a95c0', border: '1px solid #1e3050', borderRadius: 4, fontFamily: 'Inter', fontSize: 10, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { setEditingGoal(false); setGoalInput('') }} style={{ padding: '3px 8px', background: 'transparent', color: '#7a95c0', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 4, fontFamily: 'Inter', fontSize: 10, cursor: 'pointer' }}>Cancel</button>
             </div>
           ) : (
             <button
               onClick={() => { setEditingGoal(true); setGoalInput(String(goalHours)) }}
-              style={{ padding: '3px 10px', background: 'transparent', color: '#7a95c0', border: '1px solid #1e3050', borderRadius: 4, fontFamily: 'Inter', fontSize: 9, fontWeight: 600, cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase' }}
+              style={{ padding: '3px 10px', background: 'transparent', color: '#7a95c0', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 4, fontFamily: 'Inter', fontSize: 9, fontWeight: 600, cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase' }}
             >
               Set Goal
             </button>
@@ -354,7 +354,7 @@ function WeeklyGoalTracker({ goal, setGoal }) {
       {/* Log Session Modal */}
       {showLogModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(3,5,8,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'linear-gradient(135deg, #080e1a 0%, #090920 100%)', border: '1px solid #1e3050', borderRadius: 12, padding: 24, minWidth: 300, maxWidth: 360, boxShadow: '0 0 0 1px rgba(139,92,246,0.05)' }}>
+          <div style={{ background: 'linear-gradient(135deg, #080e1a 0%, #090920 100%)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 12, padding: 24, minWidth: 300, maxWidth: 360, boxShadow: '0 0 0 1px rgba(139,92,246,0.05)' }}>
             <div style={{ fontFamily: '"Orbitron", "Space Grotesk", sans-serif', fontSize: 16, fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
               Log Watch Session
             </div>
@@ -369,7 +369,7 @@ function WeeklyGoalTracker({ goal, setGoal }) {
                 min="1"
                 placeholder="e.g. 30"
                 autoFocus
-                style={{ width: '100%', background: '#020609', border: '1px solid #1e3050', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 14, color: 'white', outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 14, color: 'white', outline: 'none', boxSizing: 'border-box' }}
                 onKeyDown={e => { if (e.key === 'Enter') handleLogSession() }}
               />
             </div>
@@ -377,7 +377,7 @@ function WeeklyGoalTracker({ goal, setGoal }) {
               <button onClick={handleLogSession} style={{ flex: 1, padding: '9px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff', border: 'none', borderRadius: 6, fontFamily: 'Inter', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer', boxShadow: '0 0 12px rgba(139,92,246,0.4)' }}>
                 Log Session
               </button>
-              <button onClick={() => { setShowLogModal(false); setLogMinutes('') }} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid #1e3050', color: '#7a95c0', borderRadius: 6, fontFamily: 'Inter', fontSize: 10, cursor: 'pointer' }}>
+              <button onClick={() => { setShowLogModal(false); setLogMinutes('') }} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', color: '#7a95c0', borderRadius: 6, fontFamily: 'Inter', fontSize: 10, cursor: 'pointer' }}>
                 Cancel
               </button>
             </div>
@@ -428,7 +428,7 @@ function LearnLogPanel({ onSave }) {
       </button>
 
       {open && (
-        <div style={{ marginTop: 10, background: 'linear-gradient(135deg, #080e1a 0%, #090920 100%)', border: '1px solid #1e3050', borderRadius: 10, padding: 16 }}>
+        <div style={{ marginTop: 10, background: 'linear-gradient(135deg, #080e1a 0%, #090920 100%)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 10, padding: 16 }}>
           <div style={{ fontFamily: 'Inter', fontSize: 9, fontWeight: 600, color: '#7a95c0', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: 10 }}>
             Quick Learning Log
           </div>
@@ -438,13 +438,13 @@ function LearnLogPanel({ onSave }) {
               onChange={e => setTakeaway(e.target.value)}
               placeholder="Main takeaway from what you just watched/read..."
               rows={3}
-              style={{ width: '100%', background: '#020609', border: '1px solid #1e3050', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', resize: 'vertical', boxSizing: 'border-box', placeholder: '#7a95c0' }}
+              style={{ width: '100%', background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', resize: 'vertical', boxSizing: 'border-box', placeholder: '#7a95c0' }}
             />
             <input
               value={source}
               onChange={e => setSource(e.target.value)}
               placeholder="Source (video title, book, etc.)"
-              style={{ width: '100%', background: '#020609', border: '1px solid #1e3050', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }}
+              style={{ width: '100%', background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }}
             />
             <div style={{ display: 'flex', gap: 8 }}>
               <button
@@ -456,7 +456,7 @@ function LearnLogPanel({ onSave }) {
               </button>
               <button
                 onClick={() => { setOpen(false); setTakeaway(''); setSource('') }}
-                style={{ padding: '8px 14px', background: 'transparent', border: '1px solid #1e3050', color: '#7a95c0', borderRadius: 6, fontFamily: 'Inter', fontSize: 10, cursor: 'pointer' }}
+                style={{ padding: '8px 14px', background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', color: '#7a95c0', borderRadius: 6, fontFamily: 'Inter', fontSize: 10, cursor: 'pointer' }}
               >
                 Cancel
               </button>
@@ -596,10 +596,10 @@ export default function GrowthFeed() {
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#020609' }}>
+    <div className="h-full flex flex-col" style={{ background: 'transparent' }}>
 
       {/* ── TopBar ───────────────────────────────────────────────────────────── */}
-      <div style={{ background: '#040810', borderBottom: '1px solid #1e3050', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+      <div style={{ background: 'rgba(5,8,20,0.75)', borderBottom: '1px solid rgba(99,102,241,0.18)', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontFamily: 'Inter', fontSize: 11, color: '#7a95c0' }}>{dateStr}</span>
           <span style={{ color: '#5a7aaa' }}>·</span>
@@ -635,7 +635,7 @@ export default function GrowthFeed() {
       </div>
 
       {/* ── Page Header ──────────────────────────────────────────────────────── */}
-      <div style={{ background: '#020609', borderBottom: '1px solid #1e3050', padding: '20px 32px', flexShrink: 0 }}>
+      <div style={{ background: 'transparent', borderBottom: '1px solid rgba(99,102,241,0.18)', padding: '20px 32px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
@@ -652,20 +652,20 @@ export default function GrowthFeed() {
             <button
               onClick={handleDrop}
               disabled={dropping}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: dropping ? '#1e3050' : 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: dropping ? '#7a95c0' : 'white', border: dropping ? '1px solid #1e3050' : '1px solid #8b5cf6', cursor: dropping ? 'not-allowed' : 'pointer', opacity: dropping ? 0.4 : 1, fontWeight: 700, boxShadow: dropping ? 'none' : '0 0 12px rgba(139,92,246,0.4)' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: dropping ? '#1e3050' : 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: dropping ? '#7a95c0' : 'white', border: dropping ? '1px solid rgba(99,102,241,0.18)' : '1px solid #8b5cf6', cursor: dropping ? 'not-allowed' : 'pointer', opacity: dropping ? 0.4 : 1, fontWeight: 700, boxShadow: dropping ? 'none' : '0 0 12px rgba(139,92,246,0.4)' }}
             >
               <Zap size={9} fill={dropping ? 'none' : 'white'} />
               {dropping ? 'Dropping...' : 'Drop 3 Videos'}
             </button>
             <button
               onClick={() => { setKeyInput(localStorage.getItem('anthropic_key') || ''); setShowKeyModal(true) }}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #1e3050', color: '#7a95c0', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid rgba(99,102,241,0.18)', color: '#7a95c0', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
             >
               <Key size={9} /> API Key
             </button>
             <button
               onClick={() => setShowAddModal(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid #1e3050', color: '#7a95c0', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', border: '1px solid rgba(99,102,241,0.18)', color: '#7a95c0', fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}
             >
               <Plus size={9} /> Add Video
             </button>
@@ -677,7 +677,7 @@ export default function GrowthFeed() {
         <div className="space-y-6">
 
           {/* ── Taste Signals Panel ────────────────────────────────────────────── */}
-          <div style={{ background: 'linear-gradient(135deg, #080e1a 0%, #090920 100%)', border: '1px solid #1e3050', borderRadius: 12, boxShadow: '0 0 0 1px rgba(139,92,246,0.05)' }}>
+          <div style={{ background: 'linear-gradient(135deg, #080e1a 0%, #090920 100%)', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 12, boxShadow: '0 0 0 1px rgba(139,92,246,0.05)' }}>
             <button onClick={() => setShowSeedPanel(!showSeedPanel)}
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer' }}>
               <span style={{ fontSize: 14 }}>🎯</span>
@@ -695,12 +695,12 @@ export default function GrowthFeed() {
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
                   <input value={seedUrl} onChange={e => setSeedUrl(e.target.value)} placeholder="YouTube URL (youtube.com/watch?v=...)"
-                    style={{ width: '100%', background: '#020609', border: '1px solid #1e3050', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none', boxSizing: 'border-box' }} />
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                     <input value={seedTitle} onChange={e => setSeedTitle(e.target.value)} placeholder="Video title"
-                      style={{ background: '#020609', border: '1px solid #1e3050', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none' }} />
+                      style={{ background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none' }} />
                     <input value={seedChannel} onChange={e => setSeedChannel(e.target.value)} placeholder="Channel name"
-                      style={{ background: '#020609', border: '1px solid #1e3050', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none' }} />
+                      style={{ background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 6, padding: '8px 12px', fontFamily: 'Inter', fontSize: 13, color: 'white', outline: 'none' }} />
                   </div>
                   {seedError && <p style={{ fontFamily: 'Inter', fontSize: 11, color: '#f43f5e', margin: 0 }}>{seedError}</p>}
                   <button onClick={handleSeedVideo} disabled={seedLoading || !seedUrl.trim() || !seedTitle.trim()}
@@ -714,7 +714,7 @@ export default function GrowthFeed() {
                     <div style={{ fontFamily: 'Inter', fontSize: 9, color: '#7a95c0', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Saved Taste Signals</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {(tasteProfile.seedVideos || []).slice(0, 10).map(sv => (
-                        <div key={sv.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#020609', border: '1px solid #1e3050', borderRadius: 8 }}>
+                        <div key={sv.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'transparent', border: '1px solid rgba(99,102,241,0.18)', borderRadius: 8 }}>
                           <img src={`https://img.youtube.com/vi/${sv.video_id}/default.jpg`} alt="" style={{ width: 40, height: 30, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }} onError={e => e.target.style.display='none'} />
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontFamily: 'Inter', fontSize: 12, color: 'white', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sv.title}</div>
@@ -754,7 +754,7 @@ export default function GrowthFeed() {
           <LearnLogPanel onSave={handleSaveLearnLog} />
 
           {/* ── Stats bar ─────────────────────────────────────────────────────── */}
-          <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', paddingBottom: 20, borderBottom: '1px solid #1e3050' }}>
+          <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', paddingBottom: 20, borderBottom: '1px solid rgba(99,102,241,0.18)' }}>
             {[
               { label: 'Total Watched', value: totalWatched },
               { label: 'Avg Rating', value: avgRating },
@@ -781,10 +781,10 @@ export default function GrowthFeed() {
                   onClick={() => setFilter(f)}
                   style={isActive
                     ? { background: `${activeColor}33`, color: activeColor, fontFamily: 'Inter', fontSize: 10, fontWeight: 700, padding: '5px 12px', border: `1px solid ${activeColor}`, cursor: 'pointer', borderRadius: 4 }
-                    : { background: '#040810', border: '1px solid #1e3050', color: '#7a95c0', fontFamily: 'Inter', fontSize: 10, padding: '5px 12px', cursor: 'pointer', borderRadius: 4 }
+                    : { background: 'rgba(5,8,20,0.75)', border: '1px solid rgba(99,102,241,0.18)', color: '#7a95c0', fontFamily: 'Inter', fontSize: 10, padding: '5px 12px', cursor: 'pointer', borderRadius: 4 }
                   }
                   onMouseEnter={e => { if (!isActive) { e.currentTarget.style.borderColor = activeColor; e.currentTarget.style.color = '#fff' } }}
-                  onMouseLeave={e => { if (!isActive) { e.currentTarget.style.borderColor = '#1e3050'; e.currentTarget.style.color = '#7a95c0' } }}
+                  onMouseLeave={e => { if (!isActive) { e.currentTarget.style.borderColor = 'rgba(99,102,241,0.18)'; e.currentTarget.style.color = '#64748b' } }}
                 >
                   {f}
                 </button>
@@ -828,7 +828,7 @@ export default function GrowthFeed() {
             </div>
             {showWatched && (
               watched.length === 0 ? (
-                <div style={{ background: 'linear-gradient(135deg, #080e1a 0%, #090920 100%)', border: '1px solid #1e3050', fontFamily: 'Inter', fontSize: 12, color: '#7a95c0', padding: '32px', textAlign: 'center', borderRadius: 12 }}>
+                <div style={{ background: 'linear-gradient(135deg, #080e1a 0%, #090920 100%)', border: '1px solid rgba(99,102,241,0.18)', fontFamily: 'Inter', fontSize: 12, color: '#7a95c0', padding: '32px', textAlign: 'center', borderRadius: 12 }}>
                   No watched videos{filter !== 'ALL' ? ' in this category' : ''} yet
                 </div>
               ) : (
@@ -868,7 +868,7 @@ export default function GrowthFeed() {
             </div>
             <div className="flex gap-2 pt-1">
               <button onClick={handleAddVideo} style={{ flex: 1, padding: '10px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: 'white', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer', boxShadow: '0 0 12px rgba(139,92,246,0.4)' }}>Add to Feed</button>
-              <button onClick={() => setShowAddModal(false)} style={{ padding: '10px 16px', border: '1px solid #1e3050', color: '#7a95c0', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => setShowAddModal(false)} style={{ padding: '10px 16px', border: '1px solid rgba(99,102,241,0.18)', color: '#7a95c0', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
             </div>
           </div>
         </Modal>
@@ -894,7 +894,7 @@ export default function GrowthFeed() {
             </div>
             <div className="flex gap-2 pt-1">
               <button onClick={handleSaveKey} style={{ flex: 1, padding: '10px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: 'white', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', border: 'none', cursor: 'pointer', boxShadow: '0 0 12px rgba(139,92,246,0.4)' }}>Save Key</button>
-              <button onClick={() => setShowKeyModal(false)} style={{ padding: '10px 16px', border: '1px solid #1e3050', color: '#7a95c0', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => setShowKeyModal(false)} style={{ padding: '10px 16px', border: '1px solid rgba(99,102,241,0.18)', color: '#7a95c0', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.12em', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
             </div>
           </div>
         </Modal>

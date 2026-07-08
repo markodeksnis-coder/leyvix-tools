@@ -1,28 +1,22 @@
-import { CalendarCheck, Sun, Moon, Dumbbell, Brain, TrendingUp, Activity, Target, BarChart2, Briefcase, Users, Flame, Bot, Settings, Zap, Flag, BookOpen } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Sun, Moon, TrendingUp, Activity, Target, BarChart2, Bot, Settings, Zap, Flag, BookOpen, LayoutDashboard } from 'lucide-react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { getWinHistory, computeCurrentWinStreak, getWinDaySettings } from '../utils/winLoss'
 import { daysSinceStart } from '../utils'
 
 const PRIMARY = [
-  { id: 'daily',   label: 'Daily',   Icon: CalendarCheck, color: '#8b5cf6' },
-  { id: 'morning', label: 'Morning', Icon: Sun,           color: '#f0c040' },
-  { id: 'evening', label: 'Evening', Icon: Moon,          color: '#b8a0ff' },
-  { id: 'body',    label: 'Body',    Icon: Dumbbell,      color: '#1ad9a0' },
-  { id: 'mind',    label: 'Mind',    Icon: Brain,         color: '#e879f9' },
-  { id: 'growth-feed', label: 'Growth', Icon: TrendingUp, color: '#f0c040' },
-  { id: 'life-cycles', label: 'Cycles', Icon: Activity,   color: '#22d3ee' },
+  { id: 'command',     label: 'Command', Icon: LayoutDashboard, color: '#818cf8' },
+  { id: 'morning',     label: 'Morning', Icon: Sun,             color: '#f0c040' },
+  { id: 'evening',     label: 'Evening', Icon: Moon,            color: '#a78bfa' },
+  { id: 'growth-feed', label: 'Growth',  Icon: TrendingUp,      color: '#34d399' },
+  { id: 'life-cycles', label: 'Cycles',  Icon: Activity,        color: '#22d3ee' },
 ]
 
 const SECONDARY = [
-  { id: 'record', label: 'Record', Icon: Target, color: '#22d3ee' },
+  { id: 'record',   label: 'Record',   Icon: Target,   color: '#22d3ee' },
   { id: 'insights', label: 'Insights', Icon: BarChart2, color: '#6366f1' },
-  { id: 'business', label: 'Business', Icon: Briefcase, color: '#4d9fff' },
-  { id: 'relations', label: 'Relations', Icon: Users, color: '#f43f5e' },
-  { id: 'soul', label: 'Soul', Icon: Flame, color: '#fb923c' },
-  { id: 'coach', label: 'Coach', Icon: Bot, color: '#b8a0ff' },
-  { id: 'goals', label: 'Goals', Icon: Flag, color: '#f0c040' },
-  { id: 'journal', label: 'Journal', Icon: BookOpen, color: '#e879f9' },
+  { id: 'coach',    label: 'Coach',    Icon: Bot,       color: '#a78bfa' },
+  { id: 'goals',    label: 'Goals',    Icon: Flag,      color: '#f0c040' },
+  { id: 'journal',  label: 'Journal',  Icon: BookOpen,  color: '#e879f9' },
 ]
 
 export default function Sidebar({ active, onSelect, onSettings }) {
@@ -38,140 +32,233 @@ export default function Sidebar({ active, onSelect, onSettings }) {
     <aside style={{
       width: 76,
       flexShrink: 0,
-      background: '#040810',
-      borderRight: '1px solid #1e3050',
+      background: 'rgba(2, 3, 12, 0.96)',
+      backdropFilter: 'blur(60px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(60px) saturate(180%)',
+      borderRight: '1px solid rgba(99,102,241,0.35)',
+      boxShadow: '1px 0 0 rgba(129,140,248,0.08), 8px 0 60px rgba(99,102,241,0.08)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      paddingTop: 16,
-      paddingBottom: 16,
-      gap: 0,
+      paddingTop: 14,
+      paddingBottom: 14,
       height: '100vh',
       overflowY: 'auto',
       overflowX: 'hidden',
+      position: 'relative',
+      zIndex: 10,
     }}>
-      {/* Logo */}
+
+      {/* Vertical glow line */}
+      <div style={{
+        position: 'absolute', right: -1, top: '8%', bottom: '8%', width: 1,
+        background: 'linear-gradient(to bottom, transparent, rgba(129,140,248,0.9) 25%, rgba(139,92,246,0.7) 55%, rgba(34,211,238,0.5) 80%, transparent)',
+        pointerEvents: 'none',
+        boxShadow: '0 0 8px rgba(99,102,241,0.6)',
+      }} />
+
+      {/* ── LOGO ── */}
       <div style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-        marginBottom: 20, paddingBottom: 16,
-        borderBottom: '1px solid #1e3050',
-        width: '100%', alignSelf: 'stretch',
+        marginBottom: 16, paddingBottom: 14, width: '100%',
+        borderBottom: '1px solid rgba(99,102,241,0.12)',
       }}>
-        <div style={{
+        <div className="glow-indigo" style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          width: 32, height: 32, borderRadius: 8,
-          background: 'linear-gradient(135deg, rgba(232,184,75,0.25), rgba(240,192,64,0.1))',
-          border: '1px solid rgba(232,184,75,0.5)',
-          boxShadow: '0 0 16px rgba(232,184,75,0.3)',
+          width: 34, height: 34, borderRadius: 12,
+          background: 'linear-gradient(135deg, rgba(99,102,241,0.25), rgba(139,92,246,0.1))',
+          border: '1px solid rgba(129,140,248,0.5)',
+          backdropFilter: 'blur(20px)',
         }}>
-          <Zap size={16} fill="#e8b84b" color="#e8b84b" />
+          <Zap size={15} fill="#a5b4fc" color="#c4b5fd" />
         </div>
-        <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 7, fontWeight: 700, color: '#e8b84b', letterSpacing: '0.15em', textTransform: 'uppercase' }}>OS</span>
+        <span style={{
+          fontFamily: '"Orbitron", monospace', fontSize: 6, fontWeight: 700,
+          color: '#a5b4fc', letterSpacing: '0.25em', textTransform: 'uppercase',
+          textShadow: '0 0 16px rgba(129,140,248,0.7)',
+        }}>OS</span>
       </div>
 
-      {/* Primary nav */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', padding: '0 8px', boxSizing: 'border-box' }}>
+      {/* ── PRIMARY NAV ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%', padding: '0 6px', boxSizing: 'border-box' }}>
         {PRIMARY.map(({ id, label, Icon, color }) => {
           const isActive = active === id
           return (
             <button key={id} onClick={() => onSelect(id)} title={label}
               style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                gap: 5, padding: '10px 4px', borderRadius: 10, cursor: 'pointer',
-                width: '100%', transition: 'all 0.2s',
-                background: isActive ? '#1a2440' : 'transparent',
-                border: isActive ? '1px solid #3b5a9a' : '1px solid transparent',
-                borderLeft: isActive ? '2px solid #f0c040' : '2px solid transparent',
-                boxShadow: isActive ? '0 2px 12px rgba(26,36,64,0.8)' : 'none',
+                gap: 4, padding: '10px 4px', borderRadius: 12, cursor: 'pointer',
+                width: '100%', border: 'none', outline: 'none',
+                transition: 'all 0.22s cubic-bezier(0.16,1,0.3,1)',
+                background: isActive
+                  ? `linear-gradient(135deg, ${color}22, ${color}0d)`
+                  : 'transparent',
+                borderLeft: isActive ? `2px solid ${color}` : '2px solid transparent',
+                boxShadow: isActive
+                  ? `0 0 24px ${color}30, inset 0 0 24px ${color}10, inset 0 1px 0 rgba(255,255,255,0.07)`
+                  : 'none',
+                position: 'relative',
               }}
-              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = '#0d1628'; e.currentTarget.style.borderColor = 'rgba(58,90,154,0.4)' }}}
-              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent' }}}
+              onMouseEnter={e => {
+                if (!isActive) {
+                  e.currentTarget.style.background = `${color}12`
+                  e.currentTarget.style.borderLeft = `2px solid ${color}60`
+                }
+              }}
+              onMouseLeave={e => {
+                if (!isActive) {
+                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.borderLeft = '2px solid transparent'
+                }
+              }}
             >
-              <Icon size={20} color={color} strokeWidth={isActive ? 2.5 : 1.5}
-                style={{ filter: `drop-shadow(0 0 ${isActive ? 10 : 6}px ${color})`, transition: 'all 0.2s' }} />
+              <Icon
+                size={20}
+                color={color}
+                strokeWidth={isActive ? 2.5 : 1.6}
+                style={{
+                  filter: isActive
+                    ? `drop-shadow(0 0 8px ${color}) drop-shadow(0 0 20px ${color}AA)`
+                    : `drop-shadow(0 0 6px ${color}99)`,
+                  opacity: isActive ? 1 : 0.7,
+                  transition: 'all 0.22s',
+                }}
+              />
               <span style={{
-                fontFamily: 'Inter', fontSize: 8, fontWeight: isActive ? 700 : 500,
-                color: color,
-                textTransform: 'uppercase', letterSpacing: '0.1em', lineHeight: 1, transition: 'color 0.2s',
-                textShadow: `0 0 8px ${color}`,
+                fontFamily: '"Orbitron", monospace', fontSize: 7, fontWeight: 700,
+                color: isActive ? color : 'rgba(100,116,139,0.9)',
+                textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1,
+                textShadow: isActive ? `0 0 12px ${color}` : 'none',
+                transition: 'all 0.22s',
               }}>{label}</span>
             </button>
           )
         })}
       </div>
 
-      {/* Divider */}
-      <div style={{ width: 40, height: 1, background: 'linear-gradient(90deg, transparent, #2a4a7a, transparent)', margin: '12px 0' }} />
+      {/* ── DIVIDER ── */}
+      <div style={{
+        width: 32, height: 1, margin: '8px 0',
+        background: 'linear-gradient(90deg, transparent, rgba(99,102,241,0.4), rgba(34,211,238,0.2), transparent)',
+        boxShadow: '0 0 6px rgba(99,102,241,0.3)',
+      }} />
 
-      {/* Secondary nav */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%', padding: '0 8px', boxSizing: 'border-box' }}>
+      {/* ── SECONDARY NAV ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%', padding: '0 6px', boxSizing: 'border-box' }}>
         {SECONDARY.map(({ id, label, Icon, color }) => {
           const isActive = active === id
           return (
             <button key={id} onClick={() => onSelect(id)} title={label}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: '8px 4px', borderRadius: 8, cursor: 'pointer',
-                width: '100%', transition: 'all 0.2s',
-                background: isActive ? '#1a2440' : 'transparent',
-                border: isActive ? `1px solid #3b5a9a` : '1px solid transparent',
-                borderLeft: isActive ? `2px solid #f0c040` : '2px solid transparent',
+                padding: '9px 4px', borderRadius: 10, cursor: 'pointer',
+                width: '100%', border: 'none', outline: 'none',
+                transition: 'all 0.2s',
+                background: isActive
+                  ? `linear-gradient(135deg, ${color}20, ${color}0a)`
+                  : 'transparent',
+                borderLeft: isActive ? `2px solid ${color}` : '2px solid transparent',
+                boxShadow: isActive ? `0 0 16px ${color}25, inset 0 0 16px ${color}0d` : 'none',
               }}
-              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = '#0d1628'; e.currentTarget.style.borderColor = 'rgba(58,90,154,0.3)' }}}
-              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent' }}}
+              onMouseEnter={e => {
+                if (!isActive) {
+                  e.currentTarget.style.background = `${color}10`
+                  e.currentTarget.style.borderLeft = `2px solid ${color}55`
+                }
+              }}
+              onMouseLeave={e => {
+                if (!isActive) {
+                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.borderLeft = '2px solid transparent'
+                }
+              }}
             >
-              <Icon size={15} color={color} strokeWidth={1.5}
-                style={{ filter: `drop-shadow(0 0 ${isActive ? 8 : 5}px ${color})`, transition: 'all 0.2s' }} />
+              <Icon
+                size={17}
+                color={color}
+                strokeWidth={1.7}
+                style={{
+                  filter: isActive
+                    ? `drop-shadow(0 0 8px ${color}) drop-shadow(0 0 18px ${color}CC)`
+                    : `drop-shadow(0 0 5px ${color}88)`,
+                  opacity: isActive ? 1 : 0.65,
+                  transition: 'all 0.2s',
+                }}
+              />
             </button>
           )
         })}
       </div>
 
-      {/* Spacer */}
+      {/* ── SPACER ── */}
       <div style={{ flex: 1 }} />
 
-      {/* Win Streak */}
+      {/* ── WIN STREAK ── */}
       <div style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-        marginBottom: 6, padding: '6px 4px',
-        background: winStreak > 0 ? 'rgba(240,192,64,0.12)' : 'rgba(26,48,80,0.4)',
-        border: `1px solid ${winStreak > 0 ? 'rgba(240,192,64,0.4)' : '#1e3050'}`,
-        borderRadius: 8, width: 'calc(100% - 16px)',
-        transition: 'all 0.3s',
+        marginBottom: 6, padding: '8px 5px',
+        background: winStreak > 0
+          ? 'linear-gradient(135deg, rgba(240,192,64,0.1), rgba(251,146,60,0.04))'
+          : 'rgba(8,12,28,0.7)',
+        border: `1px solid ${winStreak > 0 ? 'rgba(240,192,64,0.4)' : 'rgba(99,102,241,0.1)'}`,
+        borderRadius: 12, width: 'calc(100% - 12px)',
+        boxShadow: winStreak > 0 ? '0 0 32px rgba(240,192,64,0.12), inset 0 1px 0 rgba(240,192,64,0.1)' : 'none',
+        transition: 'all 0.4s ease',
       }}>
-        <span style={{ fontSize: 16, lineHeight: 1 }}>🔥</span>
+        <span style={{ fontSize: 13, lineHeight: 1 }}>🔥</span>
         <span style={{
-          fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 20, lineHeight: 1,
-          color: winStreak > 0 ? '#f0c040' : '#7a95c0',
-          textShadow: winStreak > 0 ? '0 0 16px rgba(240,192,64,0.8)' : 'none',
-          transition: 'all 0.3s',
+          fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 24, lineHeight: 1,
+          color: winStreak > 0 ? '#f0c040' : '#1e293b',
+          textShadow: winStreak > 0 ? '0 0 24px rgba(240,192,64,0.9)' : 'none',
+          transition: 'all 0.4s',
         }}>{winStreak}</span>
-        <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 5, fontWeight: 700, color: winStreak > 0 ? '#f0c040' : '#7a95c0', textTransform: 'uppercase', letterSpacing: '0.1em' }}>WINS</span>
+        <span style={{
+          fontFamily: '"Orbitron", monospace', fontSize: 5, fontWeight: 700,
+          color: winStreak > 0 ? '#f0c040' : '#1e293b',
+          textTransform: 'uppercase', letterSpacing: '0.12em',
+        }}>WINS</span>
       </div>
 
-      {/* Day counter */}
+      {/* ── DAY COUNTER ── */}
       <div style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-        marginBottom: 10, padding: '8px 4px',
-        background: '#0f1e38',
-        border: '1px solid #2a4a7a',
-        borderRadius: 8, width: 'calc(100% - 16px)',
+        marginBottom: 8, padding: '8px 5px',
+        background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(6,182,212,0.04))',
+        border: '1px solid rgba(99,102,241,0.2)',
+        borderRadius: 12, width: 'calc(100% - 12px)',
+        boxShadow: '0 0 24px rgba(99,102,241,0.07), inset 0 1px 0 rgba(129,140,248,0.08)',
       }}>
-        <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 22, fontWeight: 900, color: '#f0c040', lineHeight: 1, textShadow: '0 0 12px rgba(240,192,64,0.6)' }}>{String(day).padStart(3, '0')}</span>
-        <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 6, fontWeight: 700, color: '#7a9cc5', textTransform: 'uppercase', letterSpacing: '0.15em' }}>DAY</span>
+        <span style={{
+          fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900,
+          fontSize: 26, color: '#a5b4fc', lineHeight: 1,
+          textShadow: '0 0 24px rgba(129,140,248,0.8)',
+        }}>{String(day).padStart(3, '0')}</span>
+        <span style={{
+          fontFamily: '"Orbitron", monospace', fontSize: 5, fontWeight: 700,
+          color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.18em',
+        }}>DAY</span>
       </div>
 
-      {/* Settings */}
-      <button onClick={onSettings} title="Settings"
+      {/* ── SETTINGS ── */}
+      <button
+        onClick={onSettings}
+        title="Settings"
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: 8, borderRadius: 8, border: '1px solid transparent', cursor: 'pointer',
-          background: 'transparent', transition: 'all 0.2s', width: 'calc(100% - 16px)',
+          padding: 8, borderRadius: 10, border: 'none', cursor: 'pointer',
+          background: 'transparent', transition: 'all 0.2s', width: 'calc(100% - 12px)',
+          outline: 'none',
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = '#0d1628'; e.currentTarget.style.borderColor = '#1e3050' }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent' }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = 'rgba(99,102,241,0.08)'
+          e.currentTarget.style.border = '1px solid rgba(99,102,241,0.2)'
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.border = 'none'
+        }}
       >
-        <Settings size={14} color="#7a95c0" />
+        <Settings size={13} color="#334155" strokeWidth={1.5} />
       </button>
     </aside>
   )

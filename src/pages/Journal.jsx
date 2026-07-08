@@ -4,16 +4,16 @@ import { useLocalStorage } from '../hooks/useLocalStorage'
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const C = {
-  BG:     '#020609',
-  SURF:   '#040810',
-  CARD:   '#080e1a',
-  BORDER: '#1e3050',
+  BG:     'transparent',
+  SURF:   'rgba(5,8,20,0.75)',
+  CARD:   'rgba(8,12,26,0.65)',
+  BORDER: 'rgba(99,102,241,0.18)',
   GOLD:   '#f0c040',
   RED:    '#ff5555',
-  PURPLE: '#8b5cf6',
-  GREEN:  '#1ad9a0',
-  TEXT2:  '#a0bcdf',
-  MUTED:  '#7a95c0',
+  PURPLE: '#a78bfa',
+  GREEN:  '#2dd4bf',
+  TEXT2:  '#94a3b8',
+  MUTED:  '#64748b',
   WHITE:  '#ffffff',
 }
 
