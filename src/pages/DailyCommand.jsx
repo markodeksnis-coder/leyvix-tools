@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts'
+import Anthropic from '@anthropic-ai/sdk'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today, daysSinceStart, daysAgo, DATA_START_DATE } from '../utils'
 import { getWinDaySettings, calcDayScore, getWinHistory, computeCurrentWinStreak } from '../utils/winLoss'
 
+// ── Color tokens ──────────────────────────────────────────────────────────────
 const GOLD   = '#f0c040'
 const GREEN  = '#1ad9a0'
 const RED    = '#f43f5e'
@@ -13,112 +15,323 @@ const CYAN   = '#22d3ee'
 const PINK   = '#e879f9'
 const ORANGE = '#fb923c'
 const TEXT1  = '#e2e8f0'
-const MUTED  = '#475569'
+const MUTED  = '#64748b'
 const DARK   = '#334155'
+const MOOD_NUM = { 'Excellent': 9, 'Good': 7, 'Neutral': 5, 'Fluctuated': 5, 'Low': 3, 'Very low': 1 }
 
-const CAT_COLORS = { Body: '#2dd4bf', Business: PINK, Mind: PINK, Daily: BLUE, Custom: CYAN }
-
-// ── LifeCycles card container style ───────────────────────────────────────────
-const cardStyle = (color) => ({
-  background: 'rgba(4,6,20,0.65)',
+// ── Glass card ────────────────────────────────────────────────────────────────
+const glass = (color = BLUE) => ({
+  background: 'rgba(4,6,20,0.72)',
   backdropFilter: 'blur(40px)',
   WebkitBackdropFilter: 'blur(40px)',
-  border: `1px solid ${color}35`,
+  border: `1px solid ${color}28`,
   borderRadius: 18,
   overflow: 'hidden',
-  boxShadow: `0 0 40px ${color}10, 0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 ${color}12`,
+  boxShadow: `0 0 50px ${color}0A, 0 6px 32px rgba(0,0,0,0.7), inset 0 1px 0 ${color}12`,
 })
 
-// ── Top glow hairline ─────────────────────────────────────────────────────────
-function GlowLine({ color }) {
+// ── Glow hairline ─────────────────────────────────────────────────────────────
+const GlowLine = ({ color }) => (
+  <div style={{
+    height: 1,
+    background: `linear-gradient(90deg, transparent, ${color}CC 30%, ${color} 50%, ${color}CC 70%, transparent)`,
+    boxShadow: `0 0 12px ${color}90, 0 0 24px ${color}30`,
+    flexShrink: 0,
+  }} />
+)
+
+// ── Inline SVG sparkline ──────────────────────────────────────────────────────
+function Sparkline({ data, color, w = 72, h = 30 }) {
+  const valid = data.filter(v => v != null)
+  if (valid.length < 2) return <div style={{ width: w, height: h }} />
+  const mn = Math.min(...valid), mx = Math.max(...valid), range = mx - mn || 1
+  const toXY = (v, i) => ({ x: (i / (data.length - 1)) * w, y: h - 4 - ((v - mn) / range) * (h - 8) })
+  const pts = data.reduce((acc, v, i) => {
+    if (v == null) return acc
+    const { x, y } = toXY(v, i)
+    acc.push(`${acc.length === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`)
+    return acc
+  }, []).join(' ')
   return (
-    <div style={{
-      height: 1,
-      background: `linear-gradient(90deg, transparent, ${color}CC, ${color}, ${color}CC, transparent)`,
-      boxShadow: `0 0 12px ${color}80`,
-    }} />
+    <svg width={w} height={h} style={{ overflow: 'visible', flexShrink: 0 }}>
+      <path d={pts} fill="none" stroke={color} strokeWidth={2}
+        style={{ filter: `drop-shadow(0 0 5px ${color}CC)` }} />
+      {valid.length > 0 && (() => {
+        const last = data.reduceRight((f, v, i) => f !== null ? f : (v != null ? i : null), null)
+        if (last == null) return null
+        const { x, y } = toXY(data[last], last)
+        return <circle cx={x} cy={y} r={3} fill={color} style={{ filter: `drop-shadow(0 0 6px ${color})` }} />
+      })()}
+    </svg>
   )
 }
 
-// ── Section header: dot · label · gradient rule ───────────────────────────────
-function SectionHeader({ label, color, extra }) {
+// ── Score ring ────────────────────────────────────────────────────────────────
+function ScoreRing({ pct, color, size = 120, label }) {
+  const r = (size - 18) / 2, circ = 2 * Math.PI * r, dash = (pct / 100) * circ
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-      <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, boxShadow: `0 0 10px ${color}` }} />
-      <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 10, fontWeight: 700, color, letterSpacing: '0.2em', textTransform: 'uppercase' }}>{label}</span>
-      <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${color}40, transparent)` }} />
-      {extra}
+    <svg width={size} height={size} style={{ overflow: 'visible', display: 'block' }}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(15,22,50,0.9)" strokeWidth={10} />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={10}
+        strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+        transform={`rotate(-90 ${size/2} ${size/2})`}
+        style={{ filter: `drop-shadow(0 0 14px ${color}AA)`, transition: 'stroke-dasharray 1.4s cubic-bezier(0.16,1,0.3,1)' }}
+      />
+      <text x={size/2} y={size/2 - 6} textAnchor="middle" dominantBaseline="middle"
+        style={{ fontFamily: '"Barlow Condensed",sans-serif', fontWeight: 900, fontSize: 30, fill: color,
+          filter: `drop-shadow(0 0 16px ${color}BB)` }}
+      >{pct}%</text>
+      <text x={size/2} y={size/2 + 14} textAnchor="middle"
+        style={{ fontFamily: '"Orbitron",monospace', fontSize: 8, fill: color + '99', letterSpacing: '0.12em' }}
+      >{label || 'SCORE'}</text>
+    </svg>
+  )
+}
+
+// ── AI Intel panel ────────────────────────────────────────────────────────────
+function AIIntelPanel({ context }) {
+  const [apiKey, setApiKey] = useLocalStorage('marko_ai_key', '')
+  const [inputKey, setInputKey] = useState('')
+  const [briefing, setBriefing] = useState('')
+  const [streaming, setStreaming] = useState(false)
+  const [messages, setMessages] = useState([])
+  const [userInput, setUserInput] = useState('')
+  const [chatLoading, setChatLoading] = useState(false)
+  const [currentStream, setCurrentStream] = useState('')
+  const chatRef = useRef(null)
+  const mountedRef = useRef(true)
+  const briefingDoneRef = useRef(false)
+
+  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false } }, [])
+
+  const SYS = `You are MARKO INTELLIGENCE — the AI embedded in Marko's personal operating system.
+Personality: Military-precise. High-energy. Data-first. Zero fluff. Brutally honest.
+Style: Short punchy sentences. Use → for actions. Use ↑↓ for trends. Max 4 sentences per reply.
+Current performance data:
+${context}`
+
+  const callAI = useCallback(async (userMsg, isBriefing = false) => {
+    if (!apiKey) return
+    let client
+    try { client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true }) }
+    catch { return }
+
+    const msgs = isBriefing
+      ? [{ role: 'user', content: 'Give me a sharp intel briefing on my performance right now. Key insight + 1 action. Max 3 sentences.' }]
+      : [...messages, { role: 'user', content: userMsg }]
+
+    if (isBriefing) {
+      setStreaming(true)
+      setBriefing('')
+      briefingDoneRef.current = false
+    } else {
+      setChatLoading(true)
+      setCurrentStream('')
+      setMessages(prev => [...prev, { role: 'user', content: userMsg }])
+      setUserInput('')
+    }
+
+    try {
+      const stream = client.messages.stream({ model: 'claude-haiku-4-5-20251001', max_tokens: 350, system: SYS, messages: msgs })
+      let full = ''
+      for await (const e of stream) {
+        if (!mountedRef.current) break
+        if (e.type === 'content_block_delta' && e.delta.type === 'text_delta') {
+          full += e.delta.text
+          if (isBriefing) setBriefing(full)
+          else setCurrentStream(full)
+        }
+      }
+      if (mountedRef.current) {
+        if (isBriefing) { briefingDoneRef.current = true }
+        else { setMessages(prev => [...prev, { role: 'assistant', content: full }]); setCurrentStream('') }
+      }
+    } catch (e) {
+      if (mountedRef.current) {
+        if (isBriefing) setBriefing('⚡ Error connecting. Check your API key in settings.')
+        else { setMessages(prev => [...prev, { role: 'assistant', content: 'Connection error.' }]); setCurrentStream('') }
+      }
+    } finally {
+      if (mountedRef.current) { isBriefing ? setStreaming(false) : setChatLoading(false) }
+    }
+  }, [apiKey, context, messages, SYS])
+
+  useEffect(() => {
+    if (apiKey && context && !briefingDoneRef.current && !streaming) callAI(null, true)
+  }, [apiKey]) // eslint-disable-line
+
+  useEffect(() => {
+    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight
+  }, [messages, currentStream])
+
+  if (!apiKey) return (
+    <div style={{ ...glass(VIOLET), padding: 0 }}>
+      <GlowLine color={VIOLET} />
+      <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ fontSize: 32, filter: `drop-shadow(0 0 16px ${VIOLET})` }}>🤖</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: '"Orbitron",monospace', fontSize: 9, color: VIOLET, letterSpacing: '0.22em', marginBottom: 6 }}>NEURAL INTELLIGENCE — OFFLINE</div>
+          <div style={{ fontFamily: 'Inter', fontSize: 12, color: MUTED, marginBottom: 12 }}>Connect your Anthropic API key to activate AI briefings and real-time coaching.</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input type="password" placeholder="sk-ant-api03-..." value={inputKey} onChange={e => setInputKey(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && inputKey.trim()) setApiKey(inputKey.trim()) }}
+              style={{ flex: 1, background: 'rgba(8,12,28,0.9)', border: `1px solid ${VIOLET}40`, borderRadius: 9, padding: '9px 14px', fontFamily: 'monospace', fontSize: 12, color: TEXT1, outline: 'none' }} />
+            <button onClick={() => { if (inputKey.trim()) setApiKey(inputKey.trim()) }}
+              style={{ background: `linear-gradient(135deg,${VIOLET},${PINK})`, border: 'none', borderRadius: 9, padding: '9px 20px', fontFamily: '"Orbitron",monospace', fontSize: 9, fontWeight: 700, color: '#fff', cursor: 'pointer', letterSpacing: '0.1em', boxShadow: `0 4px 24px ${VIOLET}50` }}>
+              CONNECT →
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   )
-}
 
-function TopBar({ pct, isWin, scoreColor }) {
   return (
-    <div style={{ position: 'relative' }}>
-      <div style={{ height: 5, background: 'rgba(99,102,241,0.1)', borderRadius: 3, overflow: 'hidden' }}>
-        <div style={{
-          height: '100%', width: `${pct}%`,
-          background: `linear-gradient(90deg, ${scoreColor}66, ${scoreColor})`,
-          borderRadius: 3,
-          boxShadow: `0 0 14px ${scoreColor}`,
-          transition: 'width 1.2s cubic-bezier(0.16,1,0.3,1)',
-        }} />
-        <div className="shimmer-bar" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 3 }} />
+    <div style={{ ...glass(VIOLET), padding: 0, animation: 'ai-pulse 4s ease-in-out infinite' }}>
+      <GlowLine color={VIOLET} />
+      <div style={{ padding: '18px 22px' }}>
+        {/* header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg,${VIOLET}35,${PINK}20)`, border: `1px solid ${VIOLET}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: `0 0 20px ${VIOLET}35` }}>🤖</div>
+            <div>
+              <div style={{ fontFamily: '"Orbitron",monospace', fontSize: 9, fontWeight: 700, color: VIOLET, letterSpacing: '0.2em' }}>
+                MARKO INTELLIGENCE
+                {streaming && <span style={{ marginLeft: 8, color: CYAN, fontSize: 8, animation: 'blink 0.8s infinite' }}>● LIVE</span>}
+              </div>
+              <div style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED, marginTop: 1 }}>Neural Performance Analysis · Powered by Claude</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 7 }}>
+            <button onClick={() => { setBriefing(''); briefingDoneRef.current = false; callAI(null, true) }} disabled={streaming}
+              style={{ background: 'none', border: `1px solid ${VIOLET}30`, borderRadius: 7, padding: '4px 11px', fontFamily: '"Orbitron",monospace', fontSize: 7, color: VIOLET, cursor: 'pointer', letterSpacing: '0.1em', opacity: streaming ? 0.4 : 1 }}>
+              ↺ REFRESH
+            </button>
+            <button onClick={() => { setApiKey(''); setBriefing(''); briefingDoneRef.current = false }}
+              style={{ background: 'none', border: `1px solid ${RED}25`, borderRadius: 7, padding: '4px 11px', fontFamily: '"Orbitron",monospace', fontSize: 7, color: RED + '70', cursor: 'pointer', letterSpacing: '0.1em' }}>
+              ✕ DISCONNECT
+            </button>
+          </div>
+        </div>
+
+        {/* briefing */}
+        {(briefing || streaming) && (
+          <div style={{ background: `linear-gradient(135deg,${VIOLET}08,${PINK}05)`, border: `1px solid ${VIOLET}20`, borderRadius: 12, padding: '14px 18px', marginBottom: 14 }}>
+            <div style={{ fontFamily: '"Orbitron",monospace', fontSize: 7, color: VIOLET + '80', letterSpacing: '0.18em', marginBottom: 8 }}>INTEL BRIEFING</div>
+            <div style={{ fontFamily: 'Inter', fontSize: 13, color: TEXT1, lineHeight: 1.75 }}>
+              {briefing || <span style={{ color: MUTED }}>Analyzing...</span>}
+              {streaming && <span style={{ display: 'inline-block', width: 2, height: 14, background: VIOLET, marginLeft: 3, verticalAlign: 'middle', animation: 'blink 0.8s infinite' }} />}
+            </div>
+          </div>
+        )}
+
+        {/* chat history */}
+        {messages.length > 0 && (
+          <div ref={chatRef} style={{ maxHeight: 220, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12, paddingRight: 4 }}>
+            {messages.map((m, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                <div style={{
+                  maxWidth: '84%', padding: '9px 14px', borderRadius: 12,
+                  background: m.role === 'user' ? `${VIOLET}22` : 'rgba(10,15,34,0.8)',
+                  border: `1px solid ${m.role === 'user' ? VIOLET + '45' : 'rgba(40,55,100,0.28)'}`,
+                  fontFamily: 'Inter', fontSize: 13, color: TEXT1, lineHeight: 1.65,
+                }}>{m.content}</div>
+              </div>
+            ))}
+            {currentStream && (
+              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <div style={{ maxWidth: '84%', padding: '9px 14px', borderRadius: 12, background: 'rgba(10,15,34,0.8)', border: `1px solid rgba(40,55,100,0.28)`, fontFamily: 'Inter', fontSize: 13, color: TEXT1, lineHeight: 1.65 }}>
+                  {currentStream}
+                  <span style={{ display: 'inline-block', width: 2, height: 12, background: CYAN, marginLeft: 3, verticalAlign: 'middle', animation: 'blink 0.8s infinite' }} />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* input */}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input value={userInput} onChange={e => setUserInput(e.target.value)} placeholder="Ask anything — energy trends, what to focus on, recovery advice..."
+            disabled={chatLoading}
+            onKeyDown={e => { if (e.key === 'Enter' && userInput.trim() && !chatLoading) callAI(userInput) }}
+            style={{ flex: 1, background: 'rgba(6,9,22,0.9)', border: `1px solid ${VIOLET}28`, borderRadius: 11, padding: '11px 16px', fontFamily: 'Inter', fontSize: 13, color: TEXT1, outline: 'none' }} />
+          <button onClick={() => { if (userInput.trim() && !chatLoading) callAI(userInput) }} disabled={chatLoading || !userInput.trim()}
+            style={{ background: chatLoading ? 'rgba(10,15,32,0.4)' : `linear-gradient(135deg,${VIOLET},${PINK})`, border: 'none', borderRadius: 11, padding: '11px 22px', fontFamily: '"Orbitron",monospace', fontSize: 9, fontWeight: 700, color: chatLoading ? MUTED : '#fff', cursor: chatLoading ? 'default' : 'pointer', letterSpacing: '0.1em', boxShadow: chatLoading ? 'none' : `0 4px 24px ${VIOLET}45`, transition: 'all 0.2s', whiteSpace: 'nowrap' }}>
+            {chatLoading ? '···' : 'ASK →'}
+          </button>
+        </div>
       </div>
     </div>
   )
 }
 
+// ── Check-in status dot ───────────────────────────────────────────────────────
+function CheckDot({ done, label, color, onClick }) {
+  return (
+    <button onClick={onClick} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, padding: '6px 12px', borderRadius: 9, background: done ? `${color}12` : 'rgba(10,15,32,0.5)', border: `1px solid ${done ? color + '40' : 'rgba(40,55,100,0.3)'}`, transition: 'all 0.2s' }}>
+      <div style={{ width: 7, height: 7, borderRadius: '50%', background: done ? color : DARK, boxShadow: done ? `0 0 10px ${color}` : 'none', animation: done ? 'none' : 'blink 2s infinite' }} />
+      <span style={{ fontFamily: '"Orbitron",monospace', fontSize: 8, fontWeight: 700, color: done ? color : MUTED, letterSpacing: '0.12em' }}>{label}</span>
+      {done && <span style={{ fontFamily: 'Inter', fontSize: 9, color: GREEN, fontWeight: 700 }}>✓</span>}
+    </button>
+  )
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
 export default function DailyCommand({ onNavigate }) {
   const todayStr = today()
   const dayNum   = daysSinceStart()
   const now      = new Date()
-  const dateDisplay = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()
 
   const [dailyData]   = useLocalStorage('marko_daily',   { logs: {} })
   const [bodyData]    = useLocalStorage('marko_body',    { liftSessions: [] })
   const [dietData]    = useLocalStorage('marko_diet',    { history: [] })
   const [checkInData] = useLocalStorage('marko_checkin', {})
 
-  const winSettings  = getWinDaySettings()
-  const dayScore     = calcDayScore(todayStr, winSettings, dailyData, bodyData, dietData)
-  const winHistory7  = getWinHistory(7,  winSettings, dailyData, bodyData, dietData)
-  const winHistory30 = getWinHistory(30, winSettings, dailyData, bodyData, dietData)
-  const winStreak    = computeCurrentWinStreak(winHistory30)
+  const winSettings = getWinDaySettings()
+  const dayScore    = calcDayScore(todayStr, winSettings, dailyData, bodyData, dietData)
+  const winHistory7 = getWinHistory(7,  winSettings, dailyData, bodyData, dietData)
+  const winHistory30= getWinHistory(30, winSettings, dailyData, bodyData, dietData)
+  const winStreak   = computeCurrentWinStreak(winHistory30)
 
   const morningDone    = !!(checkInData?.morning?.[todayStr]?.completed)
   const eveningDone    = !!(checkInData?.evening?.[todayStr]?.completed)
   const morningAnswers = checkInData?.morning?.[todayStr]?.answers || {}
   const eveningAnswers = checkInData?.evening?.[todayStr]?.answers || {}
-
   const todayLog = (dailyData.logs || {})[todayStr] || {}
   const nonNegs  = (todayLog.items || []).filter(it => it.isNonNeg)
-
-  const goals = JSON.parse(localStorage.getItem('marko_goals') || '[]')
-    .filter(g => !g.archived)
-    .sort((a, b) => new Date(a.endDate) - new Date(b.endDate))
-    .slice(0, 3)
-
-  const journal = JSON.parse(localStorage.getItem('marko_journal') || '[]')
-  const latestJournal = [...journal].sort((a, b) => b.date.localeCompare(a.date))[0] || null
+  const goals    = JSON.parse(localStorage.getItem('marko_goals') || '[]').filter(g => !g.archived).sort((a,b) => new Date(a.endDate)-new Date(b.endDate)).slice(0,3)
 
   const { pct, isWin, metrics = [] } = dayScore
-  const scoreColor = pct >= (winSettings.threshold || 80) ? GOLD : pct >= 50 ? CYAN : RED
+  const scoreColor = pct >= (winSettings.threshold || 65) ? GOLD : pct >= 40 ? CYAN : RED
 
   const mit  = morningAnswers['mi16'] || ''
   const word = morningAnswers['mi17'] || ''
 
-  const MOOD_SCORE = { 'Excellent': 9, 'Good': 7, 'Neutral': 5, 'Low': 3, 'Very low': 1 }
-
-  // Today's pulse metrics from check-in
+  // Today's pulse
   const todayPulse = useMemo(() => ({
     energy: morningAnswers['me6']  != null ? +morningAnswers['me6']  : null,
     sleep:  morningAnswers['ms2']  != null ? +morningAnswers['ms2']  : null,
-    mood:   morningAnswers['mm11'] != null ? (MOOD_SCORE[morningAnswers['mm11']] ?? null) : null,
+    mood:   morningAnswers['mm11'] != null ? (MOOD_NUM[morningAnswers['mm11']] ?? null) : null,
     stress: eveningAnswers['em19'] != null ? +eveningAnswers['em19'] : null,
-  }), [checkInData]) // eslint-disable-line react-hooks/exhaustive-deps
+  }), [checkInData]) // eslint-disable-line
 
-  // 7-day real averages
+  // 7-day sparklines for each pulse metric
+  const sparkData = useMemo(() => {
+    const energy = [], mood = [], stress = [], sleep = []
+    for (let i = 6; i >= 0; i--) {
+      const ds  = daysAgo(i)
+      const ma  = checkInData?.morning?.[ds]?.answers || {}
+      const ea  = checkInData?.evening?.[ds]?.answers  || {}
+      const log = (dailyData.logs || {})[ds] || {}
+      energy.push(ma['me6']  != null ? +ma['me6']  : null)
+      mood.push(ma['mm11']   != null ? (MOOD_NUM[ma['mm11']] ?? null) : null)
+      stress.push(ea['em19'] != null ? +ea['em19'] : null)
+      sleep.push(log.sleepHours != null ? +log.sleepHours : null)
+    }
+    return { energy, mood, stress, sleep }
+  }, [checkInData, dailyData])
+
+  // 7-day averages
   const avg7 = useMemo(() => {
     const vals = { sleep: [], calories: [], protein: [], steps: [] }
     for (let i = 0; i < 7; i++) {
@@ -130,42 +343,33 @@ export default function DailyCommand({ onNavigate }) {
       if (dh?.protein)  vals.protein.push(dh.protein)
       if (log?.steps != null) vals.steps.push(+log.steps)
     }
-    const avgF = arr => arr.length ? +(arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : null
-    const avgI = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null
-    return {
-      sleep:    avgF(vals.sleep),
-      calories: avgI(vals.calories),
-      protein:  avgI(vals.protein),
-      steps:    avgI(vals.steps),
-      days: Math.max(vals.sleep.length, vals.calories.length, vals.steps.length),
-    }
+    const avgF = arr => arr.length ? +(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1) : null
+    const avgI = arr => arr.length ? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length) : null
+    return { sleep: avgF(vals.sleep), calories: avgI(vals.calories), protein: avgI(vals.protein), steps: avgI(vals.steps), days: Math.max(vals.sleep.length,vals.calories.length,vals.steps.length) }
   }, [dietData, dailyData])
 
   // All-time check-in averages
   const checkinAvg = useMemo(() => {
-    const MOOD_NUM = { 'Excellent': 9, 'Good': 7, 'Neutral': 5, 'Fluctuated': 5, 'Low': 3, 'Very low': 1 }
     const slots = {
-      energy:      { vals: [], label: 'Energy',      color: GOLD,   src: 'm', id: 'me6'  },
-      sleepQual:   { vals: [], label: 'Sleep Qual',  color: VIOLET, src: 'm', id: 'ms2'  },
-      clarity:     { vals: [], label: 'Clarity',     color: CYAN,   src: 'm', id: 'mm12' },
-      commitment:  { vals: [], label: 'Motivation',  color: GREEN,  src: 'm', id: 'mi18' },
-      mood:        { vals: [], label: 'Mood',        color: PINK,   src: 'm', id: 'mm11', convert: v => MOOD_NUM[v] ?? null },
-      stress:      { vals: [], label: 'Stress',      color: RED,    src: 'm', id: 'mm13' },
-      dayRating:   { vals: [], label: 'Day Rating',  color: GOLD,   src: 'e', id: 'ed1'  },
-      workFocus:   { vals: [], label: 'Work Focus',  color: BLUE,   src: 'e', id: 'ed4'  },
-      dietQuality: { vals: [], label: 'Diet Quality',color: GREEN,  src: 'e', id: 'eb14' },
-      evenStress:  { vals: [], label: 'Anxiety',     color: RED,    src: 'e', id: 'em19' },
-      control:     { vals: [], label: 'Control',     color: CYAN,   src: 'e', id: 'em20' },
-      workHoursAvg:{ vals: [], label: 'Work Hours',  color: ORANGE, src: 'e', id: 'ed3'  },
+      energy:      { vals:[], label:'Energy',      color:GOLD,   src:'m', id:'me6'  },
+      sleepQual:   { vals:[], label:'Sleep Qual',  color:VIOLET, src:'m', id:'ms2'  },
+      clarity:     { vals:[], label:'Clarity',     color:CYAN,   src:'m', id:'mm12' },
+      commitment:  { vals:[], label:'Motivation',  color:GREEN,  src:'m', id:'mi18' },
+      mood:        { vals:[], label:'Mood',        color:PINK,   src:'m', id:'mm11', convert: v => MOOD_NUM[v] ?? null },
+      stress:      { vals:[], label:'Stress',      color:RED,    src:'m', id:'mm13' },
+      dayRating:   { vals:[], label:'Day Rating',  color:GOLD,   src:'e', id:'ed1'  },
+      workFocus:   { vals:[], label:'Work Focus',  color:BLUE,   src:'e', id:'ed4'  },
+      dietQuality: { vals:[], label:'Diet Quality',color:GREEN,  src:'e', id:'eb14' },
+      evenStress:  { vals:[], label:'Anxiety',     color:RED,    src:'e', id:'em19' },
+      control:     { vals:[], label:'Control',     color:CYAN,   src:'e', id:'em20' },
+      workHoursAvg:{ vals:[], label:'Work Hours',  color:ORANGE, src:'e', id:'ed3'  },
     }
-    const mornings = checkInData?.morning || {}
-    const evenings  = checkInData?.evening  || {}
+    const mornings = checkInData?.morning || {}, evenings = checkInData?.evening || {}
     for (const ds of Object.keys(mornings)) {
       const ans = mornings[ds]?.answers || {}
       for (const cfg of Object.values(slots)) {
         if (cfg.src !== 'm') continue
-        const raw = ans[cfg.id]
-        if (raw == null) continue
+        const raw = ans[cfg.id]; if (raw == null) continue
         const v = cfg.convert ? cfg.convert(raw) : +raw
         if (v != null && !isNaN(v)) cfg.vals.push(v)
       }
@@ -174,962 +378,626 @@ export default function DailyCommand({ onNavigate }) {
       const ans = evenings[ds]?.answers || {}
       for (const cfg of Object.values(slots)) {
         if (cfg.src !== 'e') continue
-        const raw = ans[cfg.id]
-        if (raw == null) continue
+        const raw = ans[cfg.id]; if (raw == null) continue
         const v = cfg.convert ? cfg.convert(raw) : +raw
         if (v != null && !isNaN(v)) cfg.vals.push(v)
       }
     }
-    const avg = arr => arr.length ? +(arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : null
-    return Object.fromEntries(
-      Object.entries(slots).map(([k, v]) => [k, { ...v, avg: avg(v.vals), count: v.vals.length }])
-    )
+    const avg = arr => arr.length ? +(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1) : null
+    return Object.fromEntries(Object.entries(slots).map(([k,v])=>[k,{...v,avg:avg(v.vals),count:v.vals.length}]))
   }, [checkInData])
 
-  // 30-day trend data
-  const norm = (v, max) => v == null ? null : Math.min(10, +((v / max) * 10).toFixed(2))
+  // 30-day trend
+  const norm = (v, mx) => v == null ? null : Math.min(10, +((v/mx)*10).toFixed(2))
+  const [activeTab, setActiveTab] = useState('WELLBEING')
 
   const trendData = useMemo(() => {
-    const MOOD_NUM = { 'Excellent': 9, 'Good': 7, 'Neutral': 5, 'Fluctuated': 5, 'Low': 3, 'Very low': 1 }
     return Array.from({ length: 30 }, (_, i) => {
-      const ds    = daysAgo(29 - i)
-      const dt    = new Date(ds + 'T12:00:00')
-      const label = `${dt.getMonth() + 1}/${dt.getDate()}`
-      if (ds < DATA_START_DATE) return { date: ds, label, energy: null, dayRating: null, dietQuality: null, stress: null, mood: null, calories: null, caloriesNorm: null, protein: null, proteinNorm: null, steps: null, stepsNorm: null, workoutHours: null, workoutNorm: null, bizHours: null, bizHoursNorm: null, sleepHours: null, sleepNorm: null, hasData: false }
-      const ma   = checkInData?.morning?.[ds]?.answers || {}
-      const ea   = checkInData?.evening?.[ds]?.answers  || {}
-      const log  = (dailyData.logs || {})[ds] || {}
-      const diet = (dietData.history || []).find(h => h.date === ds)
-      const hasData = Object.keys(ma).length > 0 || Object.keys(ea).length > 0
-
-      const calories    = diet?.calories || null
-      const protein     = diet?.protein  || null
-      const steps       = log.steps     != null ? +log.steps     : null
-      const trained     = [...(bodyData?.liftSessions || []), ...(bodyData?.workouts || [])].some(w => w.date === ds)
-      const workoutHours = trained ? 1 : null
-      const bizHours    = log.bizHours   != null ? +log.bizHours   : null
-      const sleepHours  = log.sleepHours != null ? +log.sleepHours : null
-
+      const ds  = daysAgo(29-i)
+      const dt  = new Date(ds+'T12:00:00')
+      const label = `${dt.getMonth()+1}/${dt.getDate()}`
+      if (ds < DATA_START_DATE) return { date:ds, label, hasData:false, energy:null,dayRating:null,dietQuality:null,stress:null,mood:null,caloriesNorm:null,proteinNorm:null,stepsNorm:null,workoutNorm:null,bizHoursNorm:null,sleepNorm:null }
+      const ma  = checkInData?.morning?.[ds]?.answers || {}
+      const ea  = checkInData?.evening?.[ds]?.answers  || {}
+      const log = (dailyData.logs || {})[ds] || {}
+      const diet= (dietData.history || []).find(h=>h.date===ds)
+      const hasData = Object.keys(ma).length>0 || Object.keys(ea).length>0
+      const trained  = [...(bodyData?.liftSessions||[]),...(bodyData?.workouts||[])].some(w=>w.date===ds)
       return {
-        date: ds, label,
+        date:ds, label, hasData,
         energy:      ma['me6']  != null ? +ma['me6']  : null,
         dayRating:   ea['ed1']  != null ? +ea['ed1']  : null,
         dietQuality: ea['eb14'] != null ? +ea['eb14'] : null,
         stress:      ea['em19'] != null ? +ea['em19'] : null,
-        mood:        ma['mm11'] != null ? (MOOD_NUM[ma['mm11']] ?? null) : null,
-        calories, caloriesNorm: norm(calories, 3000),
-        protein,  proteinNorm:  norm(protein, 200),
-        steps,    stepsNorm:    norm(steps, 15000),
-        workoutHours, workoutNorm: norm(workoutHours, 3),
-        bizHours, bizHoursNorm: norm(bizHours, 12),
-        sleepHours, sleepNorm: norm(sleepHours, 10),
-        hasData,
+        mood:        ma['mm11'] != null ? (MOOD_NUM[ma['mm11']]??null) : null,
+        caloriesNorm: norm(diet?.calories||null,3000),
+        proteinNorm:  norm(diet?.protein||null,200),
+        stepsNorm:    norm(log.steps!=null?+log.steps:null,15000),
+        workoutNorm:  trained ? 10 : null,
+        bizHoursNorm: norm(log.bizHours!=null?+log.bizHours:null,12),
+        sleepNorm:    norm(log.sleepHours!=null?+log.sleepHours:null,10),
+        calories:    diet?.calories||null, protein:diet?.protein||null,
+        steps:       log.steps!=null?+log.steps:null,
+        sleepHours:  log.sleepHours!=null?+log.sleepHours:null,
+        bizHours:    log.bizHours!=null?+log.bizHours:null,
+        workoutHours: trained?1:null,
       }
     })
   }, [checkInData, dailyData, dietData, bodyData])
 
   const trimmedTrend = useMemo(() => {
-    const first = trendData.findIndex(d => d.hasData)
-    return first > 0 ? trendData.slice(Math.max(0, first - 1)) : trendData
+    const first = trendData.findIndex(d=>d.hasData)
+    return first > 0 ? trendData.slice(Math.max(0,first-1)) : trendData
   }, [trendData])
 
-  // Daily habit tracking — last 7 days
-  const habitHistory7 = useMemo(() => {
-    return Array.from({ length: 7 }, (_, i) => {
-      const ds  = daysAgo(6 - i)
-      const log = (dailyData.logs || {})[ds] || {}
-      return {
-        date: ds,
-        dow: ['S', 'M', 'T', 'W', 'T', 'F', 'S'][new Date(ds + 'T12:00:00').getDay()],
-        isToday: ds === todayStr,
-        read:      log.mentalRead === 1,
-        meditated: log.meditated  === 1,
-        prayed:    log.prayed     === 1,
-        bible:     log.readBible  === 1,
-        hasData: Object.keys(log).length > 0,
-      }
-    })
-  }, [dailyData, todayStr])
+  // Habits last 7 days
+  const habitHistory7 = useMemo(() => Array.from({length:7},(_,i)=>{
+    const ds  = daysAgo(6-i)
+    const log = (dailyData.logs||{})[ds]||{}
+    return { date:ds, dow:['S','M','T','W','T','F','S'][new Date(ds+'T12:00:00').getDay()], isToday:ds===todayStr, read:log.mentalRead===1, meditated:log.meditated===1, prayed:log.prayed===1, bible:log.readBible===1, hasData:Object.keys(log).length>0 }
+  }), [dailyData, todayStr])
 
-  // Current streak per habit
+  // Habit streaks
   const habitStreaks = useMemo(() => {
-    const map = { read: 'mentalRead', meditated: 'meditated', prayed: 'prayed', bible: 'readBible' }
+    const map = {read:'mentalRead',meditated:'meditated',prayed:'prayed',bible:'readBible'}
     const result = {}
-    for (const [key, field] of Object.entries(map)) {
-      let streak = 0
-      for (let i = 1; i <= 60; i++) {
-        const ds = daysAgo(i)
-        const log = (dailyData.logs || {})[ds] || {}
-        if (log[field] === 1) streak++
-        else break
+    for (const [key,field] of Object.entries(map)) {
+      let streak=0
+      for (let i=1;i<=60;i++) {
+        const ds=daysAgo(i), log=(dailyData.logs||{})[ds]||{}
+        if (log[field]===1) streak++; else break
       }
-      result[key] = streak
+      result[key]=streak
     }
     return result
   }, [dailyData])
 
-  // Habit streak risks
+  // Streak risks
   const streakRisks = useMemo(() => {
-    const items = [
-      { key: 'prayed',     label: 'Prayer',   icon: '🙏', todayDone: todayLog.prayed     === 1 },
-      { key: 'readBible',  label: 'Bible',    icon: '📖', todayDone: todayLog.readBible  === 1 },
-      { key: 'mentalRead', label: 'Reading',  icon: '📚', todayDone: todayLog.mentalRead === 1 },
-      { key: 'meditated',  label: 'Meditate', icon: '🧘', todayDone: todayLog.meditated  === 1 },
+    const items=[
+      {key:'prayed',   label:'Prayer',  todayDone:todayLog.prayed===1    },
+      {key:'readBible',label:'Bible',   todayDone:todayLog.readBible===1 },
+      {key:'mentalRead',label:'Reading',todayDone:todayLog.mentalRead===1},
+      {key:'meditated',label:'Meditate',todayDone:todayLog.meditated===1 },
     ]
-    const risks = []
+    const risks=[]
     for (const h of items) {
-      let streak = 0
-      for (let i = 1; i <= 60; i++) {
-        const ds = daysAgo(i)
-        const log = (dailyData.logs || {})[ds] || {}
-        if (log[h.key] === 1) streak++
-        else break
-      }
-      if (streak > 0 && !h.todayDone) risks.push({ ...h, streak })
+      let streak=0
+      for (let i=1;i<=60;i++) { const ds=daysAgo(i),log=(dailyData.logs||{})[ds]||{}; if(log[h.key]===1) streak++; else break }
+      if (streak>0 && !h.todayDone) risks.push({...h,streak})
     }
-    let wStreak = 0
-    for (let i = 1; i <= 60; i++) {
-      const ds = daysAgo(i)
-      const trained = [...(bodyData?.liftSessions || []), ...(bodyData?.workouts || [])].some(w => w.date === ds)
-      if (trained) wStreak++
-      else break
-    }
-    const todayTrained = [...(bodyData?.liftSessions || []), ...(bodyData?.workouts || [])].some(w => w.date === todayStr)
-    if (wStreak > 0 && !todayTrained) risks.push({ key: 'workout', label: 'Training', icon: '💪', streak: wStreak, todayDone: false })
+    let wStreak=0
+    for (let i=1;i<=60;i++){const ds=daysAgo(i),trained=[...(bodyData?.liftSessions||[]),...(bodyData?.workouts||[])].some(w=>w.date===ds);if(trained) wStreak++;else break}
+    const todayTrained=[...(bodyData?.liftSessions||[]),...(bodyData?.workouts||[])].some(w=>w.date===todayStr)
+    if(wStreak>0&&!todayTrained) risks.push({key:'workout',label:'Training',streak:wStreak,todayDone:false})
     return risks
   }, [dailyData, bodyData, todayLog, todayStr])
 
-  // Daily brief — yesterday's bottleneck + today's edge
+  // Daily brief
   const dailyBrief = useMemo(() => {
-    const yLog = (dailyData.logs || {})[daysAgo(1)] || {}
-    const yMetrics = [
-      { label: 'Energy',       val: yLog.energy      != null ? +yLog.energy      : null },
-      { label: 'Day Rating',   val: yLog.dailyRating != null ? +yLog.dailyRating : null },
-      { label: 'Diet Quality', val: yLog.dietQuality != null ? +yLog.dietQuality : null },
-      { label: 'Work Focus',   val: yLog.workOutput  != null ? +yLog.workOutput  : null },
-      { label: 'Sleep Qual',   val: yLog.sleep       != null ? +yLog.sleep       : null },
-    ].filter(m => m.val != null)
-    const bottleneck = yMetrics.length > 0 ? yMetrics.reduce((mn, m) => m.val < mn.val ? m : mn) : null
-    const edgeCandidates = [
-      { label: 'Energy',     val: morningAnswers['me6']  != null ? +morningAnswers['me6']  : null },
-      { label: 'Clarity',    val: morningAnswers['mm12'] != null ? +morningAnswers['mm12'] : null },
-      { label: 'Commitment', val: morningAnswers['mi18'] != null ? +morningAnswers['mi18'] : null },
-    ].filter(m => m.val != null)
-    const edge = edgeCandidates.length > 0 ? edgeCandidates.reduce((mx, m) => m.val > mx.val ? m : mx) : null
-    return { bottleneck, edge }
+    const yLog=(dailyData.logs||{})[daysAgo(1)]||{}
+    const yMetrics=[
+      {label:'Energy',      val:yLog.energy      !=null?+yLog.energy      :null},
+      {label:'Day Rating',  val:yLog.dailyRating !=null?+yLog.dailyRating :null},
+      {label:'Diet Quality',val:yLog.dietQuality !=null?+yLog.dietQuality :null},
+      {label:'Work Focus',  val:yLog.workOutput  !=null?+yLog.workOutput  :null},
+      {label:'Sleep Qual',  val:yLog.sleep       !=null?+yLog.sleep       :null},
+    ].filter(m=>m.val!=null)
+    const bottleneck=yMetrics.length>0?yMetrics.reduce((mn,m)=>m.val<mn.val?m:mn):null
+    const edgeCandidates=[
+      {label:'Energy',     val:morningAnswers['me6'] !=null?+morningAnswers['me6'] :null},
+      {label:'Clarity',    val:morningAnswers['mm12']!=null?+morningAnswers['mm12']:null},
+      {label:'Commitment', val:morningAnswers['mi18']!=null?+morningAnswers['mi18']:null},
+    ].filter(m=>m.val!=null)
+    const edge=edgeCandidates.length>0?edgeCandidates.reduce((mx,m)=>m.val>mx.val?m:mx):null
+    return {bottleneck,edge}
   }, [dailyData, morningAnswers])
 
-  const [activeTab, setActiveTab] = useState('WELLBEING')
+  // AI context string
+  const aiContext = useMemo(() => {
+    const lines = [
+      `DATE: ${todayStr}`, `DAY NUMBER: ${dayNum}`,
+      `MORNING CHECK-IN: ${morningDone?'COMPLETE':'PENDING'}`,
+      `EVENING CHECK-IN: ${eveningDone?'COMPLETE':'PENDING'}`,
+    ]
+    if (todayPulse.energy!=null) lines.push(`ENERGY: ${todayPulse.energy}/10`)
+    if (todayPulse.mood!=null)   lines.push(`MOOD: ${todayPulse.mood}/10`)
+    if (todayPulse.stress!=null) lines.push(`STRESS: ${todayPulse.stress}/10`)
+    if (todayPulse.sleep!=null)  lines.push(`SLEEP QUALITY: ${todayPulse.sleep}/10`)
+    lines.push(`WIN SCORE: ${pct}% (${isWin?'WIN':pct===0?'NO DATA':'LOSS'})`)
+    lines.push(`WIN STREAK: ${winStreak} days`)
+    const w7=winHistory7.filter(d=>d.available>0); const wins7=w7.filter(d=>d.isWin).length
+    if(w7.length>0) lines.push(`LAST 7 DAYS: ${wins7}W / ${w7.length-wins7}L`)
+    if(mit) lines.push(`MIT TODAY: "${mit}"`)
+    if(avg7.sleep)    lines.push(`7-DAY AVG SLEEP: ${avg7.sleep} hrs`)
+    if(avg7.steps)    lines.push(`7-DAY AVG STEPS: ${avg7.steps}`)
+    if(avg7.calories) lines.push(`7-DAY AVG CALORIES: ${avg7.calories}`)
+    const todayH=habitHistory7[6]
+    if(todayH?.hasData) lines.push(`HABITS TODAY: Read ${todayH.read?'✓':'✗'} Prayer ${todayH.prayed?'✓':'✗'} Bible ${todayH.bible?'✓':'✗'} Meditate ${todayH.meditated?'✓':'✗'}`)
+    const strs=Object.entries(habitStreaks).filter(([,v])=>v>0).map(([k,v])=>`${k}=${v}d🔥`).join(' ')
+    if(strs) lines.push(`HABIT STREAKS: ${strs}`)
+    const avgs=Object.values(checkinAvg).filter(v=>v.avg!=null).map(v=>`${v.label}=${v.avg}`).join(' ')
+    if(avgs) lines.push(`ALL-TIME AVGS: ${avgs}`)
+    if(dailyBrief.bottleneck) lines.push(`YESTERDAY WEAKEST: ${dailyBrief.bottleneck.label} ${dailyBrief.bottleneck.val}/10`)
+    if(dailyBrief.edge)       lines.push(`TODAY STRONGEST: ${dailyBrief.edge.label} ${dailyBrief.edge.val}/10`)
+    if(metrics.length>0)      lines.push(`WIN METRICS: ${metrics.map(m=>`${m.label}${m.pass?'✓':'✗'}`).join(' ')}`)
+    if(streakRisks.length>0)  lines.push(`STREAKS AT RISK: ${streakRisks.map(r=>`${r.label}(${r.streak}d)`).join(' ')}`)
+    return lines.join('\n')
+  }, [todayStr,dayNum,morningDone,eveningDone,todayPulse,pct,isWin,winStreak,winHistory7,mit,avg7,habitHistory7,habitStreaks,checkinAvg,dailyBrief,metrics,streakRisks])
 
-  const dayLabel = `DAY ${String(dayNum).padStart(3, '0')}`
+  const dayLabel = `DAY ${String(dayNum).padStart(3,'0')}`
+  const dateDisplay = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}).toUpperCase()
 
+  // Chart tabs
+  const CHART_TABS = {
+    WELLBEING: [
+      {key:'energy',     label:'Energy',     color:GOLD  },
+      {key:'dayRating',  label:'Day Rating', color:VIOLET},
+      {key:'mood',       label:'Mood',       color:PINK  },
+      {key:'stress',     label:'Stress',     color:RED   },
+    ],
+    BODY: [
+      {key:'sleepNorm',    label:'Sleep',    color:'#c084fc'},
+      {key:'stepsNorm',    label:'Steps',    color:BLUE     },
+      {key:'caloriesNorm', label:'Calories', color:CYAN     },
+      {key:'proteinNorm',  label:'Protein',  color:'#34d399'},
+    ],
+    BUSINESS: [
+      {key:'bizHoursNorm', label:'Biz Hours', color:ORANGE   },
+      {key:'workoutNorm',  label:'Training',  color:'#2dd4bf'},
+      {key:'dietQuality',  label:'Diet',      color:GREEN    },
+    ],
+  }
+  const TAB_COLORS = {WELLBEING:GOLD,BODY:GREEN,BUSINESS:BLUE}
+  const activeLines = CHART_TABS[activeTab]
+  const tabColor = TAB_COLORS[activeTab]
+
+  const wins7   = winHistory7.filter(d=>d.available>0&&d.isWin).length
+  const losses7 = winHistory7.filter(d=>d.available>0&&!d.isWin).length
+
+  // ── RENDER ────────────────────────────────────────────────────────────────
   return (
-    <div style={{ background: 'transparent', minHeight: '100%', overflowY: 'auto' }}>
+    <div style={{ background:'transparent', minHeight:'100%', overflowY:'auto', paddingBottom:32 }}>
 
-      {/* ── HERO HEADER ── */}
+      {/* ═══════════════════ HERO STRIP ═══════════════════ */}
       <div className="fade-in" style={{
-        background: 'rgba(4,6,18,0.94)',
+        background: 'rgba(3,4,18,0.96)',
         backdropFilter: 'blur(40px)',
         WebkitBackdropFilter: 'blur(40px)',
-        borderBottom: `1px solid ${GOLD}30`,
-        boxShadow: `0 4px 40px ${GOLD}08, 0 0 60px rgba(34,211,238,0.05)`,
-        padding: '24px 26px 20px',
+        borderBottom: `1px solid ${GOLD}22`,
+        boxShadow: `0 4px 60px ${GOLD}06, 0 0 80px rgba(34,211,238,0.04)`,
+        padding: '20px 28px 20px',
         position: 'relative', overflow: 'hidden',
       }}>
-        {/* Top glow hairline */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${GOLD}CC, ${GOLD}, ${CYAN}AA, ${VIOLET}88, transparent)`, boxShadow: `0 0 14px ${GOLD}60` }} />
+        {/* Rainbow top hairline */}
+        <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:`linear-gradient(90deg, transparent, ${GOLD}CC, ${CYAN}AA, ${VIOLET}88, ${PINK}66, transparent)`, boxShadow:`0 0 16px ${GOLD}60` }} />
 
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
-          {/* Day + date */}
+        {/* Subtle ambient glow */}
+        <div style={{ position:'absolute', inset:0, background:`radial-gradient(ellipse 80% 200% at 50% -50%, ${GOLD}06, transparent)`, pointerEvents:'none' }} />
+
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:20 }}>
+          {/* Left: Day + date */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: GOLD, boxShadow: `0 0 8px ${GOLD}` }} />
-              <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 9, fontWeight: 700, color: GOLD, letterSpacing: '0.2em', textTransform: 'uppercase', textShadow: `0 0 12px ${GOLD}80` }}>
-                MARKO OS — COMMAND CENTER
-              </span>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
+              <div style={{ width:5, height:5, borderRadius:'50%', background:GOLD, boxShadow:`0 0 10px ${GOLD}` }} />
+              <span style={{ fontFamily:'"Orbitron",monospace', fontSize:9, fontWeight:700, color:GOLD+'AA', letterSpacing:'0.22em' }}>MARKO OS — COMMAND BRIDGE</span>
             </div>
-            <div className="text-gold-gradient" style={{
-              fontFamily: '"Barlow Condensed", sans-serif',
-              fontWeight: 900, fontSize: 62, lineHeight: 0.92,
-              letterSpacing: '-0.01em',
-              filter: 'drop-shadow(0 0 24px rgba(240,192,64,0.5))',
-            }}>
+            <div className="text-gold-gradient" style={{ fontFamily:'"Barlow Condensed",sans-serif', fontWeight:900, fontSize:68, lineHeight:0.9, letterSpacing:'-0.01em', filter:`drop-shadow(0 0 28px ${GOLD}55)` }}>
               {dayLabel}
             </div>
-            <div style={{ fontFamily: 'Inter', fontSize: 10, color: DARK, marginTop: 8, letterSpacing: '0.12em' }}>
-              {dateDisplay}
-            </div>
+            <div style={{ fontFamily:'Inter', fontSize:10, color:DARK, marginTop:8, letterSpacing:'0.14em' }}>{dateDisplay}</div>
           </div>
 
-          {/* Score badge */}
-          <div style={{
-            ...cardStyle(scoreColor),
-            padding: 0,
-            minWidth: 90,
-            border: `1px solid ${scoreColor}55`,
-            boxShadow: `0 0 50px ${scoreColor}22, 0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 ${scoreColor}18`,
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-          }}>
-            <GlowLine color={scoreColor} />
-            <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-              <span style={{
-                fontFamily: '"Barlow Condensed", sans-serif',
-                fontWeight: 900, fontSize: 46, lineHeight: 1,
-                color: scoreColor,
-                filter: `drop-shadow(0 0 20px ${scoreColor}88)`,
-              }}>{pct}%</span>
-              <div style={{
-                fontFamily: '"Orbitron", monospace', fontSize: 9, fontWeight: 700,
-                letterSpacing: '0.1em', color: scoreColor,
-                filter: `drop-shadow(0 0 8px ${scoreColor}66)`,
-              }}>
-                {pct === 0 ? 'PENDING' : isWin ? '🏆 WIN' : '📉 LOSS'}
+          {/* Center: Check-in status */}
+          <div style={{ display:'flex', flexDirection:'column', gap:8, alignItems:'center' }}>
+            <CheckDot done={morningDone} label="MORNING" color={GOLD}   onClick={()=>onNavigate?.('morning')} />
+            <CheckDot done={eveningDone} label="EVENING" color={VIOLET} onClick={()=>onNavigate?.('evening')} />
+          </div>
+
+          {/* Right: Score ring + status */}
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
+            <ScoreRing pct={pct} color={scoreColor} size={118} label={pct===0?'PENDING':isWin?'WIN ★':'LOSS'} />
+            {winStreak > 0 && (
+              <div style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 12px', borderRadius:8, background:`${GOLD}12`, border:`1px solid ${GOLD}35` }}>
+                <span style={{ fontSize:12 }}>🔥</span>
+                <span style={{ fontFamily:'"Barlow Condensed",sans-serif', fontWeight:900, fontSize:18, color:GOLD, filter:`drop-shadow(0 0 8px ${GOLD})` }}>{winStreak}</span>
+                <span style={{ fontFamily:'"Orbitron",monospace', fontSize:7, color:GOLD+'80', letterSpacing:'0.1em' }}>STREAK</span>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
-        <TopBar pct={pct} isWin={isWin} scoreColor={scoreColor} />
+        {/* Score bar */}
+        <div style={{ height:3, background:'rgba(10,15,32,0.8)', borderRadius:2, overflow:'hidden', marginTop:18, position:'relative' }}>
+          <div style={{ height:'100%', width:`${pct}%`, background:`linear-gradient(90deg,${scoreColor}55,${scoreColor})`, borderRadius:2, boxShadow:`0 0 16px ${scoreColor}`, transition:'width 1.4s cubic-bezier(0.16,1,0.3,1)' }} />
+        </div>
       </div>
 
-      {/* ── MAIN CONTENT ── */}
-      <div style={{ padding: '20px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* ═══════════════════ MAIN CONTENT ═══════════════════ */}
+      <div style={{ padding:'18px 20px', display:'flex', flexDirection:'column', gap:14 }}>
 
-        {/* ── CHECK-IN CARDS ── */}
-        <div className="fade-up delay-1" style={{ display: 'flex', gap: 14 }}>
-
-          {/* MORNING */}
-          <div style={{
-            flex: 1,
-            ...cardStyle(morningDone ? GOLD : CYAN),
-            padding: 0,
-            border: morningDone ? `1px solid ${GOLD}55` : `1px solid ${CYAN}35`,
-            boxShadow: morningDone
-              ? `0 0 60px ${GOLD}18, 0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 ${GOLD}18`
-              : `0 0 40px ${CYAN}10, 0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 ${CYAN}12`,
-            transition: 'all 0.3s ease',
-          }}>
-            <GlowLine color={morningDone ? GOLD : CYAN} />
-            <div style={{ padding: '18px 16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                <span style={{ fontSize: 22, filter: 'drop-shadow(0 0 8px rgba(240,192,64,0.5))' }}>☀️</span>
-                <div>
-                  <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 9, color: GOLD, letterSpacing: '0.12em', fontWeight: 700, textShadow: '0 0 10px rgba(240,192,64,0.4)' }}>MORNING</div>
-                  {morningDone && <div style={{ fontFamily: 'Inter', fontSize: 9, color: GREEN, fontWeight: 700, marginTop: 2 }}>✓ COMPLETE</div>}
-                </div>
-              </div>
-
-              {morningDone ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                  {[
-                    { label: 'Energy',  value: morningAnswers['me6']  != null ? `${morningAnswers['me6']}/10`  : null, color: GOLD   },
-                    { label: 'Sleep',   value: morningAnswers['ms1']  != null ? `${morningAnswers['ms1']} hrs` : null, color: VIOLET },
-                    { label: 'Mood',    value: morningAnswers['mm11'] || null,                                         color: PINK   },
-                    { label: 'Stress',  value: morningAnswers['mm13'] != null ? `${morningAnswers['mm13']}/10` : null, color: RED    },
-                    { label: 'Clarity', value: morningAnswers['mm12'] != null ? `${morningAnswers['mm12']}/10` : null, color: CYAN   },
-                    { label: 'Commit',  value: morningAnswers['mi18'] != null ? `${morningAnswers['mi18']}/10` : null, color: GREEN  },
-                  ].filter(r => r.value !== null).map(({ label, value, color }) => (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontFamily: 'Inter', fontSize: 11, color: MUTED, fontWeight: 600 }}>{label}</span>
-                      <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 18, color, filter: `drop-shadow(0 0 6px ${color}88)` }}>
-                        {value}
-                      </span>
-                    </div>
-                  ))}
-                  {word && (
-                    <div style={{ marginTop: 4, paddingTop: 8, borderTop: `1px solid ${GOLD}18`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontFamily: 'Inter', fontSize: 10, color: MUTED }}>Word</span>
-                      <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 9, fontWeight: 700, color: CYAN, letterSpacing: '0.1em' }}>{word.toUpperCase()}</span>
-                    </div>
-                  )}
-                  {mit && (
-                    <div style={{ paddingTop: 6, borderTop: `1px solid ${GOLD}12` }}>
-                      <div style={{ fontFamily: 'Inter', fontSize: 10, color: MUTED, fontWeight: 600, marginBottom: 3 }}>MIT</div>
-                      <div style={{ fontFamily: 'Inter', fontSize: 11, color: TEXT1, lineHeight: 1.5 }}>{mit}</div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <button
-                  onClick={() => onNavigate?.('morning')}
-                  style={{
-                    width: '100%',
-                    background: 'linear-gradient(135deg, #f0c040, #fb923c)',
-                    border: 'none', borderRadius: 10, padding: '12px 0',
-                    fontFamily: '"Orbitron", monospace', fontSize: 9, fontWeight: 700,
-                    color: '#000', cursor: 'pointer', letterSpacing: '0.1em',
-                    boxShadow: '0 4px 24px rgba(240,192,64,0.35), 0 0 50px rgba(240,192,64,0.12)',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 36px rgba(240,192,64,0.5), 0 0 80px rgba(240,192,64,0.18)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(240,192,64,0.35), 0 0 50px rgba(240,192,64,0.12)'; }}
-                >
-                  START MORNING →
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* EVENING */}
-          <div style={{
-            flex: 1,
-            ...cardStyle(eveningDone ? VIOLET : BLUE),
-            padding: 0,
-            border: eveningDone ? `1px solid ${VIOLET}55` : `1px solid ${BLUE}35`,
-            boxShadow: eveningDone
-              ? `0 0 60px ${VIOLET}18, 0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 ${VIOLET}18`
-              : `0 0 40px ${BLUE}10, 0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 ${BLUE}12`,
-            transition: 'all 0.3s ease',
-          }}>
-            <GlowLine color={eveningDone ? VIOLET : BLUE} />
-            <div style={{ padding: '18px 16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                <span style={{ fontSize: 22, filter: 'drop-shadow(0 0 8px rgba(139,92,246,0.5))' }}>🌙</span>
-                <div>
-                  <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 9, color: VIOLET, letterSpacing: '0.12em', fontWeight: 700, textShadow: '0 0 10px rgba(139,92,246,0.4)' }}>EVENING</div>
-                  {eveningDone && <div style={{ fontFamily: 'Inter', fontSize: 9, color: GREEN, fontWeight: 700, marginTop: 2 }}>✓ COMPLETE</div>}
-                </div>
-              </div>
-
-              {eveningDone ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                  {[
-                    { label: 'Overall',  value: eveningAnswers['ed1']  != null ? `${eveningAnswers['ed1']}/10`  : null, color: GOLD   },
-                    { label: 'Work Hrs', value: eveningAnswers['ed3']  != null ? `${eveningAnswers['ed3']} hrs` : null, color: ORANGE },
-                    { label: 'Focus',    value: eveningAnswers['ed4']  != null ? `${eveningAnswers['ed4']}/10`  : null, color: BLUE   },
-                    { label: 'Diet',     value: eveningAnswers['eb14'] != null ? `${eveningAnswers['eb14']}/10` : null, color: GREEN  },
-                    { label: 'Stress',   value: eveningAnswers['em19'] != null ? `${eveningAnswers['em19']}/10` : null, color: RED    },
-                    { label: 'Control',  value: eveningAnswers['em20'] != null ? `${eveningAnswers['em20']}/10` : null, color: CYAN   },
-                    { label: 'Biz Exec', value: eveningAnswers['eb25'] != null ? `${eveningAnswers['eb25']}/10` : null, color: VIOLET },
-                    { label: 'Steps',    value: eveningAnswers['eb16'] != null ? eveningAnswers['eb16'].toLocaleString() : null, color: GREEN },
-                  ].filter(r => r.value !== null).map(({ label, value, color }) => (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontFamily: 'Inter', fontSize: 11, color: MUTED, fontWeight: 600 }}>{label}</span>
-                      <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 18, color, filter: `drop-shadow(0 0 6px ${color}88)` }}>
-                        {value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <button
-                  onClick={() => onNavigate?.('evening')}
-                  style={{
-                    width: '100%',
-                    background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
-                    border: 'none', borderRadius: 10, padding: '12px 0',
-                    fontFamily: '"Orbitron", monospace', fontSize: 9, fontWeight: 700,
-                    color: '#fff', cursor: 'pointer', letterSpacing: '0.1em',
-                    boxShadow: '0 4px 24px rgba(139,92,246,0.35), 0 0 50px rgba(139,92,246,0.12)',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 36px rgba(139,92,246,0.5), 0 0 80px rgba(139,92,246,0.18)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(139,92,246,0.35), 0 0 50px rgba(139,92,246,0.12)'; }}
-                >
-                  START EVENING →
-                </button>
-              )}
-            </div>
-          </div>
+        {/* ── AI INTEL ── */}
+        <div className="fade-up delay-1">
+          <AIIntelPanel context={aiContext} />
         </div>
 
-        {/* ── DAILY BRIEF ── */}
-        {(dailyBrief.bottleneck || dailyBrief.edge || streakRisks.length > 0 || mit) && (
-          <div className="fade-up delay-2" style={{ ...cardStyle(CYAN), padding: 0 }}>
-            <GlowLine color={CYAN} />
-            <div style={{ padding: '18px 20px' }}>
-              <SectionHeader label="Daily Brief" color={CYAN} />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
-                {mit && (
-                  <div style={{ padding: '12px 14px', borderRadius: 12, background: `${GOLD}0C`, border: `1px solid ${GOLD}30`, boxShadow: `0 0 20px ${GOLD}08` }}>
-                    <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 8, color: GOLD, letterSpacing: '0.15em', marginBottom: 6 }}>MIT TODAY</div>
-                    <div style={{ fontFamily: 'Inter', fontSize: 12, color: TEXT1, lineHeight: 1.5, fontWeight: 600 }}>{mit}</div>
-                  </div>
-                )}
-                {dailyBrief.edge && (
-                  <div style={{ padding: '12px 14px', borderRadius: 12, background: `${GREEN}0A`, border: `1px solid ${GREEN}30`, boxShadow: `0 0 20px ${GREEN}08` }}>
-                    <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 8, color: GREEN, letterSpacing: '0.15em', marginBottom: 6 }}>TODAY'S EDGE</div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                      <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 40, color: GREEN, filter: `drop-shadow(0 0 16px ${GREEN}88)` }}>{dailyBrief.edge.val}</span>
-                      <span style={{ fontFamily: 'Inter', fontSize: 11, color: GREEN, fontWeight: 700 }}>{dailyBrief.edge.label}</span>
-                    </div>
-                  </div>
-                )}
-                {dailyBrief.bottleneck && (
-                  <div style={{ padding: '12px 14px', borderRadius: 12, background: `${RED}08`, border: `1px solid ${RED}30`, boxShadow: `0 0 20px ${RED}08` }}>
-                    <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 8, color: RED, letterSpacing: '0.15em', marginBottom: 6 }}>YESTERDAY'S GAP</div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                      <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 40, color: RED, filter: `drop-shadow(0 0 16px ${RED}88)` }}>{dailyBrief.bottleneck.val}</span>
-                      <span style={{ fontFamily: 'Inter', fontSize: 11, color: RED, fontWeight: 700 }}>{dailyBrief.bottleneck.label}</span>
-                    </div>
-                  </div>
-                )}
-                {streakRisks.length > 0 && (
-                  <div style={{ padding: '12px 14px', borderRadius: 12, background: `${ORANGE}08`, border: `1px solid ${ORANGE}30`, boxShadow: `0 0 20px ${ORANGE}08` }}>
-                    <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 8, color: ORANGE, letterSpacing: '0.15em', marginBottom: 8 }}>STREAKS AT RISK</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                      {streakRisks.map(r => (
-                        <div key={r.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <span style={{ fontFamily: 'Inter', fontSize: 11, color: ORANGE, fontWeight: 600 }}>{r.icon} {r.label}</span>
-                          <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 17, color: ORANGE, filter: `drop-shadow(0 0 8px ${ORANGE}80)` }}>{r.streak}🔥</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── TODAY'S PULSE ── */}
-        {(todayPulse.energy !== null || todayPulse.sleep !== null || todayPulse.mood !== null) && (
-          <div className="fade-up delay-2" style={{ ...cardStyle(CYAN), padding: 0 }}>
-            <GlowLine color={CYAN} />
-            <div style={{ padding: '18px 20px' }}>
-              <SectionHeader label="Today's Pulse" color={CYAN} />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-                {[
-                  { label: 'Energy', value: todayPulse.energy, color: GOLD   },
-                  { label: 'Sleep',  value: todayPulse.sleep,  color: VIOLET },
-                  { label: 'Mood',   value: todayPulse.mood,   color: PINK   },
-                  { label: 'Stress', value: todayPulse.stress, color: RED    },
-                ].map(({ label, value, color }) => (
-                  <div key={label} style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-                    padding: '18px 8px 14px', borderRadius: 14,
-                    background: value !== null ? `${color}10` : 'rgba(10,15,32,0.6)',
-                    border: `1px solid ${value !== null ? color + '45' : 'rgba(40,55,100,0.35)'}`,
-                    boxShadow: value !== null ? `0 0 30px ${color}0C, inset 0 1px 0 ${color}10` : 'none',
-                    overflow: 'hidden', position: 'relative',
-                  }}>
-                    {value !== null && (
-                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${color}CC, ${color}, ${color}CC, transparent)` }} />
-                    )}
-                    <span style={{
-                      fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900,
-                      fontSize: value !== null ? 54 : 30, lineHeight: 1,
-                      color: value !== null ? color : MUTED,
-                      filter: value !== null ? `drop-shadow(0 0 20px ${color})` : 'none',
-                    }}>
-                      {value !== null ? value : '—'}
-                    </span>
-                    <span style={{ fontFamily: 'Inter', fontSize: 12, color: value !== null ? TEXT1 : MUTED, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{label}</span>
-                    {/* bottom progress bar */}
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, background: 'rgba(10,15,32,0.8)' }}>
-                      <div style={{ height: '100%', width: `${value !== null ? (value / 10) * 100 : 0}%`, background: `linear-gradient(90deg, ${color}66, ${color})`, borderRadius: 2, boxShadow: `0 0 8px ${color}` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── 7-DAY INSIGHTS ── */}
-        {avg7.days >= 2 && (
-          <div className="fade-up delay-2" style={{ ...cardStyle(BLUE), padding: 0 }}>
-            <GlowLine color={BLUE} />
-            <div style={{ padding: '18px 20px' }}>
-              <SectionHeader
-                label="7-Day Averages"
-                color={BLUE}
-                extra={
-                  <button
-                    onClick={() => onNavigate?.('insights')}
-                    style={{ background: 'none', border: 'none', fontFamily: 'Inter', fontSize: 10, color: MUTED, cursor: 'pointer', padding: 0 }}
-                    onMouseEnter={e => { e.currentTarget.style.color = BLUE }}
-                    onMouseLeave={e => { e.currentTarget.style.color = MUTED }}
-                  >View Insights →</button>
-                }
-              />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-                {[
-                  { label: 'Sleep',    value: avg7.sleep,    unit: 'hrs',   color: VIOLET, display: v => v },
-                  { label: 'Calories', value: avg7.calories, unit: 'kcal',  color: CYAN,   display: v => v.toLocaleString() },
-                  { label: 'Protein',  value: avg7.protein,  unit: 'g',     color: GREEN,  display: v => v },
-                  { label: 'Steps',    value: avg7.steps,    unit: 'steps', color: GOLD,   display: v => v.toLocaleString() },
-                ].map(({ label, value, unit, color, display }) => (
-                  <div key={label} style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    padding: '18px 10px 14px', borderRadius: 14, gap: 4,
-                    background: value !== null ? `${color}0A` : 'rgba(8,12,26,0.5)',
-                    border: `1px solid ${value !== null ? color + '30' : 'rgba(30,41,80,0.35)'}`,
-                    boxShadow: value !== null ? `0 0 30px ${color}0C, inset 0 1px 0 ${color}10` : 'none',
-                    position: 'relative', overflow: 'hidden',
-                  }}>
-                    {value !== null && (
-                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${color}CC, transparent)` }} />
-                    )}
-                    <span style={{
-                      fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900,
-                      fontSize: 42, lineHeight: 1,
-                      color: value !== null ? color : MUTED,
-                      filter: value !== null ? `drop-shadow(0 0 18px ${color}90)` : 'none',
-                    }}>
-                      {value !== null ? display(value) : '—'}
-                    </span>
-                    <span style={{ fontFamily: 'Inter', fontSize: 11, color: value !== null ? color : MUTED, fontWeight: 700 }}>{unit}</span>
-                    <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: value !== null ? TEXT1 : MUTED, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── CHECK-IN AVERAGES ── */}
-        {Object.values(checkinAvg).some(v => v.avg !== null) && (
-          <div className="fade-up delay-2" style={{ ...cardStyle(PINK), padding: 0 }}>
-            <GlowLine color={PINK} />
-            <div style={{ padding: '18px 20px' }}>
-              <SectionHeader
-                label="All-Time Averages"
-                color={PINK}
-                extra={<span style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED }}>from all check-ins</span>}
-              />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-                {Object.values(checkinAvg).filter(v => v.avg !== null).map(({ label, avg, color, count }) => {
-                  const isInverted = label === 'Stress' || label === 'Anxiety'
-                  let statusColor, statusLabel
-                  if (isInverted) {
-                    if (avg <= 3)      { statusColor = GREEN;  statusLabel = 'GREAT' }
-                    else if (avg <= 5) { statusColor = '#f0c040'; statusLabel = 'OK' }
-                    else               { statusColor = RED;    statusLabel = 'HIGH' }
-                  } else {
-                    if (avg >= 7.5)    { statusColor = GREEN;  statusLabel = 'STRONG' }
-                    else if (avg >= 5) { statusColor = '#f0c040'; statusLabel = 'GOOD' }
-                    else               { statusColor = RED;    statusLabel = 'LOW' }
-                  }
-                  return (
-                    <div key={label} style={{
-                      display: 'flex', flexDirection: 'column', alignItems: 'center',
-                      padding: '14px 8px 10px', borderRadius: 12, gap: 2,
-                      background: `${statusColor}0A`,
-                      border: `1px solid ${statusColor}30`,
-                      boxShadow: `0 0 20px ${statusColor}08, inset 0 1px 0 ${statusColor}12`,
-                      position: 'relative', overflow: 'hidden',
-                    }}>
-                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${statusColor}CC, transparent)` }} />
-                      <span style={{
-                        fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900,
-                        fontSize: 36, lineHeight: 1, color: statusColor,
-                        filter: `drop-shadow(0 0 14px ${statusColor}90)`,
-                      }}>{avg}</span>
-                      <span style={{ fontFamily: 'Inter', fontSize: 9, color: statusColor, fontWeight: 700, opacity: 0.7 }}>/10</span>
-                      <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: TEXT1, textAlign: 'center', lineHeight: 1.2, marginTop: 3 }}>{label}</span>
-                      <div style={{
-                        marginTop: 4, padding: '2px 8px', borderRadius: 6,
-                        background: `${statusColor}18`, border: `1px solid ${statusColor}40`,
-                      }}>
-                        <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 7, fontWeight: 700, color: statusColor, letterSpacing: '0.12em' }}>{statusLabel}</span>
+        {/* ── PULSE ROW ── */}
+        {(todayPulse.energy!==null||todayPulse.mood!==null||todayPulse.stress!==null||todayPulse.sleep!==null) && (
+          <div className="fade-up delay-1" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10 }}>
+            {[
+              { label:'ENERGY',  value:todayPulse.energy, unit:'/10', color:GOLD,   spark:sparkData.energy,  sublabel:checkinAvg.energy?.avg!=null?`avg ${checkinAvg.energy.avg}`:null },
+              { label:'MOOD',    value:todayPulse.mood,   unit:'/10', color:PINK,   spark:sparkData.mood,    sublabel:null },
+              { label:'STRESS',  value:todayPulse.stress, unit:'/10', color:RED,    spark:sparkData.stress,  sublabel:todayPulse.stress!=null?(todayPulse.stress<=3?'↓ GREAT':(todayPulse.stress>=7?'↑ HIGH':null)):null },
+              { label:'SLEEP',   value:todayPulse.sleep,  unit:'/10', color:VIOLET, spark:sparkData.sleep,   sublabel:null },
+            ].map(({label,value,unit,color,spark,sublabel})=>(
+              <div key={label} style={{ ...glass(color), padding:0, position:'relative' }}>
+                <GlowLine color={value!=null?color:'rgba(30,40,80,0.5)'} />
+                <div style={{ padding:'16px 16px 12px', display:'flex', flexDirection:'column', gap:3 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                    <div>
+                      <div style={{ fontFamily:'"Orbitron",monospace', fontSize:7, color:color+'99', letterSpacing:'0.18em', marginBottom:5 }}>{label}</div>
+                      <div style={{ display:'flex', alignItems:'baseline', gap:3 }}>
+                        <span style={{ fontFamily:'"Barlow Condensed",sans-serif', fontWeight:900, fontSize:52, lineHeight:1, color:value!=null?color:DARK, filter:value!=null?`drop-shadow(0 0 22px ${color}AA)`:'none' }}>
+                          {value!=null?value:'—'}
+                        </span>
+                        {value!=null&&unit&&<span style={{ fontFamily:'Inter', fontSize:11, color:color+'80', fontWeight:600, paddingBottom:4 }}>{unit}</span>}
                       </div>
+                    </div>
+                    {spark&&value!=null&&<div style={{marginTop:4}}><Sparkline data={spark} color={color} w={64} h={28} /></div>}
+                  </div>
+                  {sublabel&&<div style={{ fontFamily:'Inter', fontSize:9, color:color+'90', fontWeight:600 }}>{sublabel}</div>}
+                </div>
+                {/* bottom fill bar */}
+                <div style={{ height:2, background:'rgba(8,12,26,0.9)', flexShrink:0 }}>
+                  {value!=null&&<div style={{ height:'100%', width:`${(value/10)*100}%`, background:`linear-gradient(90deg,${color}44,${color})`, boxShadow:`0 0 8px ${color}`, transition:'width 1.2s cubic-bezier(0.16,1,0.3,1)' }} />}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── MIDDLE BENTO ── */}
+        <div className="fade-up delay-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:14 }}>
+
+          {/* WIN RECORD */}
+          <div style={{ ...glass(scoreColor), padding:0, display:'flex', flexDirection:'column' }}>
+            <GlowLine color={scoreColor} />
+            <div style={{ padding:'18px 18px', display:'flex', flexDirection:'column', alignItems:'center', gap:12, flex:1, justifyContent:'center' }}>
+              <div style={{ fontFamily:'"Orbitron",monospace', fontSize:8, color:scoreColor+'99', letterSpacing:'0.18em', alignSelf:'flex-start' }}>WIN RECORD</div>
+              <ScoreRing pct={pct} color={scoreColor} size={100} />
+              <div style={{ display:'flex', gap:10, width:'100%' }}>
+                <div style={{ flex:1, textAlign:'center', padding:'10px 6px', borderRadius:10, background:`${GOLD}10`, border:`1px solid ${GOLD}28` }}>
+                  <div style={{ fontFamily:'"Barlow Condensed",sans-serif', fontWeight:900, fontSize:28, color:GOLD, filter:`drop-shadow(0 0 10px ${GOLD}80)` }}>{wins7}</div>
+                  <div style={{ fontFamily:'"Orbitron",monospace', fontSize:7, color:GOLD+'80', letterSpacing:'0.1em' }}>WINS 7D</div>
+                </div>
+                <div style={{ flex:1, textAlign:'center', padding:'10px 6px', borderRadius:10, background:`${RED}0C`, border:`1px solid ${RED}28` }}>
+                  <div style={{ fontFamily:'"Barlow Condensed",sans-serif', fontWeight:900, fontSize:28, color:RED, filter:`drop-shadow(0 0 10px ${RED}80)` }}>{losses7}</div>
+                  <div style={{ fontFamily:'"Orbitron",monospace', fontSize:7, color:RED+'80', letterSpacing:'0.1em' }}>LOSSES 7D</div>
+                </div>
+              </div>
+              <div style={{ display:'flex', gap:5, width:'100%' }}>
+                {winHistory7.map((d,i)=>{
+                  const isT=d.date===todayStr, has=d.available>0
+                  return (
+                    <div key={i} style={{ flex:1, aspectRatio:'1', borderRadius:7, display:'flex', alignItems:'center', justifyContent:'center',
+                      background:!has?'rgba(15,22,44,0.5)':d.isWin?`${GOLD}18`:`${RED}12`,
+                      border:`1px solid ${isT?GOLD+'90':!has?'rgba(25,35,70,0.4)':d.isWin?GOLD+'35':RED+'30'}`,
+                      boxShadow:has&&d.isWin?`0 0 10px ${GOLD}18`:has?`0 0 6px ${RED}10`:'none',
+                    }}>
+                      {has&&<span style={{ fontFamily:'"Barlow Condensed",sans-serif', fontWeight:900, fontSize:11, color:d.isWin?GOLD:RED, filter:d.isWin?`drop-shadow(0 0 6px ${GOLD})`:undefined }}>{d.isWin?'W':'L'}</span>}
                     </div>
                   )
                 })}
               </div>
             </div>
           </div>
-        )}
 
-        {/* ── METRICS TREND GRAPH ── */}
-        {trendData.some(d => d.hasData) && (() => {
-          const CHART_TABS = {
-            WELLBEING: [
-              { key: 'energy',      label: 'Energy',     color: GOLD   },
-              { key: 'dayRating',   label: 'Day Rating', color: VIOLET },
-              { key: 'mood',        label: 'Mood',       color: PINK   },
-              { key: 'stress',      label: 'Stress',     color: RED    },
-            ],
-            BODY: [
-              { key: 'sleepNorm',    label: 'Sleep',    color: '#c084fc' },
-              { key: 'stepsNorm',    label: 'Steps',    color: BLUE      },
-              { key: 'caloriesNorm', label: 'Calories', color: CYAN      },
-              { key: 'proteinNorm',  label: 'Protein',  color: '#34d399' },
-            ],
-            BUSINESS: [
-              { key: 'bizHoursNorm', label: 'Biz Hours',    color: ORANGE    },
-              { key: 'workoutNorm',  label: 'Training',     color: '#2dd4bf' },
-              { key: 'dietQuality',  label: 'Diet Quality', color: GREEN     },
-            ],
-          }
-          const TAB_COLORS = { WELLBEING: GOLD, BODY: GREEN, BUSINESS: BLUE }
-          const activeLines = CHART_TABS[activeTab]
-          const tabColor = TAB_COLORS[activeTab]
-          return (
-            <div className="fade-up delay-2" style={{ ...cardStyle(tabColor), padding: 0, transition: 'border-color 0.3s' }}>
-              <GlowLine color={tabColor} />
-              <div style={{ padding: '22px 24px' }}>
-                <SectionHeader
-                  label="Metrics Trend"
-                  color={tabColor}
-                  extra={<span style={{ fontFamily: 'Inter', fontSize: 11, color: '#64748b', fontWeight: 500 }}>last {trimmedTrend.length} days</span>}
-                />
-
-                {/* Tab pills */}
-                <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
-                  {Object.keys(CHART_TABS).map(key => {
-                    const isActive = activeTab === key
-                    const tc = TAB_COLORS[key]
-                    return (
-                      <button
-                        key={key}
-                        onClick={() => setActiveTab(key)}
-                        style={{
-                          background: isActive ? `${tc}22` : 'rgba(10,15,32,0.5)',
-                          border: `1px solid ${isActive ? tc + '80' : 'rgba(40,55,100,0.4)'}`,
-                          borderRadius: 8, padding: '6px 18px',
-                          fontFamily: '"Orbitron", monospace', fontSize: 9, fontWeight: 700,
-                          color: isActive ? tc : MUTED, cursor: 'pointer', letterSpacing: '0.12em',
-                          boxShadow: isActive ? `0 0 14px ${tc}28` : 'none',
-                          transition: 'all 0.2s',
-                        }}
-                      >{key}</button>
-                    )
-                  })}
-                </div>
-
-                {/* Legend */}
-                <div style={{ display: 'flex', gap: 20, marginBottom: 16, justifyContent: 'center' }}>
-                  {activeLines.map(({ key, label, color }) => (
-                    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                      <div style={{ width: 24, height: 3, background: color, borderRadius: 2, boxShadow: `0 0 8px ${color}` }} />
-                      <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: TEXT1 }}>{label}</span>
-                    </div>
+          {/* HABITS */}
+          {habitHistory7.some(d=>d.hasData) && (
+            <div style={{ ...glass(GREEN), padding:0 }}>
+              <GlowLine color={GREEN} />
+              <div style={{ padding:'16px 16px' }}>
+                <div style={{ fontFamily:'"Orbitron",monospace', fontSize:8, color:GREEN+'99', letterSpacing:'0.18em', marginBottom:14 }}>DAILY HABITS</div>
+                {/* DOW header */}
+                <div style={{ display:'flex', gap:5, marginBottom:8, paddingLeft:68 }}>
+                  {habitHistory7.map((d,i)=>(
+                    <span key={i} style={{ flex:1, textAlign:'center', fontFamily:'"Orbitron",monospace', fontSize:8, color:d.isToday?GOLD:DARK, fontWeight:d.isToday?700:400 }}>{d.dow}</span>
                   ))}
+                  <div style={{ width:40 }} />
                 </div>
-
-                <ResponsiveContainer width="100%" height={240}>
-                  <LineChart data={trimmedTrend} margin={{ top: 8, right: 12, left: -8, bottom: 4 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={`${tabColor}14`} vertical={false} />
-                    <XAxis
-                      dataKey="label"
-                      tick={{ fontFamily: 'Inter', fontSize: 11, fill: '#94a3b8', fontWeight: 600 }}
-                      tickLine={false}
-                      axisLine={{ stroke: `${tabColor}28` }}
-                      interval="preserveStartEnd"
-                    />
-                    <YAxis
-                      domain={[0, 10]}
-                      tick={{ fontFamily: 'Inter', fontSize: 11, fill: '#94a3b8', fontWeight: 600 }}
-                      tickLine={false}
-                      axisLine={false}
-                      ticks={[0, 2, 4, 6, 8, 10]}
-                      width={28}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        background: 'rgba(4,6,18,0.97)', border: `1px solid ${tabColor}35`,
-                        borderRadius: 12, fontFamily: 'Inter', fontSize: 12, color: TEXT1,
-                        boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 20px ${tabColor}12`,
-                      }}
-                      formatter={(v, name, props) => {
-                        const p = props.payload
-                        if (name === 'Calories') return [p.calories    != null ? `${p.calories.toLocaleString()} kcal` : '—', name]
-                        if (name === 'Protein')  return [p.protein     != null ? `${p.protein} g`                      : '—', name]
-                        if (name === 'Steps')    return [p.steps       != null ? `${p.steps.toLocaleString()} steps`   : '—', name]
-                        if (name === 'Sleep')    return [p.sleepHours  != null ? `${p.sleepHours} hrs`                 : '—', name]
-                        if (name === 'Biz Hours') return [p.bizHours   != null ? `${p.bizHours} hrs`                   : '—', name]
-                        if (name === 'Training') return [p.workoutHours != null ? (p.workoutHours ? 'Trained ✓' : 'Rest day') : '—', name]
-                        return [v != null ? `${v} / 10` : '—', name]
-                      }}
-                      labelStyle={{ color: GOLD, fontWeight: 700, fontSize: 11, marginBottom: 6 }}
-                      itemStyle={{ padding: '2px 0', fontWeight: 600 }}
-                    />
-                    {activeLines.map(({ key, label, color }) => (
-                      <Line
-                        key={key}
-                        type="monotone"
-                        dataKey={key}
-                        name={label}
-                        stroke={color}
-                        strokeWidth={2.5}
-                        dot={{ r: 3, strokeWidth: 0, fill: color }}
-                        activeDot={{ r: 6 }}
-                        connectNulls
-                      />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          )
-        })()}
-
-        {/* ── DAILY HABITS ── */}
-        {habitHistory7.some(d => d.hasData) && (
-          <div className="fade-up delay-2" style={{ ...cardStyle(GREEN), padding: 0 }}>
-            <GlowLine color={GREEN} />
-            <div style={{ padding: '18px 20px' }}>
-              <SectionHeader label="Daily Habits — Last 7 Days" color={GREEN} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-
-                {/* DOW header row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                  <div style={{ minWidth: 110 }} />
-                  <div style={{ display: 'flex', gap: 7, flex: 1 }}>
-                    {habitHistory7.map((d, i) => (
-                      <span key={i} style={{
-                        flex: 1, textAlign: 'center',
-                        fontFamily: '"Orbitron", monospace', fontSize: 9,
-                        fontWeight: d.isToday ? 700 : 400,
-                        color: d.isToday ? GOLD : MUTED,
-                        letterSpacing: '0.05em',
-                      }}>{d.dow}</span>
-                    ))}
-                  </div>
-                  <div style={{ minWidth: 44 }} />
-                </div>
-
                 {[
-                  { key: 'read',      label: 'Reading',    color: CYAN   },
-                  { key: 'meditated', label: 'Meditate',   color: VIOLET },
-                  { key: 'prayed',    label: 'Prayer',     color: GOLD   },
-                  { key: 'bible',     label: 'Bible',      color: PINK   },
-                ].map(({ key, label, color }) => {
-                  const streak = habitStreaks[key] || 0
+                  {key:'read',      label:'Read',   color:CYAN  },
+                  {key:'meditated', label:'Med',    color:VIOLET},
+                  {key:'prayed',    label:'Pray',   color:GOLD  },
+                  {key:'bible',     label:'Bible',  color:PINK  },
+                ].map(({key,label,color})=>{
+                  const streak=habitStreaks[key]||0
                   return (
-                    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: TEXT1, minWidth: 110 }}>{label}</span>
-                      <div style={{ display: 'flex', gap: 7, flex: 1 }}>
-                        {habitHistory7.map((d, i) => (
+                    <div key={key} style={{ display:'flex', alignItems:'center', gap:5, marginBottom:7 }}>
+                      <span style={{ fontFamily:'Inter', fontSize:10, fontWeight:700, color:TEXT1, width:60, flexShrink:0 }}>{label}</span>
+                      <div style={{ display:'flex', gap:5, flex:1 }}>
+                        {habitHistory7.map((d,i)=>(
                           <div key={i} style={{
-                            flex: 1, aspectRatio: '1', borderRadius: 8,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            background: !d.hasData
-                              ? 'rgba(15,22,44,0.5)'
-                              : d[key] ? `${GREEN}18` : `${RED}14`,
-                            border: d.isToday
-                              ? `1.5px solid ${color}BB`
-                              : `1px solid ${!d.hasData ? 'rgba(30,41,80,0.35)' : d[key] ? `${GREEN}55` : `${RED}50`}`,
-                            boxShadow: d.hasData
-                              ? (d[key] ? `0 0 12px ${GREEN}25, inset 0 0 8px ${GREEN}08` : `0 0 8px ${RED}18`)
-                              : 'none',
+                            flex:1, aspectRatio:'1', borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center',
+                            background:!d.hasData?'rgba(12,18,40,0.5)':d[key]?`${GREEN}20`:`${RED}15`,
+                            border:`1px solid ${d.isToday?color+'AA':!d.hasData?'rgba(22,32,65,0.4)':d[key]?GREEN+'50':RED+'45'}`,
+                            boxShadow:d.hasData?(d[key]?`0 0 10px ${GREEN}22`:`0 0 6px ${RED}15`):'none',
                           }}>
-                            {d.hasData && (
-                              <span style={{
-                                fontSize: 14, fontWeight: 900,
-                                color: d[key] ? GREEN : RED,
-                                filter: d[key] ? `drop-shadow(0 0 8px ${GREEN}CC)` : `drop-shadow(0 0 4px ${RED}88)`,
-                              }}>
-                                {d[key] ? '✓' : '✗'}
-                              </span>
-                            )}
+                            {d.hasData&&<span style={{ fontSize:12, fontWeight:900, color:d[key]?GREEN:RED, filter:d[key]?`drop-shadow(0 0 7px ${GREEN}CC)`:`drop-shadow(0 0 4px ${RED}88)` }}>{d[key]?'✓':'✗'}</span>}
                           </div>
                         ))}
                       </div>
-                      {/* Streak badge */}
-                      <div style={{
-                        minWidth: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        gap: 3, padding: '3px 8px', borderRadius: 7,
-                        background: streak > 0 ? `${ORANGE}14` : 'rgba(15,22,44,0.4)',
-                        border: `1px solid ${streak > 0 ? ORANGE + '40' : 'rgba(30,41,80,0.3)'}`,
-                      }}>
-                        <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 15, color: streak > 0 ? ORANGE : DARK, filter: streak > 0 ? `drop-shadow(0 0 6px ${ORANGE}80)` : 'none' }}>{streak}</span>
-                        {streak > 0 && <span style={{ fontSize: 10 }}>🔥</span>}
+                      <div style={{ width:40, display:'flex', alignItems:'center', justifyContent:'flex-end', gap:2, flexShrink:0 }}>
+                        {streak>0&&<><span style={{ fontFamily:'"Barlow Condensed",sans-serif', fontWeight:900, fontSize:15, color:ORANGE, filter:`drop-shadow(0 0 6px ${ORANGE}80)` }}>{streak}</span><span style={{ fontSize:10 }}>🔥</span></>}
                       </div>
                     </div>
                   )
                 })}
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* ── WIN METRICS ── */}
-        {metrics.length > 0 && (
-          <div className="fade-up delay-2" style={{ ...cardStyle(GOLD), padding: 0 }}>
-            <GlowLine color={GOLD} />
-            <div style={{ padding: '16px 18px' }}>
-              <SectionHeader label="Win Metrics Today" color={GOLD} />
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {metrics.map(m => (
-                  <div key={m.key} style={{
-                    display: 'flex', alignItems: 'center', gap: 7,
-                    padding: '7px 14px', borderRadius: 9,
-                    background: m.pass ? `${GREEN}0A` : `${RED}08`,
-                    border: `1px solid ${m.pass ? GREEN + '30' : RED + '25'}`,
-                    boxShadow: `0 0 16px ${m.pass ? GREEN : RED}08`,
-                    transition: 'all 0.2s',
-                  }}>
-                    <span style={{ fontSize: 11, color: m.pass ? GREEN : RED, filter: `drop-shadow(0 0 4px ${m.pass ? GREEN : RED})` }}>{m.pass ? '✓' : '✗'}</span>
-                    <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 600, color: m.pass ? GREEN : RED }}>{m.label}</span>
+          {/* DAILY BRIEF */}
+          <div style={{ ...glass(CYAN), padding:0, display:'flex', flexDirection:'column' }}>
+            <GlowLine color={CYAN} />
+            <div style={{ padding:'16px 16px', display:'flex', flexDirection:'column', gap:10, flex:1 }}>
+              <div style={{ fontFamily:'"Orbitron",monospace', fontSize:8, color:CYAN+'99', letterSpacing:'0.18em' }}>DAILY BRIEF</div>
+
+              {mit && (
+                <div style={{ padding:'12px 13px', borderRadius:11, background:`${GOLD}0C`, border:`1px solid ${GOLD}28` }}>
+                  <div style={{ fontFamily:'"Orbitron",monospace', fontSize:7, color:GOLD, letterSpacing:'0.16em', marginBottom:6 }}>MIT TODAY</div>
+                  <div style={{ fontFamily:'Inter', fontSize:12, color:TEXT1, lineHeight:1.55, fontWeight:600 }}>{mit}</div>
+                </div>
+              )}
+
+              {word && (
+                <div style={{ padding:'10px 13px', borderRadius:11, background:`${CYAN}08`, border:`1px solid ${CYAN}28` }}>
+                  <div style={{ fontFamily:'"Orbitron",monospace', fontSize:7, color:CYAN, letterSpacing:'0.16em', marginBottom:4 }}>WORD OF DAY</div>
+                  <div style={{ fontFamily:'"Orbitron",monospace', fontSize:13, fontWeight:700, color:CYAN, letterSpacing:'0.08em', filter:`drop-shadow(0 0 10px ${CYAN}80)` }}>{word.toUpperCase()}</div>
+                </div>
+              )}
+
+              {dailyBrief.edge && (
+                <div style={{ padding:'11px 13px', borderRadius:11, background:`${GREEN}0A`, border:`1px solid ${GREEN}28`, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                  <div>
+                    <div style={{ fontFamily:'"Orbitron",monospace', fontSize:7, color:GREEN, letterSpacing:'0.15em', marginBottom:3 }}>TODAY'S EDGE</div>
+                    <div style={{ fontFamily:'Inter', fontSize:11, color:GREEN+'CC' }}>{dailyBrief.edge.label}</div>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+                  <span style={{ fontFamily:'"Barlow Condensed",sans-serif', fontWeight:900, fontSize:36, color:GREEN, filter:`drop-shadow(0 0 16px ${GREEN}AA)` }}>{dailyBrief.edge.val}</span>
+                </div>
+              )}
 
-        {/* ── NON-NEGOTIABLES ── */}
-        {nonNegs.length > 0 && (
-          <div className="fade-up delay-2" style={{ ...cardStyle(GREEN), padding: 0 }}>
-            <GlowLine color={GREEN} />
-            <div style={{ padding: '16px 18px' }}>
-              <SectionHeader label="Non-Negotiables" color={GREEN} />
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {nonNegs.map(item => (
-                  <div key={item.id} style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '7px 14px', borderRadius: 9,
-                    background: item.checked ? `${GREEN}0A` : `${RED}08`,
-                    border: `1px solid ${item.checked ? GREEN + '30' : RED + '25'}`,
-                    boxShadow: `0 0 16px ${item.checked ? GREEN : RED}08`,
-                  }}>
-                    <div style={{
-                      width: 14, height: 14, borderRadius: 4, flexShrink: 0,
-                      background: item.checked ? GREEN : 'transparent',
-                      border: item.checked ? 'none' : `1px solid ${RED}50`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: item.checked ? `0 0 8px ${GREEN}66` : 'none',
-                    }}>
-                      {item.checked && <span style={{ fontSize: 9, color: '#000', fontWeight: 900 }}>✓</span>}
-                    </div>
-                    <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 600, color: item.checked ? GREEN : RED }}>{item.label}</span>
+              {dailyBrief.bottleneck && (
+                <div style={{ padding:'11px 13px', borderRadius:11, background:`${RED}08`, border:`1px solid ${RED}28`, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                  <div>
+                    <div style={{ fontFamily:'"Orbitron",monospace', fontSize:7, color:RED, letterSpacing:'0.15em', marginBottom:3 }}>YESTERDAY'S GAP</div>
+                    <div style={{ fontFamily:'Inter', fontSize:11, color:RED+'CC' }}>{dailyBrief.bottleneck.label}</div>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+                  <span style={{ fontFamily:'"Barlow Condensed",sans-serif', fontWeight:900, fontSize:36, color:RED, filter:`drop-shadow(0 0 16px ${RED}AA)` }}>{dailyBrief.bottleneck.val}</span>
+                </div>
+              )}
 
-        {/* ── STREAK + 7-DAY GRID ── */}
-        <div className="fade-up delay-3" style={{ display: 'flex', gap: 14 }}>
-
-          {/* Streak badge */}
-          <div style={{
-            ...cardStyle(winStreak > 0 ? GOLD : BLUE),
-            padding: 0,
-            minWidth: 100,
-            border: winStreak > 0 ? `1px solid ${GOLD}55` : `1px solid ${BLUE}25`,
-            background: winStreak > 0
-              ? 'linear-gradient(135deg, rgba(240,192,64,0.10), rgba(251,146,60,0.05))'
-              : 'rgba(4,6,20,0.65)',
-            boxShadow: winStreak > 0
-              ? `0 0 70px ${GOLD}20, 0 4px 32px rgba(0,0,0,0.6), inset 0 1px 0 ${GOLD}15`
-              : `0 0 40px ${BLUE}08, 0 4px 32px rgba(0,0,0,0.6)`,
-          }}>
-            <GlowLine color={winStreak > 0 ? GOLD : BLUE} />
-            <div style={{ padding: '20px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-              <span style={{ fontSize: 20, filter: winStreak > 0 ? `drop-shadow(0 0 10px ${GOLD}90)` : 'grayscale(1)' }}>🔥</span>
-              <span style={{
-                fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 54, lineHeight: 1,
-                color: winStreak > 0 ? GOLD : DARK,
-                filter: winStreak > 0 ? `drop-shadow(0 0 24px ${GOLD}80)` : 'none',
-              }}>{winStreak}</span>
-              <span style={{
-                fontFamily: '"Orbitron", monospace', fontSize: 8, fontWeight: 700,
-                color: winStreak > 0 ? GOLD : DARK, letterSpacing: '0.1em', textAlign: 'center',
-              }}>WIN STREAK</span>
-            </div>
-          </div>
-
-          {/* 7-day grid */}
-          <div style={{ flex: 1, ...cardStyle(BLUE), padding: 0 }}>
-            <GlowLine color={BLUE} />
-            <div style={{ padding: '16px 14px' }}>
-              <SectionHeader label="Last 7 Days" color={BLUE} />
-              <div style={{ display: 'flex', gap: 7 }}>
-                {winHistory7.map((d, i) => {
-                  const dt      = new Date(d.date + 'T12:00:00')
-                  const dow     = ['S', 'M', 'T', 'W', 'T', 'F', 'S'][dt.getDay()]
-                  const isToday = d.date === todayStr
-                  const hasData = d.available > 0
-                  return (
-                    <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                      <span style={{
-                        fontFamily: 'Inter', fontSize: 8,
-                        fontWeight: isToday ? 700 : 400,
-                        color: isToday ? GOLD : DARK,
-                      }}>{dow}</span>
-                      <div style={{
-                        width: '100%', aspectRatio: '1', borderRadius: 8,
-                        background: !hasData
-                          ? 'rgba(20,28,52,0.5)'
-                          : d.isWin
-                            ? `linear-gradient(135deg, ${GOLD}18, ${ORANGE}0A)`
-                            : `linear-gradient(135deg, ${RED}12, rgba(239,68,68,0.06))`,
-                        border: isToday
-                          ? `1px solid ${GOLD}80`
-                          : `1px solid ${!hasData ? 'rgba(30,41,80,0.35)' : d.isWin ? GOLD + '35' : RED + '30'}`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: hasData && d.isWin ? `0 0 14px ${GOLD}18` : hasData ? `0 0 10px ${RED}10` : 'none',
-                        transition: 'all 0.2s',
-                      }}>
-                        {hasData && (
-                          <span style={{
-                            fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 13,
-                            color: d.isWin ? GOLD : RED,
-                            filter: d.isWin ? `drop-shadow(0 0 6px ${GOLD}90)` : 'none',
-                          }}>{d.isWin ? 'W' : 'L'}</span>
-                        )}
-                      </div>
+              {streakRisks.length > 0 && (
+                <div style={{ padding:'11px 13px', borderRadius:11, background:`${ORANGE}08`, border:`1px solid ${ORANGE}28` }}>
+                  <div style={{ fontFamily:'"Orbitron",monospace', fontSize:7, color:ORANGE, letterSpacing:'0.15em', marginBottom:8 }}>STREAKS AT RISK</div>
+                  {streakRisks.map(r=>(
+                    <div key={r.key} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
+                      <span style={{ fontFamily:'Inter', fontSize:11, color:ORANGE+'CC' }}>{r.label}</span>
+                      <span style={{ fontFamily:'"Barlow Condensed",sans-serif', fontWeight:900, fontSize:16, color:ORANGE }}>{r.streak}🔥</span>
                     </div>
-                  )
-                })}
-              </div>
+                  ))}
+                </div>
+              )}
+
+              {!mit && !dailyBrief.edge && !dailyBrief.bottleneck && !streakRisks.length && (
+                <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8, opacity:0.5 }}>
+                  <div style={{ fontSize:28 }}>📋</div>
+                  <div style={{ fontFamily:'Inter', fontSize:11, color:MUTED, textAlign:'center' }}>Complete your morning check-in to populate your daily brief.</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* ── ACTIVE GOALS ── */}
-        {goals.length > 0 && (
-          <div className="fade-up delay-5" style={{ ...cardStyle(VIOLET), padding: 0 }}>
-            <GlowLine color={VIOLET} />
-            <div style={{ padding: '16px 18px' }}>
-              <SectionHeader label="Active Goals" color={VIOLET} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                {goals.map(goal => {
-                  const start    = new Date(goal.startDate + 'T00:00:00')
-                  const end      = new Date(goal.endDate   + 'T00:00:00')
-                  const total    = Math.max(1, (end - start) / 86400000)
-                  const elapsed  = Math.max(0, (now - start) / 86400000)
-                  const timePct  = Math.min(100, Math.round((elapsed / total) * 100))
-                  const daysLeft = Math.max(0, Math.ceil((end - now) / 86400000))
-                  const accent   = CAT_COLORS[goal.category] || BLUE
-                  return (
-                    <div key={goal.id}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-                        <span style={{ fontFamily: 'Inter', fontSize: 13, color: TEXT1, fontWeight: 600 }}>{goal.title}</span>
-                        <span style={{
-                          fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 20,
-                          color: accent, filter: `drop-shadow(0 0 8px ${accent}80)`,
-                        }}>{daysLeft}<span style={{ fontSize: 11, color: DARK, fontWeight: 400 }}>d</span></span>
-                      </div>
-                      <div style={{ height: 4, background: 'rgba(20,28,52,0.8)', borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
-                        <div style={{
-                          height: '100%', width: `${timePct}%`,
-                          background: `linear-gradient(90deg, ${accent}66, ${accent})`,
-                          borderRadius: 3, boxShadow: `0 0 10px ${accent}`,
-                          transition: 'width 1.2s cubic-bezier(0.16,1,0.3,1)',
-                        }} />
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
-                        <span style={{ fontFamily: 'Inter', fontSize: 9, color: DARK }}>{timePct}% elapsed</span>
-                        <span style={{ fontFamily: 'Inter', fontSize: 9, color: accent, fontWeight: 600 }}>{daysLeft} days left</span>
-                      </div>
+        {/* ── 7-DAY AVERAGES ── */}
+        {avg7.days >= 2 && (
+          <div className="fade-up delay-2" style={{ ...glass(BLUE), padding:0 }}>
+            <GlowLine color={BLUE} />
+            <div style={{ padding:'16px 20px' }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                  <div style={{ width:5, height:5, borderRadius:'50%', background:BLUE, boxShadow:`0 0 8px ${BLUE}` }} />
+                  <span style={{ fontFamily:'"Orbitron",monospace', fontSize:9, fontWeight:700, color:BLUE, letterSpacing:'0.18em' }}>7-DAY AVERAGES</span>
+                </div>
+                <button onClick={()=>onNavigate?.('insights')} style={{ background:'none', border:`1px solid ${BLUE}30`, borderRadius:7, padding:'4px 12px', fontFamily:'"Orbitron",monospace', fontSize:7, color:BLUE+'80', cursor:'pointer', letterSpacing:'0.1em' }}>DEEP INSIGHTS →</button>
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10 }}>
+                {[
+                  {label:'Sleep',    value:avg7.sleep,    unit:'hrs',  color:VIOLET, display:v=>v                   },
+                  {label:'Calories', value:avg7.calories, unit:'kcal', color:CYAN,   display:v=>v.toLocaleString()  },
+                  {label:'Protein',  value:avg7.protein,  unit:'g',    color:GREEN,  display:v=>v                   },
+                  {label:'Steps',    value:avg7.steps,    unit:'',     color:GOLD,   display:v=>(v>=1000?`${(v/1000).toFixed(1)}k`:v) },
+                ].map(({label,value,unit,color,display})=>(
+                  <div key={label} style={{ padding:'14px 14px 12px', borderRadius:13, background:value!=null?`${color}0A`:'rgba(8,12,26,0.5)', border:`1px solid ${value!=null?color+'28':'rgba(25,35,70,0.3)'}`, position:'relative', overflow:'hidden' }}>
+                    {value!=null&&<div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:`linear-gradient(90deg,transparent,${color}CC,transparent)` }} />}
+                    <div style={{ fontFamily:'"Orbitron",monospace', fontSize:7, color:value!=null?color+'99':DARK, letterSpacing:'0.16em', marginBottom:6 }}>{label}</div>
+                    <div style={{ display:'flex', alignItems:'baseline', gap:4 }}>
+                      <span style={{ fontFamily:'"Barlow Condensed",sans-serif', fontWeight:900, fontSize:38, lineHeight:1, color:value!=null?color:DARK, filter:value!=null?`drop-shadow(0 0 16px ${color}90)`:'none' }}>{value!=null?display(value):'—'}</span>
+                      {value!=null&&unit&&<span style={{ fontFamily:'Inter', fontSize:11, color:color+'80', fontWeight:600 }}>{unit}</span>}
                     </div>
-                  )
-                })}
+                  </div>
+                ))}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ── WIN METRICS + ALL-TIME AVGS ── */}
+        <div className="fade-up delay-2" style={{ display:'grid', gridTemplateColumns:metrics.length>0&&Object.values(checkinAvg).some(v=>v.avg!=null)?'auto 1fr':'1fr', gap:14 }}>
+          {metrics.length > 0 && (
+            <div style={{ ...glass(GOLD), padding:0 }}>
+              <GlowLine color={GOLD} />
+              <div style={{ padding:'14px 16px' }}>
+                <div style={{ fontFamily:'"Orbitron",monospace', fontSize:8, color:GOLD+'99', letterSpacing:'0.18em', marginBottom:12 }}>WIN METRICS</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                  {metrics.map(m=>(
+                    <div key={m.key} style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 12px', borderRadius:9, background:m.pass?`${GREEN}0A`:`${RED}08`, border:`1px solid ${m.pass?GREEN+'30':RED+'25'}` }}>
+                      <span style={{ fontSize:11, color:m.pass?GREEN:RED, filter:`drop-shadow(0 0 5px ${m.pass?GREEN:RED})` }}>{m.pass?'✓':'✗'}</span>
+                      <span style={{ fontFamily:'Inter', fontSize:12, fontWeight:600, color:m.pass?GREEN:RED }}>{m.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {Object.values(checkinAvg).some(v=>v.avg!=null) && (
+            <div style={{ ...glass(PINK), padding:0 }}>
+              <GlowLine color={PINK} />
+              <div style={{ padding:'14px 16px' }}>
+                <div style={{ fontFamily:'"Orbitron",monospace', fontSize:8, color:PINK+'99', letterSpacing:'0.18em', marginBottom:12 }}>ALL-TIME AVERAGES</div>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))', gap:8 }}>
+                  {Object.values(checkinAvg).filter(v=>v.avg!=null).map(({label,avg,color})=>{
+                    const isInv=label==='Stress'||label==='Anxiety'
+                    const sc=isInv?(avg<=3?GREEN:avg<=5?'#f0c040':RED):(avg>=7.5?GREEN:avg>=5?'#f0c040':RED)
+                    const sl=isInv?(avg<=3?'GREAT':avg<=5?'OK':'HIGH'):(avg>=7.5?'STRONG':avg>=5?'GOOD':'LOW')
+                    return (
+                      <div key={label} style={{ padding:'10px 10px 8px', borderRadius:11, background:`${sc}0A`, border:`1px solid ${sc}28`, position:'relative', overflow:'hidden' }}>
+                        <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:`linear-gradient(90deg,transparent,${sc}CC,transparent)` }} />
+                        <span style={{ fontFamily:'"Barlow Condensed",sans-serif', fontWeight:900, fontSize:30, lineHeight:1, color:sc, filter:`drop-shadow(0 0 12px ${sc}90)` }}>{avg}</span>
+                        <div style={{ fontFamily:'Inter', fontSize:10, fontWeight:700, color:TEXT1, marginTop:3, lineHeight:1.2 }}>{label}</div>
+                        <div style={{ marginTop:5, padding:'2px 7px', borderRadius:5, background:`${sc}18`, border:`1px solid ${sc}35`, display:'inline-block' }}>
+                          <span style={{ fontFamily:'"Orbitron",monospace', fontSize:6, fontWeight:700, color:sc, letterSpacing:'0.12em' }}>{sl}</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── TREND CHART ── */}
+        {trendData.some(d=>d.hasData) && (
+          <div className="fade-up delay-3" style={{ ...glass(tabColor), padding:0, transition:'border-color 0.4s' }}>
+            <GlowLine color={tabColor} />
+            <div style={{ padding:'20px 22px' }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                  <div style={{ width:5, height:5, borderRadius:'50%', background:tabColor, boxShadow:`0 0 8px ${tabColor}` }} />
+                  <span style={{ fontFamily:'"Orbitron",monospace', fontSize:9, fontWeight:700, color:tabColor, letterSpacing:'0.18em' }}>METRICS TREND</span>
+                  <span style={{ fontFamily:'Inter', fontSize:10, color:MUTED }}>last {trimmedTrend.length} days</span>
+                </div>
+                {/* Tab pills */}
+                <div style={{ display:'flex', gap:6 }}>
+                  {Object.keys(CHART_TABS).map(key=>{
+                    const isA=activeTab===key, tc=TAB_COLORS[key]
+                    return (
+                      <button key={key} onClick={()=>setActiveTab(key)} style={{ background:isA?`${tc}20`:'rgba(8,12,26,0.6)', border:`1px solid ${isA?tc+'70':'rgba(35,50,90,0.4)'}`, borderRadius:8, padding:'5px 14px', fontFamily:'"Orbitron",monospace', fontSize:8, fontWeight:700, color:isA?tc:MUTED, cursor:'pointer', letterSpacing:'0.1em', boxShadow:isA?`0 0 14px ${tc}25`:'none', transition:'all 0.2s' }}>{key}</button>
+                    )
+                  })}
+                </div>
+              </div>
+              {/* Legend */}
+              <div style={{ display:'flex', gap:18, marginBottom:14, justifyContent:'center' }}>
+                {activeLines.map(({key,label,color})=>(
+                  <div key={key} style={{ display:'flex', alignItems:'center', gap:6 }}>
+                    <div style={{ width:20, height:2.5, background:color, borderRadius:2, boxShadow:`0 0 8px ${color}` }} />
+                    <span style={{ fontFamily:'Inter', fontSize:11, fontWeight:700, color:TEXT1 }}>{label}</span>
+                  </div>
+                ))}
+              </div>
+              <ResponsiveContainer width="100%" height={230}>
+                <LineChart data={trimmedTrend} margin={{top:8,right:12,left:-8,bottom:4}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={`${tabColor}12`} vertical={false} />
+                  <XAxis dataKey="label" tick={{fontFamily:'Inter',fontSize:10,fill:'#64748b',fontWeight:600}} tickLine={false} axisLine={{stroke:`${tabColor}22`}} interval="preserveStartEnd" />
+                  <YAxis domain={[0,10]} tick={{fontFamily:'Inter',fontSize:10,fill:'#64748b',fontWeight:600}} tickLine={false} axisLine={false} ticks={[0,2,4,6,8,10]} width={26} />
+                  <Tooltip contentStyle={{background:'rgba(4,6,18,0.97)',border:`1px solid ${tabColor}35`,borderRadius:12,fontFamily:'Inter',fontSize:12,color:TEXT1,boxShadow:`0 8px 32px rgba(0,0,0,0.5)`}}
+                    formatter={(v,name,p)=>{
+                      const d=p.payload
+                      if(name==='Calories') return [d.calories!=null?`${d.calories.toLocaleString()} kcal`:'—',name]
+                      if(name==='Protein')  return [d.protein!=null?`${d.protein}g`:'—',name]
+                      if(name==='Steps')    return [d.steps!=null?`${d.steps.toLocaleString()} steps`:'—',name]
+                      if(name==='Sleep')    return [d.sleepHours!=null?`${d.sleepHours} hrs`:'—',name]
+                      if(name==='Biz Hours') return [d.bizHours!=null?`${d.bizHours} hrs`:'—',name]
+                      if(name==='Training') return [d.workoutHours?'Trained ✓':'Rest','Training']
+                      return [v!=null?`${v}/10`:'—',name]
+                    }}
+                    labelStyle={{color:GOLD,fontWeight:700,fontSize:11,marginBottom:6}}
+                  />
+                  {activeLines.map(({key,label,color})=>(
+                    <Line key={key} type="monotone" dataKey={key} name={label} stroke={color} strokeWidth={2.5} dot={{r:3,strokeWidth:0,fill:color}} activeDot={{r:6,style:{filter:`drop-shadow(0 0 8px ${color})`}}} connectNulls />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {/* ── NON-NEGS + GOALS ── */}
+        {(nonNegs.length>0||goals.length>0) && (
+          <div className="fade-up delay-3" style={{ display:'grid', gridTemplateColumns:nonNegs.length>0&&goals.length>0?'1fr 1fr':'1fr', gap:14 }}>
+            {nonNegs.length>0&&(
+              <div style={{ ...glass(GREEN), padding:0 }}>
+                <GlowLine color={GREEN} />
+                <div style={{ padding:'14px 16px' }}>
+                  <div style={{ fontFamily:'"Orbitron",monospace', fontSize:8, color:GREEN+'99', letterSpacing:'0.18em', marginBottom:12 }}>NON-NEGOTIABLES</div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                    {nonNegs.map(item=>(
+                      <div key={item.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', borderRadius:9, background:item.checked?`${GREEN}0A`:`${RED}08`, border:`1px solid ${item.checked?GREEN+'30':RED+'25'}` }}>
+                        <div style={{ width:14,height:14,borderRadius:4,background:item.checked?GREEN:'transparent',border:item.checked?'none':`1px solid ${RED}50`,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:item.checked?`0 0 8px ${GREEN}66`:'none',flexShrink:0 }}>
+                          {item.checked&&<span style={{fontSize:9,color:'#000',fontWeight:900}}>✓</span>}
+                        </div>
+                        <span style={{ fontFamily:'Inter', fontSize:12, fontWeight:600, color:item.checked?GREEN:RED }}>{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            {goals.length>0&&(
+              <div style={{ ...glass(VIOLET), padding:0 }}>
+                <GlowLine color={VIOLET} />
+                <div style={{ padding:'14px 16px' }}>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
+                    <div style={{ fontFamily:'"Orbitron",monospace', fontSize:8, color:VIOLET+'99', letterSpacing:'0.18em' }}>ACTIVE GOALS</div>
+                    <button onClick={()=>onNavigate?.('goals')} style={{ background:'none', border:`1px solid ${VIOLET}30`, borderRadius:6, padding:'3px 10px', fontFamily:'"Orbitron",monospace', fontSize:7, color:VIOLET+'80', cursor:'pointer', letterSpacing:'0.1em' }}>ALL →</button>
+                  </div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                    {goals.map(goal=>{
+                      const start=new Date(goal.startDate+'T00:00:00'),end=new Date(goal.endDate+'T00:00:00')
+                      const total=Math.max(1,(end-start)/86400000),elapsed=Math.max(0,(now-start)/86400000)
+                      const timePct=Math.min(100,Math.round((elapsed/total)*100))
+                      const daysLeft=Math.max(0,Math.ceil((end-now)/86400000))
+                      const accent={Body:'#2dd4bf',Business:PINK,Mind:PINK,Daily:BLUE,Custom:CYAN}[goal.category]||BLUE
+                      return (
+                        <div key={goal.id}>
+                          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6 }}>
+                            <span style={{ fontFamily:'Inter', fontSize:12, color:TEXT1, fontWeight:600 }}>{goal.title}</span>
+                            <span style={{ fontFamily:'"Barlow Condensed",sans-serif', fontWeight:900, fontSize:18, color:accent, filter:`drop-shadow(0 0 8px ${accent}80)` }}>{daysLeft}<span style={{ fontSize:10, color:DARK, fontWeight:400 }}>d</span></span>
+                          </div>
+                          <div style={{ height:4, background:'rgba(15,22,50,0.8)', borderRadius:3, overflow:'hidden' }}>
+                            <div style={{ height:'100%', width:`${timePct}%`, background:`linear-gradient(90deg,${accent}55,${accent})`, borderRadius:3, boxShadow:`0 0 8px ${accent}`, transition:'width 1.2s cubic-bezier(0.16,1,0.3,1)' }} />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {/* ── EMPTY STATE ── */}
-        {!morningDone && !eveningDone && metrics.length === 0 && nonNegs.length === 0 && goals.length === 0 && !latestJournal && (
-          <div className="fade-up delay-2" style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <div style={{ fontSize: 52, marginBottom: 16, filter: `drop-shadow(0 0 20px ${BLUE}60)` }}>🚀</div>
-            <div style={{ fontFamily: '"Orbitron", monospace', fontSize: 10, color: BLUE, letterSpacing: '0.25em', marginBottom: 10, textShadow: `0 0 16px ${BLUE}80` }}>
-              SYSTEM READY
-            </div>
-            <div style={{ fontFamily: 'Inter', fontSize: 13, color: DARK }}>
-              Start your morning check-in to activate the command center.
-            </div>
+        {!morningDone && !eveningDone && metrics.length===0 && nonNegs.length===0 && goals.length===0 && (
+          <div className="fade-up delay-2" style={{ textAlign:'center', padding:'60px 20px' }}>
+            <div style={{ fontSize:52, marginBottom:16, filter:`drop-shadow(0 0 24px ${BLUE}60)` }}>🚀</div>
+            <div style={{ fontFamily:'"Orbitron",monospace', fontSize:10, color:BLUE, letterSpacing:'0.28em', marginBottom:10, textShadow:`0 0 20px ${BLUE}90` }}>COMMAND BRIDGE READY</div>
+            <div style={{ fontFamily:'Inter', fontSize:13, color:DARK }}>Start your morning check-in to initialize the system.</div>
           </div>
         )}
-
-        <div style={{ height: 24 }} />
       </div>
     </div>
   )
