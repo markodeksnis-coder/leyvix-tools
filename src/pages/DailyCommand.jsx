@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today, daysSinceStart, daysAgo, DATA_START_DATE } from '../utils'
@@ -251,6 +251,23 @@ export default function DailyCommand({ onNavigate }) {
     })
   }, [dailyData, todayStr])
 
+  // Current streak per habit
+  const habitStreaks = useMemo(() => {
+    const map = { read: 'mentalRead', meditated: 'meditated', prayed: 'prayed', bible: 'readBible' }
+    const result = {}
+    for (const [key, field] of Object.entries(map)) {
+      let streak = 0
+      for (let i = 1; i <= 60; i++) {
+        const ds = daysAgo(i)
+        const log = (dailyData.logs || {})[ds] || {}
+        if (log[field] === 1) streak++
+        else break
+      }
+      result[key] = streak
+    }
+    return result
+  }, [dailyData])
+
   // Habit streak risks
   const streakRisks = useMemo(() => {
     const items = [
@@ -301,6 +318,8 @@ export default function DailyCommand({ onNavigate }) {
     const edge = edgeCandidates.length > 0 ? edgeCandidates.reduce((mx, m) => m.val > mx.val ? m : mx) : null
     return { bottleneck, edge }
   }, [dailyData, morningAnswers])
+
+  const [activeTab, setActiveTab] = useState('WELLBEING')
 
   const dayLabel = `DAY ${String(dayNum).padStart(3, '0')}`
 
@@ -670,118 +689,172 @@ export default function DailyCommand({ onNavigate }) {
                 extra={<span style={{ fontFamily: 'Inter', fontSize: 9, color: MUTED }}>from all check-ins</span>}
               />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-                {Object.values(checkinAvg).filter(v => v.avg !== null).map(({ label, avg, color, count }) => (
-                  <div key={label} style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center',
-                    padding: '14px 8px 12px', borderRadius: 12, gap: 4,
-                    background: `${color}0A`,
-                    border: `1px solid ${color}28`,
-                    boxShadow: `0 0 20px ${color}08, inset 0 1px 0 ${color}10`,
-                    position: 'relative', overflow: 'hidden',
-                  }}>
-                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${color}AA, transparent)` }} />
-                    <span style={{
-                      fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900,
-                      fontSize: 36, lineHeight: 1, color,
-                      filter: `drop-shadow(0 0 14px ${color}90)`,
-                    }}>{avg}</span>
-                    <span style={{ fontFamily: 'Inter', fontSize: 10, color, fontWeight: 700, opacity: 0.8 }}>/10</span>
-                    <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: TEXT1, textAlign: 'center', lineHeight: 1.2 }}>{label}</span>
-                    <span style={{ fontFamily: 'Inter', fontSize: 9, color: '#64748b', fontWeight: 500 }}>{count} days</span>
-                  </div>
-                ))}
+                {Object.values(checkinAvg).filter(v => v.avg !== null).map(({ label, avg, color, count }) => {
+                  const isInverted = label === 'Stress' || label === 'Anxiety'
+                  let statusColor, statusLabel
+                  if (isInverted) {
+                    if (avg <= 3)      { statusColor = GREEN;  statusLabel = 'GREAT' }
+                    else if (avg <= 5) { statusColor = '#f0c040'; statusLabel = 'OK' }
+                    else               { statusColor = RED;    statusLabel = 'HIGH' }
+                  } else {
+                    if (avg >= 7.5)    { statusColor = GREEN;  statusLabel = 'STRONG' }
+                    else if (avg >= 5) { statusColor = '#f0c040'; statusLabel = 'GOOD' }
+                    else               { statusColor = RED;    statusLabel = 'LOW' }
+                  }
+                  return (
+                    <div key={label} style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center',
+                      padding: '14px 8px 10px', borderRadius: 12, gap: 2,
+                      background: `${statusColor}0A`,
+                      border: `1px solid ${statusColor}30`,
+                      boxShadow: `0 0 20px ${statusColor}08, inset 0 1px 0 ${statusColor}12`,
+                      position: 'relative', overflow: 'hidden',
+                    }}>
+                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${statusColor}CC, transparent)` }} />
+                      <span style={{
+                        fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900,
+                        fontSize: 36, lineHeight: 1, color: statusColor,
+                        filter: `drop-shadow(0 0 14px ${statusColor}90)`,
+                      }}>{avg}</span>
+                      <span style={{ fontFamily: 'Inter', fontSize: 9, color: statusColor, fontWeight: 700, opacity: 0.7 }}>/10</span>
+                      <span style={{ fontFamily: 'Inter', fontSize: 11, fontWeight: 700, color: TEXT1, textAlign: 'center', lineHeight: 1.2, marginTop: 3 }}>{label}</span>
+                      <div style={{
+                        marginTop: 4, padding: '2px 8px', borderRadius: 6,
+                        background: `${statusColor}18`, border: `1px solid ${statusColor}40`,
+                      }}>
+                        <span style={{ fontFamily: '"Orbitron", monospace', fontSize: 7, fontWeight: 700, color: statusColor, letterSpacing: '0.12em' }}>{statusLabel}</span>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
         )}
 
         {/* ── METRICS TREND GRAPH ── */}
-        {trendData.some(d => d.hasData) && (
-          <div className="fade-up delay-2" style={{ ...cardStyle(CYAN), padding: 0 }}>
-            <GlowLine color={CYAN} />
-            <div style={{ padding: '22px 24px' }}>
-              <SectionHeader
-                label="Metrics Trend"
-                color={CYAN}
-                extra={<span style={{ fontFamily: 'Inter', fontSize: 11, color: '#64748b', fontWeight: 500 }}>last {trimmedTrend.length} days</span>}
-              />
+        {trendData.some(d => d.hasData) && (() => {
+          const CHART_TABS = {
+            WELLBEING: [
+              { key: 'energy',      label: 'Energy',     color: GOLD   },
+              { key: 'dayRating',   label: 'Day Rating', color: VIOLET },
+              { key: 'mood',        label: 'Mood',       color: PINK   },
+              { key: 'stress',      label: 'Stress',     color: RED    },
+            ],
+            BODY: [
+              { key: 'sleepNorm',    label: 'Sleep',    color: '#c084fc' },
+              { key: 'stepsNorm',    label: 'Steps',    color: BLUE      },
+              { key: 'caloriesNorm', label: 'Calories', color: CYAN      },
+              { key: 'proteinNorm',  label: 'Protein',  color: '#34d399' },
+            ],
+            BUSINESS: [
+              { key: 'bizHoursNorm', label: 'Biz Hours',    color: ORANGE    },
+              { key: 'workoutNorm',  label: 'Training',     color: '#2dd4bf' },
+              { key: 'dietQuality',  label: 'Diet Quality', color: GREEN     },
+            ],
+          }
+          const TAB_COLORS = { WELLBEING: GOLD, BODY: GREEN, BUSINESS: BLUE }
+          const activeLines = CHART_TABS[activeTab]
+          const tabColor = TAB_COLORS[activeTab]
+          return (
+            <div className="fade-up delay-2" style={{ ...cardStyle(tabColor), padding: 0, transition: 'border-color 0.3s' }}>
+              <GlowLine color={tabColor} />
+              <div style={{ padding: '22px 24px' }}>
+                <SectionHeader
+                  label="Metrics Trend"
+                  color={tabColor}
+                  extra={<span style={{ fontFamily: 'Inter', fontSize: 11, color: '#64748b', fontWeight: 500 }}>last {trimmedTrend.length} days</span>}
+                />
 
-              {/* Legend */}
-              <div style={{ display: 'flex', gap: 16, marginBottom: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
-                {[
-                  { key: 'energy',       label: 'Energy',       color: GOLD      },
-                  { key: 'dayRating',    label: 'Day Rating',   color: VIOLET    },
-                  { key: 'dietQuality',  label: 'Diet Quality', color: GREEN     },
-                  { key: 'stress',       label: 'Stress',       color: RED       },
-                  { key: 'mood',         label: 'Mood',         color: PINK      },
-                  { key: 'caloriesNorm', label: 'Calories',     color: CYAN      },
-                  { key: 'proteinNorm',  label: 'Protein',      color: '#34d399' },
-                  { key: 'stepsNorm',    label: 'Steps',        color: BLUE      },
-                  { key: 'workoutNorm',  label: 'Workout Hrs',  color: '#2dd4bf' },
-                  { key: 'bizHoursNorm', label: 'Business Hrs', color: ORANGE    },
-                  { key: 'sleepNorm',    label: 'Sleep Hrs',    color: '#c084fc' },
-                ].map(({ key, label, color }) => (
-                  <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                    <div style={{ width: 24, height: 3, background: color, borderRadius: 2, boxShadow: `0 0 8px ${color}` }} />
-                    <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: TEXT1 }}>{label}</span>
-                  </div>
-                ))}
+                {/* Tab pills */}
+                <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+                  {Object.keys(CHART_TABS).map(key => {
+                    const isActive = activeTab === key
+                    const tc = TAB_COLORS[key]
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => setActiveTab(key)}
+                        style={{
+                          background: isActive ? `${tc}22` : 'rgba(10,15,32,0.5)',
+                          border: `1px solid ${isActive ? tc + '80' : 'rgba(40,55,100,0.4)'}`,
+                          borderRadius: 8, padding: '6px 18px',
+                          fontFamily: '"Orbitron", monospace', fontSize: 9, fontWeight: 700,
+                          color: isActive ? tc : MUTED, cursor: 'pointer', letterSpacing: '0.12em',
+                          boxShadow: isActive ? `0 0 14px ${tc}28` : 'none',
+                          transition: 'all 0.2s',
+                        }}
+                      >{key}</button>
+                    )
+                  })}
+                </div>
+
+                {/* Legend */}
+                <div style={{ display: 'flex', gap: 20, marginBottom: 16, justifyContent: 'center' }}>
+                  {activeLines.map(({ key, label, color }) => (
+                    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <div style={{ width: 24, height: 3, background: color, borderRadius: 2, boxShadow: `0 0 8px ${color}` }} />
+                      <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: TEXT1 }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <ResponsiveContainer width="100%" height={240}>
+                  <LineChart data={trimmedTrend} margin={{ top: 8, right: 12, left: -8, bottom: 4 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={`${tabColor}14`} vertical={false} />
+                    <XAxis
+                      dataKey="label"
+                      tick={{ fontFamily: 'Inter', fontSize: 11, fill: '#94a3b8', fontWeight: 600 }}
+                      tickLine={false}
+                      axisLine={{ stroke: `${tabColor}28` }}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis
+                      domain={[0, 10]}
+                      tick={{ fontFamily: 'Inter', fontSize: 11, fill: '#94a3b8', fontWeight: 600 }}
+                      tickLine={false}
+                      axisLine={false}
+                      ticks={[0, 2, 4, 6, 8, 10]}
+                      width={28}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: 'rgba(4,6,18,0.97)', border: `1px solid ${tabColor}35`,
+                        borderRadius: 12, fontFamily: 'Inter', fontSize: 12, color: TEXT1,
+                        boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 20px ${tabColor}12`,
+                      }}
+                      formatter={(v, name, props) => {
+                        const p = props.payload
+                        if (name === 'Calories') return [p.calories    != null ? `${p.calories.toLocaleString()} kcal` : '—', name]
+                        if (name === 'Protein')  return [p.protein     != null ? `${p.protein} g`                      : '—', name]
+                        if (name === 'Steps')    return [p.steps       != null ? `${p.steps.toLocaleString()} steps`   : '—', name]
+                        if (name === 'Sleep')    return [p.sleepHours  != null ? `${p.sleepHours} hrs`                 : '—', name]
+                        if (name === 'Biz Hours') return [p.bizHours   != null ? `${p.bizHours} hrs`                   : '—', name]
+                        if (name === 'Training') return [p.workoutHours != null ? (p.workoutHours ? 'Trained ✓' : 'Rest day') : '—', name]
+                        return [v != null ? `${v} / 10` : '—', name]
+                      }}
+                      labelStyle={{ color: GOLD, fontWeight: 700, fontSize: 11, marginBottom: 6 }}
+                      itemStyle={{ padding: '2px 0', fontWeight: 600 }}
+                    />
+                    {activeLines.map(({ key, label, color }) => (
+                      <Line
+                        key={key}
+                        type="monotone"
+                        dataKey={key}
+                        name={label}
+                        stroke={color}
+                        strokeWidth={2.5}
+                        dot={{ r: 3, strokeWidth: 0, fill: color }}
+                        activeDot={{ r: 6 }}
+                        connectNulls
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
-
-              {/* Chart */}
-              <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={trimmedTrend} margin={{ top: 8, right: 12, left: -8, bottom: 4 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={`${CYAN}14`} vertical={false} />
-                  <XAxis
-                    dataKey="label"
-                    tick={{ fontFamily: 'Inter', fontSize: 11, fill: '#94a3b8', fontWeight: 600 }}
-                    tickLine={false}
-                    axisLine={{ stroke: `${CYAN}28` }}
-                    interval="preserveStartEnd"
-                  />
-                  <YAxis
-                    domain={[0, 10]}
-                    tick={{ fontFamily: 'Inter', fontSize: 11, fill: '#94a3b8', fontWeight: 600 }}
-                    tickLine={false}
-                    axisLine={false}
-                    ticks={[0, 2, 4, 6, 8, 10]}
-                    width={28}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: 'rgba(4,6,18,0.97)', border: `1px solid ${CYAN}35`,
-                      borderRadius: 12, fontFamily: 'Inter', fontSize: 12, color: TEXT1,
-                      boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 20px ${CYAN}12`,
-                    }}
-                    formatter={(v, name, props) => {
-                      const p = props.payload
-                      if (name === 'Calories')     return [p.calories     != null ? `${p.calories.toLocaleString()} kcal` : '—', name]
-                      if (name === 'Protein')      return [p.protein      != null ? `${p.protein} g`                      : '—', name]
-                      if (name === 'Steps')        return [p.steps        != null ? `${p.steps.toLocaleString()} steps`   : '—', name]
-                      if (name === 'Workout Hrs')  return [p.workoutHours != null ? `${p.workoutHours} hrs`               : '—', name]
-                      if (name === 'Business Hrs') return [p.bizHours     != null ? `${p.bizHours} hrs`                   : '—', name]
-                      if (name === 'Sleep Hrs')    return [p.sleepHours   != null ? `${p.sleepHours} hrs`                 : '—', name]
-                      return [v != null ? `${v} / 10` : '—', name]
-                    }}
-                    labelStyle={{ color: GOLD, fontWeight: 700, fontSize: 11, marginBottom: 6 }}
-                    itemStyle={{ padding: '2px 0', fontWeight: 600 }}
-                  />
-                  <Line type="monotone" dataKey="energy"       name="Energy"       stroke={GOLD}      strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: GOLD }}      activeDot={{ r: 6 }} connectNulls />
-                  <Line type="monotone" dataKey="dayRating"    name="Day Rating"   stroke={VIOLET}    strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: VIOLET }}    activeDot={{ r: 6 }} connectNulls />
-                  <Line type="monotone" dataKey="dietQuality"  name="Diet Quality" stroke={GREEN}     strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: GREEN }}     activeDot={{ r: 6 }} connectNulls />
-                  <Line type="monotone" dataKey="stress"       name="Stress"       stroke={RED}       strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: RED }}       activeDot={{ r: 6 }} connectNulls />
-                  <Line type="monotone" dataKey="mood"         name="Mood"         stroke={PINK}      strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: PINK }}      activeDot={{ r: 6 }} connectNulls />
-                  <Line type="monotone" dataKey="caloriesNorm" name="Calories"     stroke={CYAN}      strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: CYAN }}      activeDot={{ r: 6 }} connectNulls />
-                  <Line type="monotone" dataKey="proteinNorm"  name="Protein"      stroke="#34d399"   strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: '#34d399' }} activeDot={{ r: 6 }} connectNulls />
-                  <Line type="monotone" dataKey="stepsNorm"    name="Steps"        stroke={BLUE}      strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: BLUE }}      activeDot={{ r: 6 }} connectNulls />
-                  <Line type="monotone" dataKey="workoutNorm"  name="Workout Hrs"  stroke="#2dd4bf"   strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: '#2dd4bf' }} activeDot={{ r: 6 }} connectNulls />
-                  <Line type="monotone" dataKey="bizHoursNorm" name="Business Hrs" stroke={ORANGE}    strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: ORANGE }}    activeDot={{ r: 6 }} connectNulls />
-                  <Line type="monotone" dataKey="sleepNorm"    name="Sleep Hrs"    stroke="#c084fc"   strokeWidth={2.5} dot={{ r: 3, strokeWidth: 0, fill: '#c084fc' }} activeDot={{ r: 6 }} connectNulls />
-                </LineChart>
-              </ResponsiveContainer>
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         {/* ── DAILY HABITS ── */}
         {habitHistory7.some(d => d.hasData) && (
@@ -789,56 +862,75 @@ export default function DailyCommand({ onNavigate }) {
             <GlowLine color={GREEN} />
             <div style={{ padding: '18px 20px' }}>
               <SectionHeader label="Daily Habits — Last 7 Days" color={GREEN} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+
+                {/* DOW header row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                  <div style={{ minWidth: 110 }} />
+                  <div style={{ display: 'flex', gap: 7, flex: 1 }}>
+                    {habitHistory7.map((d, i) => (
+                      <span key={i} style={{
+                        flex: 1, textAlign: 'center',
+                        fontFamily: '"Orbitron", monospace', fontSize: 9,
+                        fontWeight: d.isToday ? 700 : 400,
+                        color: d.isToday ? GOLD : MUTED,
+                        letterSpacing: '0.05em',
+                      }}>{d.dow}</span>
+                    ))}
+                  </div>
+                  <div style={{ minWidth: 44 }} />
+                </div>
+
                 {[
-                  { key: 'read',      label: 'Read',       color: CYAN   },
-                  { key: 'meditated', label: 'Meditated',  color: VIOLET },
-                  { key: 'prayed',    label: 'Prayed',     color: GOLD   },
-                  { key: 'bible',     label: 'Read Bible', color: PINK   },
-                ].map(({ key, label, color }) => (
-                  <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: TEXT1, minWidth: 100 }}>{label}</span>
-                    <div style={{ display: 'flex', gap: 7, flex: 1 }}>
-                      {habitHistory7.map((d, i) => (
-                        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                          <div style={{
-                            width: '100%', aspectRatio: '1', borderRadius: 7,
+                  { key: 'read',      label: 'Reading',    color: CYAN   },
+                  { key: 'meditated', label: 'Meditate',   color: VIOLET },
+                  { key: 'prayed',    label: 'Prayer',     color: GOLD   },
+                  { key: 'bible',     label: 'Bible',      color: PINK   },
+                ].map(({ key, label, color }) => {
+                  const streak = habitStreaks[key] || 0
+                  return (
+                    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 700, color: TEXT1, minWidth: 110 }}>{label}</span>
+                      <div style={{ display: 'flex', gap: 7, flex: 1 }}>
+                        {habitHistory7.map((d, i) => (
+                          <div key={i} style={{
+                            flex: 1, aspectRatio: '1', borderRadius: 8,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             background: !d.hasData
-                              ? 'rgba(20,28,52,0.5)'
-                              : d[key] ? `${GREEN}12` : `${RED}10`,
+                              ? 'rgba(15,22,44,0.5)'
+                              : d[key] ? `${GREEN}18` : `${RED}14`,
                             border: d.isToday
-                              ? `1px solid ${color}CC`
-                              : `1px solid ${!d.hasData ? 'rgba(30,41,80,0.4)' : d[key] ? `${GREEN}50` : `${RED}45`}`,
-                            boxShadow: d.hasData ? (d[key] ? `0 0 10px ${GREEN}20` : `0 0 10px ${RED}15`) : 'none',
+                              ? `1.5px solid ${color}BB`
+                              : `1px solid ${!d.hasData ? 'rgba(30,41,80,0.35)' : d[key] ? `${GREEN}55` : `${RED}50`}`,
+                            boxShadow: d.hasData
+                              ? (d[key] ? `0 0 12px ${GREEN}25, inset 0 0 8px ${GREEN}08` : `0 0 8px ${RED}18`)
+                              : 'none',
                           }}>
                             {d.hasData && (
                               <span style={{
-                                fontSize: 13, fontWeight: 900,
+                                fontSize: 14, fontWeight: 900,
                                 color: d[key] ? GREEN : RED,
-                                filter: d[key] ? `drop-shadow(0 0 6px ${GREEN})` : `drop-shadow(0 0 6px ${RED})`,
+                                filter: d[key] ? `drop-shadow(0 0 8px ${GREEN}CC)` : `drop-shadow(0 0 4px ${RED}88)`,
                               }}>
                                 {d[key] ? '✓' : '✗'}
                               </span>
                             )}
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                      {/* Streak badge */}
+                      <div style={{
+                        minWidth: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        gap: 3, padding: '3px 8px', borderRadius: 7,
+                        background: streak > 0 ? `${ORANGE}14` : 'rgba(15,22,44,0.4)',
+                        border: `1px solid ${streak > 0 ? ORANGE + '40' : 'rgba(30,41,80,0.3)'}`,
+                      }}>
+                        <span style={{ fontFamily: '"Barlow Condensed", sans-serif', fontWeight: 900, fontSize: 15, color: streak > 0 ? ORANGE : DARK, filter: streak > 0 ? `drop-shadow(0 0 6px ${ORANGE}80)` : 'none' }}>{streak}</span>
+                        {streak > 0 && <span style={{ fontSize: 10 }}>🔥</span>}
+                      </div>
                     </div>
-                  </div>
-                ))}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 2 }}>
-                  <span style={{ minWidth: 100 }} />
-                  <div style={{ display: 'flex', gap: 7, flex: 1 }}>
-                    {habitHistory7.map((d, i) => (
-                      <span key={i} style={{
-                        flex: 1, textAlign: 'center', fontFamily: 'Inter', fontSize: 9,
-                        fontWeight: d.isToday ? 700 : 400,
-                        color: d.isToday ? GOLD : DARK,
-                      }}>{d.dow}</span>
-                    ))}
-                  </div>
-                </div>
+                  )
+                })}
               </div>
             </div>
           </div>
